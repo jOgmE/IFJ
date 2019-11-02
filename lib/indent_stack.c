@@ -2,16 +2,16 @@
 
 #include "indent_stack.h"
 
-tIdentStack *stackInit();
+tIndentStack *stackInit();
 
-bool stackEmpty(tIdentStack *s);
+bool stackEmpty(tIndentStack *);
 
-void stackPush(tIndentStack *s, unsigned i);
+void stackPush(tIndentStack *, unsigned);
 
-unsigned stackTop(tIdentStack *s);
+unsigned stackTop(tIndentStack *);
 
-void stackPop(tIdentStack *s);
+void stackPop(tIndentStack *);
 
-bool stackTopCompare(tIndentStack *s, unsigned i);
+bool stackTopCompare(tIndentStack *, unsigned);
 
-void stackDestroy(tIndentStack *s);
+void stackDestroy(tIndentStack *);
