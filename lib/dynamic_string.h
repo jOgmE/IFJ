@@ -45,10 +45,18 @@ void resize_cstring(cstring *cstr, size_t new_size);
 void append_char(cstring *cstr, char c);
 
 /**
+ * Appends new character to the end of cstring
+ * 
+ * @param cstr Pointer to previously allocated cstring
+ * @param str Pointer to previously allocated string to be appended
+ */
+void append_string(cstring *cstr, char *str);
+
+/**
  * Appends cstring to the end of first cstring
  * 
- * @param str Pointer to previously allocated cstring
- * @param c Character to append
+ * @param str Pointer to previously allocated cstring to append to
+ * @param str Pointer to previously allocated cstring to be append
  */
 void append_cstring(cstring *dest, cstring *src);
 

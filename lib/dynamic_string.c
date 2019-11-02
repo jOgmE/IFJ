@@ -50,6 +50,7 @@ void resize_cstring(cstring *cstr, size_t new_size)
     }
 
     cstr->allocated_size = new_size;
+    cstr->length = strlen(cstr->str);
 }
 
 void append_char(cstring *cstr, char c)
@@ -63,6 +64,21 @@ void append_char(cstring *cstr, char c)
     // Concatenate string and character
     cstr->str[cstr->length] = c;
     ++cstr->length;
+    cstr->str[cstr->length] = '\0';
+}
+
+void append_string(cstring *cstr, char *str)
+{
+    size_t new_size = cstr->length + strlen(str);
+
+    if (cstr->allocated_size < new_size)
+    {
+        resize_cstring(cstr, new_size);
+        cstr->allocated_size = new_size;
+    }
+
+    strcat(cstr->str, str);
+    cstr->length = new_size;
     cstr->str[cstr->length] = '\0';
 }
 

@@ -81,6 +81,17 @@ bool test_dynamic_string()
 
     printf("[Y] append_cstring(first_cstr, second_cstr) test passed\n\n");
 
+    printf("[-] append_string(second_cstr, \"cd\")\n");
+    append_string(second_cstr, "cd");
+
+    if (!compare_string(second_cstr, "abcd"))
+    {
+        printf("[N] ERROR append_string(second_cstr, \"cd\") string not equal to \"abcd\" (%s)\n", second_cstr->str);
+        exit(1);
+    }
+
+    printf("[Y] append_string(second_cstr, \"cd\") test passed\n\n");
+
     printf("[-] free_cstring(first_cstr)\n");
     free_cstring(first_cstr);
     printf("[Y] free_cstring(first_cstr) test passed\n\n");
