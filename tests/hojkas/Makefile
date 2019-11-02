@@ -6,5 +6,8 @@ STACKPATH=../../lib/
 CC=gcc
 CFLAGS=-Wall -std=c99 -pedantic -lm -I$(STACKPATH)
 
-$(NAME): $(TEST).c $(STACKPATH)indent_stack.c
-	$(CC) $(CFLAGS) -o $@ $(TEST).c $(STACKPATH)indent_stack.c
+$(NAME): $(TEST).c $(STACKPATH)$(NAME).c
+	$(CC) $(CFLAGS) -o $@ $(TEST).c $(STACKPATH)$(NAME).c
+
+clean:
+	rm $(NAME)
