@@ -1,17 +1,43 @@
 //TODO
 
 #include "indent_stack.h"
+#include <stdlib.h>
 
-tIndentStack *stackInit();
+tIndentStack *stackInit()
+{
+  tIndentStack* stack = malloc(sizeof(tIndentStack));
+  if(stack == NULL) return NULL;
+  stack->size = 0;
+  stack->top = NULL;
+  return stack;
+}
 
-bool stackEmpty(tIndentStack *);
+bool stackEmpty(tIndentStack *s)
+{
 
-void stackPush(tIndentStack *, unsigned);
+}
 
-unsigned stackTop(tIndentStack *);
+void stackPush(tIndentStack *s, unsigned n)
+{
 
-void stackPop(tIndentStack *);
+}
 
-bool stackTopCompare(tIndentStack *, unsigned);
+unsigned stackTop(tIndentStack *s)
+{
 
-void stackDestroy(tIndentStack *);
+}
+
+void stackPop(tIndentStack *s)
+{
+
+}
+
+int stackTopCompare(tIndentStack *s, unsigned n)
+{
+
+}
+
+void stackDestroy(tIndentStack *s)
+{
+
+}

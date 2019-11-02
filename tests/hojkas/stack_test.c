@@ -20,6 +20,7 @@ int main()
   tIndentStack *s = stackInit();
   printStack(s);
 
+  /*
   stackPush(s, 0);
   stackPush(s, 2);
   stackPush(s, 4);
@@ -48,6 +49,6 @@ int main()
   printf("Compare top with 2: %d\n", stackTopCompare(s, 2));
 
   stackDestroy(s);
-
+  */
   return 0;
 }

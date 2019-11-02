@@ -9,7 +9,7 @@
 typedef struct tStackItem {
   unsigned indent;
   struct tStackItem *prev;
-};
+} tStackItem;
 
 typedef struct {
   struct tStackItem *top;
@@ -27,7 +27,7 @@ unsigned stackTop(tIndentStack *);
 
 void stackPop(tIndentStack *);
 
-bool stackTopCompare(tIndentStack *, unsigned);
+int stackTopCompare(tIndentStack *, unsigned);
 
 void stackDestroy(tIndentStack *);
 
