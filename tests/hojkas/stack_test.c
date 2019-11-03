@@ -1,4 +1,10 @@
-//TODO
+/** \stack_test.c
+ * Základní testy pro indent stack
+ *
+ * \author xstrna14
+ * \version 1.0
+ * \date 3.11.2019
+ */
 
 #include "indent_stack.h"
 
@@ -20,8 +26,7 @@ int main()
   tIndentStack *s = stackInit();
   printStack(s);
 
-  /*
-  stackPush(s, 0);
+  stackPush(s, 1);
   stackPush(s, 2);
   stackPush(s, 4);
 
@@ -49,6 +54,6 @@ int main()
   printf("Compare top with 2: %d\n", stackTopCompare(s, 2));
 
   stackDestroy(s);
-  */
+
   return 0;
 }
