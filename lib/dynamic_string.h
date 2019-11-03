@@ -7,8 +7,10 @@
  *  @date 2019
  */
 
+#ifndef DYNAMIC_STRING_H
+
 #include <stdlib.h>  //malloc, realloc, free
-#include <string.h>  //strlen, strcmp
+#include <string.h>  //strlen, strcmp. memcpy
 #include <stdbool.h> //bool type
 
 /**
@@ -28,6 +30,14 @@ typedef struct cstring_struct
  * @returns Pointer to allocated cstring
  */
 cstring *init_cstring(char *str);
+
+/**
+ * Initializes new instance of cstring  with string of specified size
+ * 
+ * @param size Size of string in cstring
+ * @returns Pointer to allocated cstring
+ */
+cstring *init_cstring_size(size_t size);
 
 /**
  * Resizes string to new size
@@ -84,3 +94,5 @@ bool compare_cstring(cstring *cstr1, cstring *cstr2);
  * @param str Pointer to previously allocated cstring
  */
 void free_cstring(cstring *cstr);
+
+#endif // DYNAMIC_STRING_H

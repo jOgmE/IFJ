@@ -1,3 +1,7 @@
 # Folders
 
 .vscode/
+
+# Files
+
+**/dynamic_string_test

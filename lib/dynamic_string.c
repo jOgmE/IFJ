@@ -9,9 +9,8 @@
 
 #include "dynamic_string.h"
 
-cstring *init_cstring(char *str)
+cstring *init_cstring_size(size_t size)
 {
-    size_t size = sizeof(str);
 
     cstring *cstr = (cstring *)malloc(sizeof(cstring));
 
@@ -31,8 +30,20 @@ cstring *init_cstring(char *str)
         return NULL;
     }
 
-    memcpy(cstr->str, str, size);
+    cstr->length = 0;
     cstr->allocated_size = size;
+
+    return cstr;
+}
+
+cstring *init_cstring(char *str)
+{
+    size_t size = sizeof(str);
+
+    cstring *cstr = init_cstring_size(size);
+
+    memcpy(cstr->str, str, size);
+
     cstr->length = strlen(str);
 
     return cstr;
@@ -40,6 +51,15 @@ cstring *init_cstring(char *str)
 
 void resize_cstring(cstring *cstr, size_t new_size)
 {
+    if (cstr->allocated_size > new_size)
+    {
+        cstr->str[new_size] = '\0';
+    }
+    else if (cstr->allocated_size == new_size) // No need to resize
+    {
+        return;
+    }
+
     cstr->str = (char *)realloc(cstr->str, new_size);
 
     // Check if string was reallocated succesfully
