@@ -13,6 +13,8 @@
 #include <string.h>  //strlen, strcmp. memcpy
 #include <stdbool.h> //bool type
 
+#include "errors.h" //errors
+
 /**
  * cstring structure
  */
@@ -44,7 +46,7 @@ cstring *init_cstring_size(size_t size);
  * 
  * @param str Pointer to previously allocated cstring
  */
-void resize_cstring(cstring *cstr, size_t new_size);
+error_type resize_cstring(cstring *cstr, size_t new_size);
 
 /**
  * Appends new character to the end of cstring

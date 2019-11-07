@@ -49,7 +49,7 @@ cstring *init_cstring(char *str)
     return cstr;
 }
 
-void resize_cstring(cstring *cstr, size_t new_size)
+error_type resize_cstring(cstring *cstr, size_t new_size)
 {
     if (cstr->allocated_size > new_size)
     {
@@ -57,7 +57,7 @@ void resize_cstring(cstring *cstr, size_t new_size)
     }
     else if (cstr->allocated_size == new_size) // No need to resize
     {
-        return;
+        return SUCCESS;
     }
 
     cstr->str = (char *)realloc(cstr->str, new_size);
@@ -65,12 +65,13 @@ void resize_cstring(cstring *cstr, size_t new_size)
     // Check if string was reallocated succesfully
     if (cstr->str == NULL)
     {
-        //TODO: Handle alloc errors
-        return;
+        return MEMORY_ERROR;
     }
 
     cstr->allocated_size = new_size;
     cstr->length = strlen(cstr->str);
+
+    return SUCCESS;
 }
 
 void append_char(cstring *cstr, char c)
