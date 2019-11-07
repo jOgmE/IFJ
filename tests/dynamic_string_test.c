@@ -10,7 +10,7 @@ void print_state(cstring *cstr, char result_char)
     printf("[%c] cstr->length: %zu \n\n", result_char, cstr->length);
 }
 
-bool test_dynamic_string()
+void test_dynamic_string()
 {
     // ****************************************************************************//
     // ****************** init test 01 ********************************************//
