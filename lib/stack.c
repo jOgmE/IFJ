@@ -1,15 +1,32 @@
-/** @indent_stack.c
- * Funkce pro práce s indent_stack
+/** @stack.c
+ * Funkce pro práce s stack
  *
  * @author xstrna14
- * @version 1.0
- * @date 3.11.2019
+ * @version 2.0
+ * @date 9.11.2019
+ *
+ * UPDATE 2.0: fixed to be universal
  */
 
-#include "indent_stack.h"
+#include "stack.h"
 #include <stdlib.h>
 
-void stackPush(tIndentStack *s, unsigned n)
+tStack *stackInit()
+{
+  tStack* stack = malloc(sizeof(tStack));
+  if(stack == NULL) return NULL;
+  stack->size = 0;
+  stack->top = NULL;
+  return stack;
+}
+
+bool stackEmpty(tStack *s)
+{
+  if(s->size == 0) return true;
+  return false;
+}
+
+void stackPush(tStack *s, unsigned n)
 {
     tStackItem *to_be_added = malloc(sizeof(tStackItem));
     if(to_be_added == NULL) {
@@ -23,43 +40,26 @@ void stackPush(tIndentStack *s, unsigned n)
     s->top = to_be_added;
 }
 
-tIndentStack *stackInit()
-{
-  tIndentStack* stack = malloc(sizeof(tIndentStack));
-  if(stack == NULL) return NULL;
-  stack->size = 0;
-  stack->top = NULL;
-  stackPush(stack, 0);
-  return stack;
-}
-
-bool stackEmpty(tIndentStack *s)
-{
-  if(s->size == 1) return true;
-  return false;
-}
-
-
-unsigned stackTop(tIndentStack *s)
+unsigned stackTop(tStack *s)
 {
   return s->top->indent;
 }
 
-void stackPop(tIndentStack *s)
+void stackPop(tStack *s)
 {
-  if(s->size == 1) return; //na pocatecni 0 nesaham
+  if(s->size == 0) return; //na pocatecni 0 nesaham
   tStackItem *to_be_destroyed = s->top;
   s->top = s->top->prev;
   (s->size)--;
   free(to_be_destroyed);
 }
 
-int stackTopCompare(tIndentStack *s, unsigned n)
+int stackTopCompare(tStack *s, unsigned n)
 {
   return((stackTop(s) == n) ? 0 : (n > stackTop(s) ? 1 : -1));
 }
 
-void stackDestroy(tIndentStack *s)
+void stackDestroy(tStack *s)
 {
   tStackItem *curr_item = s->top;
   tStackItem *prev_item;

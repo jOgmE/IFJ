@@ -1,5 +1,5 @@
 
-NAME=indent_stack
+NAME=stack
 TEST=stack_test
 #
 STACKPATH=../../lib/
