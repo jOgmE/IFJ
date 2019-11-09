@@ -15,15 +15,15 @@
 /**
 *Struktura na položku v zásobníku
 */
-typedef struct tStackItem {
+typedef struct tIndentStackItem {
   unsigned indent;          /**< Hodnota položky*/
-  struct tStackItem *prev;  /**< Ukazatel na předchozí položku v zásobníku*/
-} tStackItem;
+  struct tIndentStackItem *prev;  /**< Ukazatel na předchozí položku v zásobníku*/
+} tIndentStackItem;
 
 /**
 *Struktura zásobníku*/
 typedef struct {
-  struct tStackItem *top; /**<Ukazatel na položku na vrcholu zásobníku*/
+  struct tIndentStackItem *top; /**<Ukazatel na položku na vrcholu zásobníku*/
   size_t size;            /**Aktuální velikost zásobníku*/
 } tIndentStack;
 
@@ -31,7 +31,7 @@ typedef struct {
 *Inicializuje zásobník a první položku s hodnotou 0, která nemůže být změněna.
 *@return tIndentStack* Ukazatel na stack.
 */
-tIndentStack *stackInit();
+tIndentStack *indentStackInit();
 
 /**
 *Kontroluje, zda-li je prázdný zásobník
@@ -39,7 +39,7 @@ tIndentStack *stackInit();
 *@return true je-li zásobník prázdný (aka obsahuje jen jeden item s hodnotou 0)
 *@return false obsahuje-li zásobník ještě jinou položku krom 0
 */
-bool stackEmpty(tIndentStack *);
+bool indentStackEmpty(tIndentStack *);
 
 /**
 *Přidá položku typu unsigned na vrchol zásobníku
@@ -47,20 +47,20 @@ bool stackEmpty(tIndentStack *);
 *@param tIndentStack* ukazatel na zásobník
 *@param unsigned číslo k přidání
 */
-void stackPush(tIndentStack *, unsigned);
+void indentStackPush(tIndentStack *, unsigned);
 
 /**
 *Vrátí hodnotu vrchní položky zásobníku
 *@param tIndentStack* ukazatel na zásobník
 *@return unsigned hodnota vrchní položky zásbníku
 */
-unsigned stackTop(tIndentStack *);
+unsigned indentStackTop(tIndentStack *);
 
 /**
 *Odstraní vrchní položku zásobníku (a upraví všechny závislosti)
 *@param tIndentStack* ukazatel na zásobníku
 */
-void stackPop(tIndentStack *);
+void indentStackPop(tIndentStack *);
 
 /**
 *Porovná hodnotu položky na vrcholu zásobníku a zadané číslo
@@ -70,12 +70,12 @@ void stackPop(tIndentStack *);
 *@return 1 číslo je větší než položka na vrcholu zásobníku
 *@return -1 číslo je menší než položka na vrcholu zásobníku
 */
-int stackTopCompare(tIndentStack *, unsigned);
+int indentStackTopCompare(tIndentStack *, unsigned);
 
 /**
 *Zničí zásobník, uvolní všechny položky
 *@param tIndentStack* ukazatel na zásobník
 */
-void stackDestroy(tIndentStack *);
+void indentStackDestroy(tIndentStack *);
 
 #endif //_INDENT_STACK_H_

@@ -2,16 +2,17 @@
  * Funkce pro práce s indent_stack
  *
  * @author xstrna14
- * @version 1.0
- * @date 3.11.2019
+ * @version 1.1
+ * Přejmenování kvůli ostatním stack funkcím
+ * @date 9.11.2019
  */
 
 #include "indent_stack.h"
 #include <stdlib.h>
 
-void stackPush(tIndentStack *s, unsigned n)
+void indentStackPush(tIndentStack *s, unsigned n)
 {
-    tStackItem *to_be_added = malloc(sizeof(tStackItem));
+    tIndentStackItem *to_be_added = malloc(sizeof(tIndentStackItem));
     if(to_be_added == NULL) {
       //TODO allocation error handling
       //TODO what if at top size of size_t?
@@ -23,46 +24,46 @@ void stackPush(tIndentStack *s, unsigned n)
     s->top = to_be_added;
 }
 
-tIndentStack *stackInit()
+tIndentStack *indentStackInit()
 {
   tIndentStack* stack = malloc(sizeof(tIndentStack));
   if(stack == NULL) return NULL;
   stack->size = 0;
   stack->top = NULL;
-  stackPush(stack, 0);
+  indentStackPush(stack, 0);
   return stack;
 }
 
-bool stackEmpty(tIndentStack *s)
+bool indentStackEmpty(tIndentStack *s)
 {
   if(s->size == 1) return true;
   return false;
 }
 
 
-unsigned stackTop(tIndentStack *s)
+unsigned indentStackTop(tIndentStack *s)
 {
   return s->top->indent;
 }
 
-void stackPop(tIndentStack *s)
+void indentStackPop(tIndentStack *s)
 {
   if(s->size == 1) return; //na pocatecni 0 nesaham
-  tStackItem *to_be_destroyed = s->top;
+  tIndentStackItem *to_be_destroyed = s->top;
   s->top = s->top->prev;
   (s->size)--;
   free(to_be_destroyed);
 }
 
-int stackTopCompare(tIndentStack *s, unsigned n)
+int indentStackTopCompare(tIndentStack *s, unsigned n)
 {
-  return((stackTop(s) == n) ? 0 : (n > stackTop(s) ? 1 : -1));
+  return((indentStackTop(s) == n) ? 0 : (n > indentStackTop(s) ? 1 : -1));
 }
 
-void stackDestroy(tIndentStack *s)
+void indentStackDestroy(tIndentStack *s)
 {
-  tStackItem *curr_item = s->top;
-  tStackItem *prev_item;
+  tIndentStackItem *curr_item = s->top;
+  tIndentStackItem *prev_item;
   while(curr_item != NULL) {
     prev_item = curr_item->prev;
     free(curr_item);
