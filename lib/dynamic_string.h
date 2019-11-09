@@ -8,13 +8,11 @@
  */
 
 #ifndef DYNAMIC_STRING_H
-#define DYNAMIC_STRING_H
 
 #include <stdlib.h>  //malloc, realloc, free
 #include <string.h>  //strlen, strcmp. memcpy
 #include <stdbool.h> //bool type
-
-#include "errors.h" //errors
+#include "errors.h"
 
 /**
  * cstring structure
@@ -29,56 +27,49 @@ typedef struct cstring_struct
 /**
  * Initializes new instance of cstring
  * 
- * @param cstr Pointer to allocated cstring
  * @param str Pointer, or string to data to initialize cstring to
- * @returns SUCCESS if initialized successfully or error_type if initialization failed
+ * @returns Pointer to allocated cstring
  */
-error_type init_cstring(cstring *cstr, char *str);
+cstring *init_cstring(char *str);
 
 /**
  * Initializes new instance of cstring  with string of specified size
  * 
- * @param cstr Pointer to allocated cstring
  * @param size Size of string in cstring
- * @returns SUCCESS if initialized successfully or error_type if initialization failed
+ * @returns Pointer to allocated cstring
  */
-error_type init_cstring_size(cstring *cstr, size_t size);
+cstring *init_cstring_size(size_t size);
 
 /**
  * Resizes string to new size
  * 
- * @param cstr Pointer to initialized cstring
  * @param str Pointer to previously allocated cstring
- * @returns SUCCESS if resized successfully or error_type if resize failed
  */
-error_type resize_cstring(cstring *cstr, size_t new_size);
+void resize_cstring(cstring *cstr, size_t new_size);
 
 /**
  * Appends new character to the end of cstring
  * 
- * @param cstr Pointer to initialized cstring
+ * @param cstr Pointer to previously allocated cstring
  * @param c Character to append
- * @returns SUCCESS if appended successfully or error_type if append failed
  */
-error_type append_char(cstring *cstr, char c);
+void append_char(cstring *cstr, char c);
 
 /**
  * Appends new character to the end of cstring
  * 
  * @param cstr Pointer to previously allocated cstring
  * @param str Pointer to previously allocated string to be appended
- * @returns SUCCESS if appended successfully or error_type if append failed
  */
-error_type append_string(cstring *cstr, char *str);
+void append_string(cstring *cstr, char *str);
 
 /**
  * Appends cstring to the end of first cstring
  * 
- * @param dest Pointer to previously allocated cstring to append to
- * @param src Pointer to previously allocated cstring to be append
- * @returns SUCCESS if appended successfully or error_type if append failed
+ * @param str Pointer to previously allocated cstring to append to
+ * @param str Pointer to previously allocated cstring to be append
  */
-error_type append_cstring(cstring *dest, cstring *src);
+void append_cstring(cstring *dest, cstring *src);
 
 /**
  * Compares string of cstring with specified string
@@ -102,8 +93,7 @@ bool compare_cstring(cstring *cstr1, cstring *cstr2);
  * Frees previously allocated cstring
  * 
  * @param str Pointer to previously allocated cstring
- * @returns SUCCESS if free'd successfully or error_type if free'd failed
  */
-error_type free_cstring(cstring *cstr);
+void free_cstring(cstring *cstr);
 
 #endif // DYNAMIC_STRING_H

@@ -17,14 +17,11 @@ void test_dynamic_string()
     // ****************************************************************************//
 
     printf("[-] init_cstring(\"a\")\n");
+    cstring *first_cstr = init_cstring("a");
 
-    cstring *first_cstr = (cstring *)malloc(sizeof(cstring));
-
-    error_type first_init_result = init_cstring(first_cstr, "a");
-
-    if (first_init_result != SUCCESS)
+    if (global_error_code == MEMORY_ERROR)
     {
-        printf("[N] ERROR init_cstring(\"a\") not SUCCESS\n");
+        printf("[N] ERROR init_cstring(\"a\") returned NULL\n");
         exit(1);
     }
 
@@ -36,14 +33,11 @@ void test_dynamic_string()
     // ****************************************************************************//
 
     printf("[-] init_cstring_size(\"1\")\n");
+    cstring *third_cstr = init_cstring_size(1);
 
-    cstring *third_cstr = (cstring *)malloc(sizeof(cstring));
-
-    error_type third_init_result = init_cstring_size(third_cstr, 1);
-
-    if (third_init_result != SUCCESS)
+    if (third_cstr == NULL)
     {
-        printf("[N] ERROR init_cstring_size(1) not SUCCESS\n");
+        printf("[N] ERROR init_cstring_size(1) returned NULL\n");
         exit(1);
     }
 
@@ -123,9 +117,7 @@ void test_dynamic_string()
     // ****************** compare test 02 *****************************************//
     // ****************************************************************************//
 
-    cstring *second_cstr = (cstring *)malloc(sizeof(cstring));
-
-    error_type second_init_result = init_cstring(second_cstr, "ab");
+    cstring *second_cstr = init_cstring("ab");
 
     printf("[-] compare_cstring(second_cstr, \"ab\")\n");
     if (compare_cstring(first_cstr, second_cstr))
@@ -214,7 +206,7 @@ void test_dynamic_string()
 
     printf("[-] free_cstring(second_cstr)\n");
     free_cstring(second_cstr);
-    printf("[Y] free_cstring(second_cstr) test passed\n\n");
+    printf("[Y] free_cstring(second_cstr) test passed\n");
 
     // ****************************************************************************//
     // ****************** free test 02 ********************************************//

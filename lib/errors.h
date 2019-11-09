@@ -61,6 +61,9 @@ typedef struct ErrorList
     int length;         // Length of list
 } error_list;
 
+// Global error code
+extern error_type global_error_code;
+
 /**
  * Initializes new list of errors
  * 
