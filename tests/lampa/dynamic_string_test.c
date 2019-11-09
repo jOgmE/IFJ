@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "../lib/dynamic_string.h"
+#include "../../lib/dynamic_string.h"
 #include <string.h>
 
 void print_state(cstring *cstr, char result_char)
@@ -10,18 +10,21 @@ void print_state(cstring *cstr, char result_char)
     printf("[%c] cstr->length: %zu \n\n", result_char, cstr->length);
 }
 
-bool test_dynamic_string()
+void test_dynamic_string()
 {
     // ****************************************************************************//
     // ****************** init test 01 ********************************************//
     // ****************************************************************************//
 
     printf("[-] init_cstring(\"a\")\n");
-    cstring *first_cstr = init_cstring("a");
 
-    if (first_cstr == NULL)
+    cstring *first_cstr = (cstring *)malloc(sizeof(cstring));
+
+    error_type first_init_result = init_cstring(first_cstr, "a");
+
+    if (first_init_result != SUCCESS)
     {
-        printf("[N] ERROR init_cstring(\"a\") returned NULL\n");
+        printf("[N] ERROR init_cstring(\"a\") not SUCCESS\n");
         exit(1);
     }
 
@@ -33,11 +36,14 @@ bool test_dynamic_string()
     // ****************************************************************************//
 
     printf("[-] init_cstring_size(\"1\")\n");
-    cstring *third_cstr = init_cstring_size(1);
 
-    if (third_cstr == NULL)
+    cstring *third_cstr = (cstring *)malloc(sizeof(cstring));
+
+    error_type third_init_result = init_cstring_size(third_cstr, 1);
+
+    if (third_init_result != SUCCESS)
     {
-        printf("[N] ERROR init_cstring_size(1) returned NULL\n");
+        printf("[N] ERROR init_cstring_size(1) not SUCCESS\n");
         exit(1);
     }
 
@@ -117,7 +123,9 @@ bool test_dynamic_string()
     // ****************** compare test 02 *****************************************//
     // ****************************************************************************//
 
-    cstring *second_cstr = init_cstring("ab");
+    cstring *second_cstr = (cstring *)malloc(sizeof(cstring));
+
+    error_type second_init_result = init_cstring(second_cstr, "ab");
 
     printf("[-] compare_cstring(second_cstr, \"ab\")\n");
     if (compare_cstring(first_cstr, second_cstr))
@@ -206,7 +214,7 @@ bool test_dynamic_string()
 
     printf("[-] free_cstring(second_cstr)\n");
     free_cstring(second_cstr);
-    printf("[Y] free_cstring(second_cstr) test passed\n");
+    printf("[Y] free_cstring(second_cstr) test passed\n\n");
 
     // ****************************************************************************//
     // ****************** free test 02 ********************************************//
