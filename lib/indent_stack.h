@@ -1,4 +1,4 @@
-/** @stack_test.c
+/** @incednt_stack.h
  * .h soubor k funkcím pro indent stack
  *
  * @author xstrna14
