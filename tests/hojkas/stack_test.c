@@ -33,6 +33,8 @@ int main()
 
   printf("Pushed 1, 2, 4\n");
   printStack(s);
+  if(stackSizeIs(s, 3)) printf("Stack size is 3\n");
+  if(stackSizeIs(s, 2)==false) printf("Stack size isn't 2\n");
 
   printf("On top: %u\n", stackTop(s));
 

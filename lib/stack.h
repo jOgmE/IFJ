@@ -75,6 +75,15 @@ void stackPop(tStack *);
 int stackTopCompare(tStack *, unsigned);
 
 /**
+*Porovná velikost zásobníku se zadaným číslem.
+*@param tStack* ukazatel na zásobník
+*@param size_t porovnavane cislo
+*@return true stack je zadané velikosti
+*@return false stack není zadané velikosti
+*/
+bool stackSizeIs(tStack *, size_t);
+
+/**
 *Zničí zásobník, uvolní všechny položky
 *@param tStack* ukazatel na zásobník
 */

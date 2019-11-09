@@ -59,6 +59,12 @@ int stackTopCompare(tStack *s, unsigned n)
   return((stackTop(s) == n) ? 0 : (n > stackTop(s) ? 1 : -1));
 }
 
+bool stackSizeIs(tStack *s, size_t n)
+{
+  if(s->size == n) return true;
+  return false;
+}
+
 void stackDestroy(tStack *s)
 {
   tStackItem *curr_item = s->top;
