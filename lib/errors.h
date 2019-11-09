@@ -9,6 +9,9 @@
 #ifndef ERRORS_H
 #define ERRORS_H
 
+#include <stdlib.h>
+#include <stdio.h>
+
 /**
  * error_type, general erros that can occur, functions should return following errors
  */
@@ -21,6 +24,9 @@ typedef enum ErrorTypes
     TOKEN_ERROR      // Invalid token
 } error_type;
 
+// String values for print
+extern const char *error_type_names[5];
+
 /**
  * error_severity
  */
@@ -28,17 +34,22 @@ typedef enum ErrorSeverity
 {
     INFO,    // Information
     WARNING, // Warning, can compile
-    ERROR    // Warning, cannot compile
+    ERROR    // Error, cannot compile
 } error_sev;
+
+// String values for print
+extern const char *error_sev_names[3];
 
 /**
  * Error type to be used in error list for compile error
  */
 typedef struct Error
 {
-    error_type type;    // Error type
-    error_sev severity; // Error severity
-    char *message;      // Error Message
+    struct Error *next_err; // Pointer to next error
+    struct Error *prev_err; // Pointer to previous error
+    error_type type;        // Error type
+    error_sev severity;     // Error severity
+    char *message;          // Error Message
 } error;
 
 /**
@@ -46,9 +57,8 @@ typedef struct Error
  */
 typedef struct ErrorList
 {
-    error *next_err_ptr; // Pointer to next error
-    error *prev_err_ptr; // Pointer to previous error
-    int length;          // Lenght of list
+    error *first_error; // First error of list
+    int length;         // Length of list
 } error_list;
 
 /**
