@@ -17,7 +17,7 @@ cstring *init_cstring_size(size_t size)
     // Check if cstring struct was allocated succesfully
     if (cstr == NULL)
     {
-        global_error_code = MEMORY_ERROR;
+        global_error_code = INTERNAL_ERROR;
         return NULL;
     }
 
@@ -26,7 +26,7 @@ cstring *init_cstring_size(size_t size)
     // Check if string was allocated succesfully
     if (cstr->str == NULL)
     {
-        //TODO: Handle alloc errors
+        global_error_code = INTERNAL_ERROR;
         return NULL;
     }
 
@@ -65,7 +65,7 @@ void resize_cstring(cstring *cstr, size_t new_size)
     // Check if string was reallocated succesfully
     if (cstr->str == NULL)
     {
-        //TODO: Handle alloc errors
+        global_error_code = INTERNAL_ERROR;
         return;
     }
 
