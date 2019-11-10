@@ -19,7 +19,7 @@ void test_dynamic_string()
     printf("[-] init_cstring(\"a\")\n");
     cstring *first_cstr = init_cstring("a");
 
-    if (global_error_code == MEMORY_ERROR)
+    if (global_error_code == INTERNAL_ERROR)
     {
         printf("[N] ERROR init_cstring(\"a\") returned NULL\n");
         exit(1);
