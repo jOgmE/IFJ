@@ -15,8 +15,6 @@ V místě, kde k nám mohla přijít chyba:
 - chyba 99 - free everything, return z dané fce
 - ostatní chyby - neřešit
 
-
-
 KA skenneru:
 ![most of](https://cdn.discordapp.com/attachments/578249520551559169/640207678345576449/IMG_20191102_161633.jpg)
 ![operators](https://cdn.discordapp.com/attachments/578249520551559169/640215650945728522/IMG_20191102_164739.jpg)
