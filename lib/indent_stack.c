@@ -8,14 +8,14 @@
  */
 
 #include "indent_stack.h"
-#include <stdlib.h>
 
 void indentStackPush(tIndentStack *s, unsigned n)
 {
     tIndentStackItem *to_be_added = malloc(sizeof(tIndentStackItem));
     if(to_be_added == NULL) {
-      //TODO allocation error handling
-      //TODO what if at top size of size_t?
+      //TODO uncomment when error library finished
+      //print_internal_error(INTERNAL_ERROR, ERROR, "Interní chyba alokace paměti pro indent_stack scanneru.\n");
+      global_error_code = INTERNAL_ERROR;
       return;
     }
     to_be_added->prev = s->top;
