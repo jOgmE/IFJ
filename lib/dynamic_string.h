@@ -8,6 +8,7 @@
  */
 
 #ifndef DYNAMIC_STRING_H
+#define DYNAMIC_STRING_H
 
 #include <stdlib.h>  //malloc, realloc, free
 #include <string.h>  //strlen, strcmp. memcpy
