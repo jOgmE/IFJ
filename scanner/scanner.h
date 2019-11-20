@@ -1,7 +1,11 @@
-/*Autor: xpocsn00
- * date: 2019-11-02
+/* @file scanner.h
  *
  * Header file for scanner.c
+ *
+ * @autor xpocsn00
+ * @date 2019-11-02
+ * @version 0.1
+ *
  */
 
 #ifndef _SCANNER_HEADER_FILE_
@@ -10,6 +14,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "token.h"
+#include "../lib/indent_stack.h"
 
 //starting state
 #define S 1
@@ -30,9 +35,8 @@
 
 //Final states F
 #define F1 12
-#define F2 13
-#define F3 14
-#define F4 15
+#define F2 13 //there is no F3 for historical reasons
+#define F4 15 //`erased state` :rtzW
 #define F5 16
 #define F6 17
 #define F7 18
@@ -103,4 +107,7 @@ bool is19num(char c);
  */
 bool isPrintChar(char c);
 
+/*
+ */
+int checkInDedent(unsigned ws, tIndentStack *stack);
 #endif /*_SCANNER_HEADER_FILE_*/

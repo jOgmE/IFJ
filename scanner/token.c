@@ -9,6 +9,7 @@
  */
 
 #include "token.h"
+#include "../lib/dynamic_string.h"
 
 int init_token(Token *token){
     token = calloc(1, sizeof(Token));
@@ -33,9 +34,12 @@ void add_dec(Token *token, double num){
     token->dec = num;
 }
 
-void add_string(Token *token){
+void add_string(Token *token, cstring *str){
     //TODO
     (void)token;
+    add_simple_data(token, STR);
+    token->str = str;
+    //initialize the string OR at FSM??? :thonk
 }
 
 e_type getTokenType(Token *token){
