@@ -33,11 +33,12 @@
  * LPA - left parentheses '('
  * RPA - right parentheses ')'
  * EOFILE - end of file
+ * COM - comma ','
  */
 typedef enum e_type{
     INDENT, DEDENT, EOL, DEC, INT, ID, STR,
     L, LEQ, G, GEQ, EQ, ASS, NEQ, PLUS, MINUS,
-    AST, SL, DSL, COL, LPA, RPA, EOFILE
+    AST, SL, DSL, COL, LPA, RPA, EOFILE, COM
 }
 
 /* The structure represents one token.
