@@ -118,7 +118,7 @@ void append_cstring(cstring *dest, cstring *src)
     dest->length = new_size;
 }
 
-bool compare_string(cstring *cstr, char *str)
+bool compare_string(cstring *cstr, const char *str)
 {
     return strcmp(cstr->str, str) == 0;
 }
