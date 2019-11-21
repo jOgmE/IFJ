@@ -79,7 +79,7 @@ void append_cstring(cstring *dest, cstring *src);
  * @param str Pointer to previouslly allocated string to compare
  * @returns True if cstring string is equal to str
  */
-bool compare_string(cstring *cstr, char *str);
+bool compare_string(cstring *cstr, const char *str);
 
 /**
  * Compares two instances of cstring
