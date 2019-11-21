@@ -9,7 +9,6 @@
  */
 
 #include "token.h"
-#include "../lib/dynamic_string.h"
 
 int init_token(Token *token){
     token = calloc(1, sizeof(Token));
@@ -30,16 +29,18 @@ void add_int(Token *token, int num){
 }
 
 void add_dec(Token *token, double num){
-    add_simple_date(token, DEC);
+    add_simple_data(token, DEC);
     token->dec = num;
 }
 
 void add_string(Token *token, cstring *str){
-    //TODO
-    (void)token;
     add_simple_data(token, STR);
     token->str = str;
-    //initialize the string OR at FSM??? :thonk
+}
+
+void add_id(Token *token, cstring *str){
+    add_simple_data(token, ID);
+    token->str = str;
 }
 
 e_type getTokenType(Token *token){
@@ -48,7 +49,7 @@ e_type getTokenType(Token *token){
 
 int getIntValue(Token *token, int *num){
     if(getTokenType(token) == INT){
-        num = token->i;
+        *num = token->i;
         return 0;
     }
     return -1;
@@ -56,7 +57,7 @@ int getIntValue(Token *token, int *num){
 
 int getDecValue(Token *token, double *num){
     if(getTokenType(token) == DEC){
-        num = token->dec;
+        *num = token->dec;
         return 0;
     }
     return -1;

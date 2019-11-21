@@ -24,6 +24,9 @@ int getToken(FILE *f, Token *token){
     char resolved = -1; //ends the FSM
     int c = 0; //character to be readed
     bool dedent = false; //true when the last token was dedent
+    //initialize it where needed
+    cstring *our_string;
+    //cstring *our_string = init_cstring_size(256); //random number. Think about why
 
     if(ws){ //ws (!= 0) was not cleared => dedent was the last token
         present_state = F1;
@@ -43,8 +46,13 @@ int getToken(FILE *f, Token *token){
                 if(isSpace(c)){ present_state = scanner_first_token ? F1 : S; ws++; break;} //incrementing ws
                 if(c == '\n'){ present_state = scanner_first_token ? S : F2; break;}
                 if(isIdNameStart(c)){ present_state = F4; break;}
-                if(c == 48){ present_state = F9; break;} // 0
-                if(is19num(c)){ present_state = F5; break;}
+                if(c == 48){ present_state = F8; break;} // 0
+                if(is19num(c)){
+                    if((our_string = init_cstring_size(32)) == NULL) return INTERNAL_ERROR;
+                    append_char(our_string, c);
+                    present_state = F5;
+                    break;
+                }
                 if(c == 39){ present_state = Q2; break;} // ' simpole apostrophe
                 if(c == 34){ present_state = Q3; break;} // \" double apostrophe
                 if(c == 35){ present_state = Q8; break;} // # number sign (hash)
@@ -100,7 +108,7 @@ int getToken(FILE *f, Token *token){
                 present_state = F2;
                 break;
             case Q9:
-                if(c == 61){ present_state = F17; break} //=
+                if(c == 61){ present_state = F17; break;} //=
                 return -1;
             case Q10:
                 if(is09num(c)){ present_state = F6; break;}
@@ -175,20 +183,63 @@ int getToken(FILE *f, Token *token){
                 scanner_first_token = true;
                 add_simple_data(token, EOL);
                 return 0;
-            case F3:
-                //TODO
-                //control for keyword and
-                //returning a token with
-                //type 'keyword'
+            case F4:
                 if(isIdNameStart(c) || is09num(c)){
                     present_state = F4;
                     //save the char to the string
+                    if(!our_string){ //our_string IS NULL
+                        our_string = init_cstring_size(256);
+                    }
+                    append_char(our_string, c); //adding char to string
+                    break;
+                }else{
+                    //not a string char
+                    //ending final state
+                    ungetc(c, f);
+                    //checking for keyword
+                    if(isKeyword(our_string) != -1){ //is keyword
+                        add_simple_data(token, isKeyword(our_string));
+                        return 0;
+                    }
+                    add_id(token, our_string);
+                    return 0;
+                }
+                break;
+            case F8: //this case NEED to be FUCKING TESTED OUT
+                //000000000 -> 0
+                if(c == 48) break; //'0'
+                
+                ungetc(c);
+                if(is19num(c) || isIdNameStart(c)){
+                    //error
+                    return -1;
+                }
+                add_int(token, 0);
+                return 0;
+            case F5:
+                if(our_string == NULL){
+                    our_string = init_cstring_size(32);
+                }
+                if(is09num(c)){
+                    //saving the readed chars
+                    append_char(our_string, c);
                     break;
                 }
-                //TODO
-                break;
+
         }
     }
+    return -1; //only for compiling NOT SURE for this line tbh
+}
+
+e_type isKeyword(cstring *string){
+    for(int i=0; i < 7; i++){ //7 is the number of keywords specified in ifj19
+        if(compare_string(string, convert[i].str)){
+            //the string is a keyword
+            return convert[i].type;
+        }
+    }
+    //the string is not a keyword
+    return -1;
 }
 
 bool isSpace(char c){
@@ -222,4 +273,5 @@ int checkInDedent(unsigned ws, tIndentStack *stack){
         indentStackPush(stack, ws);
 
     }
+    return 0; //for compilation only
 }

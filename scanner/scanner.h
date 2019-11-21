@@ -15,6 +15,8 @@
 #include <stdbool.h>
 #include "token.h"
 #include "../lib/indent_stack.h"
+#include "../lib/dynamic_string.h"
+#include "../lib/errors.h"
 
 //starting state
 #define S 1
@@ -57,57 +59,69 @@
 #define F22 33
 #define F23 34
 #define F24 35
-//the last number is 37 - Q12
+#define F25 38
+//the last number is 38 - F25
 
 /* Brief get a Token from the stream f
  *
  * Function implements the FSM needed to get a token.
  *
- * \param[in] File *f The file from where the characters are readed. Can be stdin
- * \param[out] Writing token to that pointer
- * \pre f != NULL
- * \pre isOpen(f) == true
- * \returns 0 if ok.\n 2 if EOF
+ * @param[in] File *f The file from where the characters are readed. Can be stdin
+ * @param[out] Writing token to that pointer
+ * @pre f != NULL
+ * @pre isOpen(f) == true
+ * @returns 0 if ok.\n 2 if EOF
  */
 int getToken(FILE *f, Token *token);
 
+//---------------------------------------------------------
+//          Intern functions (don't use them)
+//---------------------------------------------------------
+
 /* Brief Checks if the input is white space.
- * \param[in] The character to be checked
- * \return true when ws otherwise false
+ * @param[in] The character to be checked
+ * @return true when ws otherwise false
  */
 bool isSpace(char c);
 
 /* Brief Checks if the input is an appropriate id name starting char.
- * \param[in] The character to be checked
- * \return true when char is appropriate
+ * @param[in] The character to be checked
+ * @return true when char is appropriate
  */
 bool isIdNameStart(char c);
 
 /* Brief Checks if the input is an appropriate id name char.
- * \param[in] The character to be checked
- * \return true when char is appropriate
+ * @param[in] The character to be checked
+ * @return true when char is appropriate
  */
 bool isIdName(char c);
 
 /* Brief Checks if the input is an appropriate number between 0-9 
- * \param[in] The character to be checked
- * \return true when char is appropriate
+ * @param[in] The character to be checked
+ * @return true when char is appropriate
  */
 bool is09num(char c);
 
 /* Brief Checks if the input is an appropriate number between 1-9 
- * \param[in] The character to be checked
- * \return true when char is appropriate
+ * @param[in] The character to be checked
+ * @return true when char is appropriate
  */
 bool is19num(char c);
 
 /* Brief Checks if the input is a printable char 
- * \param[in] The character to be checked
- * \return true when char is appropriate
+ * @param[in] The character to be checked
+ * @return true when char is appropriate
  */
 bool isPrintChar(char c);
 
 /*
  */
 int checkInDedent(unsigned ws, tIndentStack *stack);
+
+/* Checks if the param string is keyword or not.
+ *
+ * @return on success returns e_type of the keyword otherwise -1
+ */
+e_type isKeyword(cstring *string);
+
 #endif /*_SCANNER_HEADER_FILE_*/

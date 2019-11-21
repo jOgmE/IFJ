@@ -10,6 +10,8 @@
 #ifndef _TOKEN_
 #define _TOKEN_
 
+#include "../lib/dynamic_string.h"
+
 /* INDENT - indent
  * DEDENT - dedent
  * EOL - end of line '\n'
@@ -34,12 +36,39 @@
  * RPA - right parentheses ')'
  * EOFILE - end of file
  * COM - comma ','
+ * ---------------
+ * Keywords
+ * ---------------
+ * def
+ * else
+ * if
+ * None
+ * pass
+ * return
+ * while
  */
-typedef enum e_type{
+typedef enum{
     INDENT, DEDENT, EOL, DEC, INT, ID, STR,
     L, LEQ, G, GEQ, EQ, ASS, NEQ, PLUS, MINUS,
-    AST, SL, DSL, COL, LPA, RPA, EOFILE, COM
-}
+    AST, SL, DSL, COL, LPA, RPA, EOFILE, COM,
+    DEF, ELSE, IF, NONE, PASS, RETURN, WHILE
+} e_type;
+
+/* Structure for converting string literals
+ * to enum e_type
+ */
+const struct{
+    e_type type;
+    const char *str;
+}convert[] = {
+    {DEF, "def"},
+    {ELSE, "else"},
+    {IF, "if"},
+    {NONE, "None"},
+    {PASS, "pass"},
+    {RETURN, "return"},
+    {WHILE, "while"}
+};
 
 /* The structure represents one token.
  * type - holds the type of the token defined
@@ -49,13 +78,18 @@ typedef enum e_type{
  * when type id, str is being used to
  * store the pointer to the variable
  */
-struct Token{
+typedef struct Token{
     double dec;
     int i;
     e_type type;
     void *var_ptr;
     cstring *str;
-}Token;
+} Token;
+
+/* Array of python keywords.
+ * Used to for comparing the input strings if keyword or not.
+ */
+//const char keywords[7][7] = {"def", "else", "if", "None", "pass", "return", "while"};
 
 //---------------------------------------------------------
 //             Functions to write a token
@@ -102,6 +136,16 @@ void add_dec(Token *token, double num);
  */
 void add_string(Token *token, cstring *str);
 
+/* Set token data (for id)
+ *
+ * Makes an ID type token with data.
+ * The name if the id is stored as a string
+ *
+ * @param token to set
+ * @param str data to be set
+ */
+void add_id(Token *token, cstring *str);
+
 //---------------------------------------------------------
 //                Functions to read a token
 //---------------------------------------------------------
@@ -130,5 +174,10 @@ int getDecValue(Token *token, double *num);
  * @returns !0 if the token type != STR otherwise 0
  */
 int getStrValue(Token *token, char *str);
+
+
+//---------------------------------------------------------
+//           Internal functions (Don't use them)
+//---------------------------------------------------------
 
 #endif /*_TOKEN_*/
