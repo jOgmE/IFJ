@@ -138,6 +138,11 @@ bool compare_cstring(cstring *cstr1, cstring *cstr2)
     return equal;
 }
 
+char *get_string(cstring *cstr){
+    //return pointer to str or NULL if cstr is not initialized
+    return cstr ? cstr->str : NULL;
+}
+
 void free_cstring(cstring *cstr)
 {
     //Free string in cstring first

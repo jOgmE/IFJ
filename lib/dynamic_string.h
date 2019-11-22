@@ -94,6 +94,18 @@ bool compare_string(cstring *cstr, const char *str);
  */
 bool compare_cstring(cstring *cstr1, cstring *cstr2);
 
+/* Returns the string value of the cstr
+ *
+ * THIS FUNCTION IS READ ONLY!
+ * DO NOT FREE THE RETURNED POINTER,
+ * OR OTHERWISE MANIPULATE IT!
+ * IT SHOULD BE FREED BY THE FUNCTION free_cstring!!!!
+ *
+ * @param cstr Pointer to the type cstring
+ * @returns The pointer to the string stored in cstring or NULL when cstring not initialized.
+ */
+char *get_string(cstring *cstr);
+
 /**
  * Frees previously allocated cstring
  * 
