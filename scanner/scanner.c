@@ -26,7 +26,15 @@ int getToken(FILE *f, Token *token){
     bool dedent = false; //true when the last token was dedent
     //initialize it where needed
     cstring *our_string;
-    //cstring *our_string = init_cstring_size(256); //random number. Think about why
+    //our_string is initialized in the (first from S) states:
+    //F4
+    //F5
+    //Q2
+    //F22
+    //F11
+    //F13
+    //F15
+    //Q9
 
     if(ws){ //ws (!= 0) was not cleared => dedent was the last token
         present_state = F1;
@@ -41,55 +49,100 @@ int getToken(FILE *f, Token *token){
         
         //FSM
         switch(present_state){
-            //starting state
+            //-------------------------STARTING STATE-------------------------------
             case S:
                 if(isSpace(c)){ present_state = scanner_first_token ? F1 : S; ws++; break;} //incrementing ws
                 if(c == '\n'){ present_state = scanner_first_token ? S : F2; break;}
-                if(isIdNameStart(c)){ present_state = F4; break;}
+                if(isIdNameStart(c)){
+                    if((our_string = init_cstring_size(256)) == NULL) return INTERNAL_ERROR; //wihtout \0
+                    present_state = F4;
+                    break;
+                }
                 if(c == 48){ present_state = F8; break;} // 0
                 if(is19num(c)){
-                    if((our_string = init_cstring_size(32)) == NULL) return INTERNAL_ERROR;
+                    if((our_string = init_cstring_size(32)) == NULL) return INTERNAL_ERROR; //without \0
                     append_char(our_string, c);
                     present_state = F5;
                     break;
-                }
-                if(c == 39){ present_state = Q2; break;} // ' simpole apostrophe
+                } //numbers 1..9
+                if(c == 39){
+                    if((our_string = init_cstring_size(256)) == NULL) return INTERNAL_ERROR; //without \0
+                    present_state = Q2;
+                    break;
+                } // ' simpole apostrophe
                 if(c == 34){ present_state = Q3; break;} // \" double apostrophe
                 if(c == 35){ present_state = Q8; break;} // # number sign (hash)
                 //operators
                 if(c == 42){ present_state = F10; break;} // *
                 if(c == 43){ present_state = F20; break;} // +
                 if(c == 45){ present_state = F21; break;} // -
-                if(c == 47){ present_state = F22; break;} // /
-                if(c == 61){ present_state = F11; break;} // =
-                if(c == 60){ present_state = F13; break;} // <
-                if(c == 62){ present_state = F15; break;} // >
-                if(c == 33){ present_state = Q9; break;} // !
+                if(c == 47){
+                    if((our_string = init_cstring_size(3)) == NULL) return INTERNAL_ERROR; //wihtout \0
+                    present_state = F22;
+                    break;
+                } // /
+                if(c == 61){
+                    if((our_string = init_cstring_size(3)) == NULL) return INTERNAL_ERROR; //wihtout \0
+                    present_state = F11;
+                    break;
+                } // =
+                if(c == 60){
+                    if((our_string = init_cstring_size(3)) == NULL) return INTERNAL_ERROR; //wihtout \0
+                    present_state = F13;
+                    break;
+                } // <
+                if(c == 62){
+                    if((our_string = init_cstring_size(3)) == NULL) return INTERNAL_ERROR; //wihtout \0
+                    present_state = F15;
+                    break;
+                } // >
+                if(c == 33){
+                    if((our_string = init_cstring_size(3)) == NULL) return INTERNAL_ERROR; //wihtout \0
+                    present_state = Q9;
+                    break;
+                } // !
                 if(c == 58){ present_state = F18; break;} // :
                 if(c == 40){ present_state = F24; break;} // (
                 if(c == 41){ present_state = F25; break;} // )
                 //error
-                break;
-            //states
+                if(!our_string){ //is NULL
+                    free_cstring(our_string);
+                }
+                return LECICAL_ANALYSIS_ERROR;
+            //--------------------------------STATES--------------------------------
             case Q1:
+                append_char(our_string, c);
                 if(c == 43 || c == 45){ present_state = Q11; break;} // +, -
                 if(is09num(c)){ present_state = F7; break;} //0..9
                 //error
-                break;
-            case Q2:
-                if(c == 92){ present_state = Q12; break;} // '\'
+                free_cstring(our_string);
+                indentStackDestroy(stack);
+                return LEXICAL_ANALYSIS_ERROR;
+            case Q2: //raw string processsing - KEEPING ESC CHAR
+                if(c == 92){
+                    append_char(our_string, c);
+                    present_state = Q12;
+                    break;
+                } // '\'
                 if(c == 39){ present_state = F9; break;} // ' 
-                if(isPrintChar(c)) break; //printable chars excl '\', ' remains in Q2// && c != 92 && c != 39
+                if(isPrintChar(c)){
+                    append_char(our_string, c);
+                    break; //printable chars excl '\', ' remains in Q2// && c != 92 && c != 39
+                }
                 //error
-                break;
+                free_cstring(our_string);
+                indentStackDestroy(stack);
+                return LEXICAL_ANALYSIS_ERROR;
             case Q3:
                 if(c == 34){ present_state = Q4; break;} //"
                 //error
-                break;
+                indentStackDestroy(stack);
+                return LEXICAL_ANALYSIS_ERROR;
             case Q4:
                 if(c == 34){ present_state = Q5; break;} //"
                 //error
-                break;
+                indentStackDestroy(stack);
+                return LEXICAL_ANALYSIS_ERROR;
             case Q5:
                 if(c == 34){ present_state = Q6; break;} //"
                 break;
@@ -108,18 +161,42 @@ int getToken(FILE *f, Token *token){
                 present_state = F2;
                 break;
             case Q9:
-                if(c == 61){ present_state = F17; break;} //=
-                return -1;
+                if(c == 61){
+                    append_char(our_string, c);
+                    present_state = F17;
+                    break;
+                } //=
+                free_cstring(our_string);
+                indentStackDestroy(stack);
+                return LEXICAL_ANALYSIS_ERROR;
             case Q10:
-                if(is09num(c)){ present_state = F6; break;}
-                return -1;
+                if(is09num(c)){
+                    append_char(our_string, c);
+                    present_state = F6;
+                    break;
+                }
+                free_cstring(our_string);
+                indentStackDestroy(stack);
+                return LEXICAL_ANALYSIS_ERROR;
             case Q11:
-                if(is09num(c)){ present_state = F7; break;}
-                return -1;
+                if(is09num(c)){
+                    append_char(our_string, c);
+                    present_state = F7;
+                    break;
+                }
+                free_cstring(our_string);
+                indentStackDestroy(stack);
+                return LEXICAL_ANALYSIS_ERROR;
             case Q12:
-                if(isPrintChar(c)){ present_state = Q2; break;}
-                return -1;
-            //final states
+                if(isPrintChar(c)){
+                    append_char(our_string, c);
+                    present_state = Q2;
+                    break;
+                }
+                free_cstring(our_string);
+                indentStackDestroy(stack);
+                return LEXICAL_ANALYSIS_ERROR;
+            //-------------------------FINAL STATES----------------------------------
             case F1:
                 //counting the ws
                 if(isSpace(c)){
@@ -147,7 +224,8 @@ int getToken(FILE *f, Token *token){
                     }else if(tmp_cmp_stack_top == 1){
                         if(dedent){
                             //error
-                            return -1; //proper error code missing
+                            indentStackDestroy(stack);
+                            return LEXICAL_ANALYSIS_ERROR;
                         }
                         indentStackPush(stack, ws);
                         add_simple_data(token, INDENT);
@@ -166,7 +244,8 @@ int getToken(FILE *f, Token *token){
                         if(indentStackEmpty(stack)){
                             if(ws){
                                 //error
-                                return -1; //proper error code missing
+                                indentStackDestroy(stack);
+                                return LEXICAL_ANALYSIS_ERROR;
                             }
                             ws = 0;
                             dedent = false;
@@ -184,12 +263,9 @@ int getToken(FILE *f, Token *token){
                 add_simple_data(token, EOL);
                 return 0;
             case F4:
+                //pre -> our_string != NULL
                 if(isIdNameStart(c) || is09num(c)){
                     present_state = F4;
-                    //save the char to the string
-                    if(!our_string){ //our_string IS NULL
-                        our_string = init_cstring_size(256);
-                    }
                     append_char(our_string, c); //adding char to string
                     break;
                 }else{
@@ -212,20 +288,25 @@ int getToken(FILE *f, Token *token){
                 ungetc(c);
                 if(is19num(c) || isIdNameStart(c)){
                     //error
-                    return -1;
+                    indentStackDestroy(stack);
+                    return LEXICAL_ANALYSIS_ERROR;
                 }
                 add_int(token, 0);
                 return 0;
             case F5:
-                if(our_string == NULL){
-                    our_string = init_cstring_size(32);
-                }
+                //pre -> our_string != NULL
                 if(is09num(c)){
                     //saving the readed chars
                     append_char(our_string, c);
                     break;
                 }
-
+                if(c == 46){ //.
+                    append_char(our_string, c);
+                    present_state = q10;
+                }
+                free_cstring(our_string);
+                indentStackDestroy(stack);
+                return LEXICAL_ANALYSIS_ERROR;
         }
     }
     return -1; //only for compiling NOT SURE for this line tbh
