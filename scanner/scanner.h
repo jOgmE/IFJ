@@ -120,7 +120,7 @@ int checkInDedent(unsigned ws, tIndentStack *stack);
 
 /* Checks if the param string is keyword or not.
  *
- * @return on success returns e_type of the keyword otherwise -1
+ * @return on success returns e_type of the keyword otherwise 999
  */
 e_type isKeyword(cstring *string);
 

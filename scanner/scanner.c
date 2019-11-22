@@ -105,10 +105,8 @@ int getToken(FILE *f, Token *token){
                 if(c == 40){ present_state = F24; break;} // (
                 if(c == 41){ present_state = F25; break;} // )
                 //error
-                if(!our_string){ //is NULL
-                    free_cstring(our_string);
-                }
-                return LECICAL_ANALYSIS_ERROR;
+                if(!our_string) free_cstring(our_string);
+                return LEXICAL_ANALYSIS_ERROR;
             //--------------------------------STATES--------------------------------
             case Q1:
                 append_char(our_string, c);
@@ -273,7 +271,7 @@ int getToken(FILE *f, Token *token){
                     //ending final state
                     ungetc(c, f);
                     //checking for keyword
-                    if(isKeyword(our_string) != -1){ //is keyword
+                    if(isKeyword(our_string) != 999){ //is keyword
                         add_simple_data(token, isKeyword(our_string));
                         return 0;
                     }
@@ -281,11 +279,11 @@ int getToken(FILE *f, Token *token){
                     return 0;
                 }
                 break;
-            case F8: //this case NEED to be FUCKING TESTED OUT
+            case F8: //this case NEEDED to be FUCKING TESTED OUT
                 //000000000 -> 0
                 if(c == 48) break; //'0'
                 
-                ungetc(c);
+                ungetc(c, f);
                 if(is19num(c) || isIdNameStart(c)){
                     //error
                     indentStackDestroy(stack);
@@ -296,17 +294,19 @@ int getToken(FILE *f, Token *token){
             case F5:
                 //pre -> our_string != NULL
                 if(is09num(c)){
-                    //saving the readed chars
                     append_char(our_string, c);
                     break;
                 }
                 if(c == 46){ //.
                     append_char(our_string, c);
-                    present_state = q10;
+                    present_state = Q10;
+                    break;
                 }
-                free_cstring(our_string);
-                indentStackDestroy(stack);
-                return LEXICAL_ANALYSIS_ERROR;
+                if(c == 'e' || c == 'E'){
+                    append_char(our_string, c);
+                    present_state = Q1;
+                }
+                //add_int(token, 
         }
     }
     return -1; //only for compiling NOT SURE for this line tbh
@@ -314,13 +314,13 @@ int getToken(FILE *f, Token *token){
 
 e_type isKeyword(cstring *string){
     for(int i=0; i < 7; i++){ //7 is the number of keywords specified in ifj19
-        if(compare_string(string, convert[i].str)){
+        if(compare_string(string, keyword_conv[i].str)){
             //the string is a keyword
-            return convert[i].type;
+            return keyword_conv[i].type;
         }
     }
     //the string is not a keyword
-    return -1;
+    return 999;
 }
 
 bool isSpace(char c){

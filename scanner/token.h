@@ -57,10 +57,13 @@ typedef enum{
 /* Structure for converting string literals
  * to enum e_type
  */
-const struct{
+typedef const struct {
     e_type type;
     const char *str;
-}convert[] = {
+}convert;
+
+//struct converting keywords
+convert keyword_conv[] = {
     {DEF, "def"},
     {ELSE, "else"},
     {IF, "if"},
@@ -68,6 +71,25 @@ const struct{
     {PASS, "pass"},
     {RETURN, "return"},
     {WHILE, "while"}
+};
+//struct converting operators
+convert op_conv[] = {
+    {L, "<"},
+    {LEQ, "<="},
+    {G, ">"},
+    {GEQ, ">="},
+    {EQ, "=="},
+    {ASS, "="},
+    {NEQ, "!="},
+    {PLUS, "+"},
+    {MINUS, "-"},
+    {AST, "*"},
+    {SL, "/"},
+    {DSL, "//"},
+    {COL, ":"},
+    {LPA, "("},
+    {RPA, ")"},
+    {COM, ","}
 };
 
 /* The structure represents one token.
