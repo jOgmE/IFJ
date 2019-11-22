@@ -97,8 +97,7 @@ bool compare_cstring(cstring *cstr1, cstring *cstr2);
 /* Returns the string value of the cstr
  *
  * THIS FUNCTION IS READ ONLY!
- * DO NOT FREE THE RETURNED POINTER,
- * OR OTHERWISE MANIPULATE IT!
+ * DO NOT FREE THE RETURNED POINTER!
  * IT SHOULD BE FREED BY THE FUNCTION free_cstring!!!!
  *
  * @param cstr Pointer to the type cstring
