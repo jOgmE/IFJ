@@ -52,16 +52,16 @@ cstring *init_cstring(const char *str)
 
 void resize_cstring(cstring *cstr, size_t new_size)
 {
-    /*if (cstr->allocated_size > new_size)
+    if (cstr->allocated_size > new_size)
     {
         cstr->str[new_size] = '\0';
     }
-    else */if (cstr->allocated_size >= new_size) // No need to resize
+    else if (cstr->allocated_size == new_size) // No need to resize
     {
         return;
     }
 
-    cstr->str = (char *)realloc(cstr->str, new_size);
+    cstr->str = (char *)realloc(cstr->str, new_size+1); //ending '\0'
 
     // Check if string was reallocated succesfully
     if (cstr->str == NULL)
