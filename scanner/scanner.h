@@ -124,4 +124,15 @@ int checkInDedent(unsigned ws, tIndentStack *stack);
  */
 e_type isKeyword(cstring *string);
 
+/* Converts an cstring to integer,
+ * makes an appropriate token of int and
+ * frees the cstring
+ *
+ * @param ouput The pointer to the int to be saved to
+ * @param convertible The string to be converted into an int
+ * @param token The token to be writed
+ * @returns 0 on success otherwise INTERNAL_ERROR
+ */
+int cstrToInt(int *output, cstring *convertible, Token *token);
+
 #endif /*_SCANNER_HEADER_FILE_*/

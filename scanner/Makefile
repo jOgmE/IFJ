@@ -9,4 +9,4 @@ scanner: scanner.* token.* $(LIB)/dynamic_string.* $(LIB)/indent_stack.*
 	$(CC) $(FLAGS) -c $^
 
 clean:
-	rm *.gch $(LIB)/*.gch *.o
+	rm -f *.gch $(LIB)/*.gch *.o

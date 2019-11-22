@@ -109,9 +109,16 @@ int getToken(FILE *f, Token *token){
                 return LEXICAL_ANALYSIS_ERROR;
             //--------------------------------STATES--------------------------------
             case Q1:
-                append_char(our_string, c);
-                if(c == 43 || c == 45){ present_state = Q11; break;} // +, -
-                if(is09num(c)){ present_state = F7; break;} //0..9
+                if(c == 43 || c == 45){
+                    append_char(our_string, c);
+                    present_state = Q11; //passing initialized our_string
+                    break;
+                } // +, -
+                if(is09num(c)){
+                    append_char(our_string, c);
+                    present_state = F7; //passing initialized our_string
+                    break;
+                } //0..9
                 //error
                 free_cstring(our_string);
                 indentStackDestroy(stack);
@@ -170,7 +177,7 @@ int getToken(FILE *f, Token *token){
             case Q10:
                 if(is09num(c)){
                     append_char(our_string, c);
-                    present_state = F6;
+                    present_state = F6; //passing initialized our_string
                     break;
                 }
                 free_cstring(our_string);
@@ -179,7 +186,7 @@ int getToken(FILE *f, Token *token){
             case Q11:
                 if(is09num(c)){
                     append_char(our_string, c);
-                    present_state = F7;
+                    present_state = F7; //passing initialized our_string
                     break;
                 }
                 free_cstring(our_string);
@@ -279,6 +286,54 @@ int getToken(FILE *f, Token *token){
                     return 0;
                 }
                 break;
+            case F5:
+                //pre -> our_string != NULL
+                if(is09num(c)){
+                    append_char(our_string, c);
+                    break;
+                }
+                if(c == 46){ //.
+                    append_char(our_string, c);
+                    present_state = Q10; //passing initialized our_string
+                    break;
+                }
+                if(c == 'e' || c == 'E'){
+                    append_char(our_string, c);
+                    present_state = Q1; //passing initialized our_string
+                }
+                
+                //end of the number
+                ungetc(c, f);
+                int tmp;
+                cstrToInt(&tmp, our_string, token);
+                return 0;
+            case F6:
+                if(is09num(c)){
+                    append_char(our_string, c);
+                    break;
+                }
+                if(c == 'e' || c == 'E'){
+                    append_char(our_string, c);
+                    present_state = Q1; //passing initialized our_string
+                    break;
+                }
+
+                //end of the number
+                ungetc(c, f);
+                int tmp;
+                cstrToInt(&tmp, our_string, token);
+                return 0;
+            case F7:
+                if(is09num(c)){
+                    append_char(our_string, c);
+                    break;
+                } 
+                
+                //end of the number
+                ungetc(c, f);
+                int tmp;
+                cstrToInt(&tmp, our_string, token);
+                return 0;
             case F8: //this case NEEDED to be FUCKING TESTED OUT
                 //000000000 -> 0
                 if(c == 48) break; //'0'
@@ -291,25 +346,20 @@ int getToken(FILE *f, Token *token){
                 }
                 add_int(token, 0);
                 return 0;
-            case F5:
-                //pre -> our_string != NULL
-                if(is09num(c)){
-                    append_char(our_string, c);
-                    break;
-                }
-                if(c == 46){ //.
-                    append_char(our_string, c);
-                    present_state = Q10;
-                    break;
-                }
-                if(c == 'e' || c == 'E'){
-                    append_char(our_string, c);
-                    present_state = Q1;
-                }
-                //add_int(token, 
+            case F9:
+                add_string(token, our_string);
+                return 0;
+            case F10: //couldn't be included in the state S? :thonk
         }
     }
     return -1; //only for compiling NOT SURE for this line tbh
+}
+
+int cstrToInt(int *output, cstring *convertible, Token *token){
+    if(sscanf(get_string(our_string), "%i", &tmp) == EOF) return INTERNAL_ERROR;
+    add_int(token, tmp);
+    free_cstring(our_string);
+    return 0;
 }
 
 e_type isKeyword(cstring *string){
