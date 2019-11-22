@@ -104,7 +104,7 @@ bool compare_cstring(cstring *cstr1, cstring *cstr2);
  * @param cstr Pointer to the type cstring
  * @returns The pointer to the string stored in cstring or NULL when cstring not initialized.
  */
-char *get_string(cstring *cstr);
+const char *get_string(cstring *cstr);
 
 /**
  * Frees previously allocated cstring
