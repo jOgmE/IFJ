@@ -15,6 +15,9 @@
 #include <stdbool.h> //bool type
 #include "errors.h"
 
+//size of the allocation chunk
+#define DYN_CHUNK_SIZE 256
+
 /**
  * cstring structure
  */
@@ -31,10 +34,11 @@ typedef struct cstring_struct
  * @param str Pointer, or string to data to initialize cstring to
  * @returns Pointer to allocated cstring
  */
-cstring *init_cstring(char *str);
+cstring *init_cstring(const char *str);
 
 /**
  * Initializes new instance of cstring  with string of specified size
+ * The size is without '\0' at the end.
  * 
  * @param size Size of string in cstring
  * @returns Pointer to allocated cstring

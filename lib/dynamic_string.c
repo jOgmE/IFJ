@@ -21,7 +21,7 @@ cstring *init_cstring_size(size_t size)
         return NULL;
     }
 
-    cstr->str = (char *)malloc(size);
+    cstr->str = (char *)malloc(size+1); //include '\0' at the end
 
     // Check if string was allocated succesfully
     if (cstr->str == NULL)
@@ -30,13 +30,14 @@ cstring *init_cstring_size(size_t size)
         return NULL;
     }
 
+    cstr->str[0] = '\0';
     cstr->length = 0;
-    cstr->allocated_size = size;
+    cstr->allocated_size = size+1;
 
     return cstr;
 }
 
-cstring *init_cstring(char *str)
+cstring *init_cstring(const char *str)
 {
     size_t size = sizeof(str);
 
@@ -51,11 +52,11 @@ cstring *init_cstring(char *str)
 
 void resize_cstring(cstring *cstr, size_t new_size)
 {
-    if (cstr->allocated_size > new_size)
+    /*if (cstr->allocated_size > new_size)
     {
         cstr->str[new_size] = '\0';
     }
-    else if (cstr->allocated_size == new_size) // No need to resize
+    else */if (cstr->allocated_size >= new_size) // No need to resize
     {
         return;
     }
@@ -78,7 +79,7 @@ void append_char(cstring *cstr, char c)
     // Resize cstr->str string if char c cannot fit
     if (cstr->allocated_size < cstr->length + 1)
     {
-        resize_cstring(cstr, cstr->allocated_size + 1);
+        resize_cstring(cstr, cstr->allocated_size + DYN_CHUNK_SIZE);
     }
 
     // Concatenate string and character
