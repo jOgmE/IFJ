@@ -63,8 +63,10 @@ int getDecValue(Token *token, double *num){
     return -1;
 }
 
-int getStrValue(Token *token, char *str){
-    (void)token;
-    (void)str;
-    return 0;
+int getStrValue(Token *token, cstring *str){
+    if(getTokenType(token) == STR){
+        str = token->str;
+        return 0;
+    }
+    return -1;
 }

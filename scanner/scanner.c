@@ -44,7 +44,8 @@ int getToken(FILE *f, Token *token){
     //ends while when resolved == 0
     while(resolved){
         if((c = fgetc(f)) == EOF){
-            return 2;
+            add_simple_data(token, ENDOFFILE);
+            return 0;
         }
         
         //FSM
@@ -60,50 +61,64 @@ int getToken(FILE *f, Token *token){
                 }
                 if(c == 48){ present_state = F8; break;} // 0
                 if(is19num(c)){
-                    if((our_string = init_cstring_size(32)) == NULL) return INTERNAL_ERROR; //without \0
+                    if((our_string = init_cstring_size(32)) == NULL) return INTERNAL_ERROR;
                     append_char(our_string, c);
                     present_state = F5;
                     break;
                 } //numbers 1..9
                 if(c == 39){
-                    if((our_string = init_cstring_size(256)) == NULL) return INTERNAL_ERROR; //without \0
+                    if((our_string = init_cstring_size(256)) == NULL) return INTERNAL_ERROR;
                     present_state = Q2;
                     break;
                 } // ' simpole apostrophe
                 if(c == 34){ present_state = Q3; break;} // \" double apostrophe
                 if(c == 35){ present_state = Q8; break;} // # number sign (hash)
                 //operators
-                if(c == 42){ present_state = F10; break;} // *
-                if(c == 43){ present_state = F20; break;} // +
-                if(c == 45){ present_state = F21; break;} // -
                 if(c == 47){
-                    if((our_string = init_cstring_size(3)) == NULL) return INTERNAL_ERROR; //wihtout \0
+                    if((our_string = init_cstring_size(2)) == NULL) return INTERNAL_ERROR;
                     present_state = F22;
                     break;
                 } // /
                 if(c == 61){
-                    if((our_string = init_cstring_size(3)) == NULL) return INTERNAL_ERROR; //wihtout \0
+                    if((our_string = init_cstring_size(2)) == NULL) return INTERNAL_ERROR; //wihtout \0
                     present_state = F11;
                     break;
                 } // =
                 if(c == 60){
-                    if((our_string = init_cstring_size(3)) == NULL) return INTERNAL_ERROR; //wihtout \0
+                    if((our_string = init_cstring_size(2)) == NULL) return INTERNAL_ERROR; //wihtout \0
                     present_state = F13;
                     break;
                 } // <
                 if(c == 62){
-                    if((our_string = init_cstring_size(3)) == NULL) return INTERNAL_ERROR; //wihtout \0
+                    if((our_string = init_cstring_size(2)) == NULL) return INTERNAL_ERROR; //wihtout \0
                     present_state = F15;
                     break;
                 } // >
                 if(c == 33){
-                    if((our_string = init_cstring_size(3)) == NULL) return INTERNAL_ERROR; //wihtout \0
+                    if((our_string = init_cstring_size(2)) == NULL) return INTERNAL_ERROR; //wihtout \0
                     present_state = Q9;
                     break;
                 } // !
-                if(c == 58){ present_state = F18; break;} // :
+                /*if(c == 58){ present_state = F18; break;} // :
                 if(c == 40){ present_state = F24; break;} // (
                 if(c == 41){ present_state = F25; break;} // )
+                if(c == 42){ present_state = F10; break;} // *
+                if(c == 43){ present_state = F20; break;} // +
+                if(c == 45){ present_state = F21; break;} // -
+                */
+                //united operator processing - last final state eliminated, terminating right from S
+                if(c == 58 || (c >= 40 && c <= 43) || c == 45){
+                    our_string = init_cstring_size(2);
+                    append_char(our_string, c);
+                    for(int i=0; i<16; i++){
+                        if(compare_string(our_string, op_conv[i].str)){
+                            add_simple_data(token, op_conv[i].type);
+                            free_cstring(our_string);
+                            return 0;
+                        }
+                    }
+                    //the program cannot get here
+                }
                 //error
                 if(!our_string) free_cstring(our_string);
                 return LEXICAL_ANALYSIS_ERROR;
@@ -304,8 +319,7 @@ int getToken(FILE *f, Token *token){
                 
                 //end of the number
                 ungetc(c, f);
-                int tmp;
-                cstrToInt(&tmp, our_string, token);
+                cstrToInt(our_string, token);
                 return 0;
             case F6:
                 if(is09num(c)){
@@ -318,10 +332,9 @@ int getToken(FILE *f, Token *token){
                     break;
                 }
 
-                //end of the number
+                //end of the decimal number
                 ungetc(c, f);
-                int tmp;
-                cstrToInt(&tmp, our_string, token);
+                cstrToDec(our_string, token);
                 return 0;
             case F7:
                 if(is09num(c)){
@@ -329,37 +342,105 @@ int getToken(FILE *f, Token *token){
                     break;
                 } 
                 
-                //end of the number
+                //end of the decimal number expressed in exponential notation
                 ungetc(c, f);
-                int tmp;
-                cstrToInt(&tmp, our_string, token);
+                cstrToDec(our_string, token);
                 return 0;
             case F8: //this case NEEDED to be FUCKING TESTED OUT
                 //000000000 -> 0
                 if(c == 48) break; //'0'
                 
-                ungetc(c, f);
                 if(is19num(c) || isIdNameStart(c)){
                     //error
                     indentStackDestroy(stack);
                     return LEXICAL_ANALYSIS_ERROR;
                 }
+
+                ungetc(c, f);
                 add_int(token, 0);
                 return 0;
-            case F9:
+            case F9: //end of the string
+                ungetc(c, f);
                 add_string(token, our_string);
                 return 0;
-            case F10: //couldn't be included in the state S? :thonk
+            case F11: //assignment op
+                if(c == 61){ //=
+                    present_state = F12;
+                    break;
+                }
+
+                ungetc(c, f);
+                add_simple_data(token, ASS); //:nicoSmug
+                return 0;
+            case F12: //equal op
+                ungetc(c, f);
+                add_simple_data(token, EQ);
+                return 0;
+            case F13:
+                if(c == 60){ //<
+                    present_state = F14;
+                    break;
+                }
+                
+                ungetc(c, f);
+                add_simple_data(token, L);
+                return 0;
+            case F14:
+                ungetc(c, f);
+                add_simple_data(token, LEQ);
+                return 0;
+            case F15:
+                if(c == 62){ //>
+                    present_state = F16;
+                    break;
+                }
+
+                ungetc(c, f);
+                add_simple_data(token, G);
+                return 0;
+            case F16:
+                ungetc(c, f);
+                add_simple_data(token, GEQ);
+                return 0;
+            case F17:
+                ungetc(c, f);
+                add_simple_data(token, NEQ);
+                return 0;
+            case F19: //case F18 moved to S
+                ungetc(c, f);
+                add_simple_data(token, DOCS);
+                return 0;
+            case F22: //cases F20-21 moved to S
+                if(c == 47){ // /
+                    present_state = F23;
+                    break;
+                }
+
+                ungetc(c, f);
+                add_simple_data(token, SL);
+                return 0;
+            case F23:
+                ungetc(c, f);
+                add_simple_data(token, DSL);
+                return 0;
+            //cases F24-25 moved to S
         }
     }
     return -1; //only for compiling NOT SURE for this line tbh
 }
 
-int cstrToInt(int *output, cstring *convertible, Token *token){
+void cstrToInt(cstring *our_string, Token *token){
+    int tmp;
     if(sscanf(get_string(our_string), "%i", &tmp) == EOF) return INTERNAL_ERROR;
     add_int(token, tmp);
     free_cstring(our_string);
-    return 0;
+}
+
+void cstrToDec(cstring *our_string, Token *token){
+    double tmp;
+    if(sscanf(get_string(our_string), "%lf", &tmp) == EOF) return INTERNAL_ERROR;
+    add_dec(token, tmp);
+    free_cstring(our_string);
 }
 
 e_type isKeyword(cstring *string){

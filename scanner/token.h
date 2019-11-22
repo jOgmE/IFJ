@@ -36,6 +36,8 @@
  * RPA - right parentheses ')'
  * EOFILE - end of file
  * COM - comma ','
+ * ENDOFFILE - EOF
+ * DOCS - docstring
  * ---------------
  * Keywords
  * ---------------
@@ -51,7 +53,8 @@ typedef enum{
     INDENT, DEDENT, EOL, DEC, INT, ID, STR,
     L, LEQ, G, GEQ, EQ, ASS, NEQ, PLUS, MINUS,
     AST, SL, DSL, COL, LPA, RPA, EOFILE, COM,
-    DEF, ELSE, IF, NONE, PASS, RETURN, WHILE
+    DEF, ELSE, IF, NONE, PASS, RETURN, WHILE,
+    ENDOFFILE, DOCS
 } e_type;
 
 /* Structure for converting string literals
@@ -192,10 +195,10 @@ int getDecValue(Token *token, double *num);
 /* Returns the data for STR token.
  *
  * @param token reading from
- * @param num var the data to be saved
+ * @param str var the data to be saved
  * @returns !0 if the token type != STR otherwise 0
  */
-int getStrValue(Token *token, char *str);
+int getStrValue(Token *token, cstring *str);
 
 
 //---------------------------------------------------------

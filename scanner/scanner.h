@@ -44,7 +44,7 @@
 #define F7 18
 #define F8 19
 #define F9 20
-#define F10 21
+//#define F10 21
 #define F11 22
 #define F12 23
 #define F13 24
@@ -52,14 +52,14 @@
 #define F15 26
 #define F16 27
 #define F17 28
-#define F18 29
+//#define F18 29
 #define F19 30
-#define F20 31
-#define F21 32
+//#define F20 31
+//#define F21 32
 #define F22 33
 #define F23 34
-#define F24 35
-#define F25 38
+//#define F24 35
+//#define F25 38
 //the last number is 38 - F25
 
 /* Brief get a Token from the stream f
@@ -128,11 +128,10 @@ e_type isKeyword(cstring *string);
  * makes an appropriate token of int and
  * frees the cstring
  *
- * @param ouput The pointer to the int to be saved to
- * @param convertible The string to be converted into an int
+ * @param our_string The string to be converted into an int
  * @param token The token to be writed
  * @returns 0 on success otherwise INTERNAL_ERROR
  */
-int cstrToInt(int *output, cstring *convertible, Token *token);
+int cstrToInt(cstring *our_string, Token *token);
 
 #endif /*_SCANNER_HEADER_FILE_*/
