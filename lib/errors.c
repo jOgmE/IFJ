@@ -12,7 +12,7 @@ error_type global_error_code = SUCCESS;
 
 bool kill_after_analysis = false;
 
-const char *error_type_names[] = {
+char *error_type_names[] = {
     "SUCCESS",
     "LEXICAL_ANALYSIS_ERROR",
     "SYNTAX_ANALYSIS_ERROR",
@@ -25,7 +25,7 @@ const char *error_type_names[] = {
     "DIVISION_BY_ZERO_ERROR",
 };
 
-const char *error_type_names50[] = {
+char *error_type_names50[] = {
     "INPUT_PARAMETER_ERROR",
     "INPUT_ANALYSIS_ERROR",
     "INPUT_SEMANTIC_ERROR",
@@ -38,7 +38,7 @@ const char *error_type_names50[] = {
     "",
     "INTERPRET_INTERNAL_ERROR"};
 
-const char *error_sev_names[] = {"INFO", "WARNING", "ERROR"};
+char *error_sev_names[] = {INFO_COLOR " INFO " RESET_COLOR, WARNING_COLOR " WARNING " RESET_COLOR, ERROR_COLOR " ERROR " RESET_COLOR};
 
 char *get_error(error_type type)
 {
@@ -62,10 +62,18 @@ char *get_error(error_type type)
 
 void print_internal_error(error_type type, error_sev severity, char *message)
 {
-    fprintf(stderr, "[%s] %s (%s)", get_error(type), error_sev_names[severity], message);
+    fprintf(stderr, "[%s] %s (%s)\n", error_sev_names[severity], message, get_error(type));
 }
 
 void print_compile_error(error_type type, error_sev severity, size_t line_num, char *file_name, char *message)
 {
-    fprintf(stderr, "[%s] %s (%s %s:%zu)", get_error(type), error_sev_names[severity], message, file_name, line_num);
+    fprintf(stderr, "[%s] %s " BOLD_WHITE "%s:%zu" RESET_COLOR " (%s)\n", error_sev_names[severity], message, file_name, line_num, get_error(type));
+}
+
+int main(int argc, char const *argv[])
+{
+    print_internal_error(SYNTAX_ANALYSIS_ERROR, INFO, "first test message");
+    print_internal_error(INTERNAL_ERROR, ERROR, "second test message");
+    print_compile_error(INTERPRET_OPERAND_ERROR, WARNING, 20, "test.c", "this is a message");
+    return 0;
 }
