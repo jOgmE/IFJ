@@ -11,6 +11,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#define INFO_COLOR "\033[36m"
+#define WARNING_COLOR "\033[33m"
+#define ERROR_COLOR "\033[31m"
+#define BOLD_WHITE "\033[1m\033[37m"
+#define RESET_COLOR "\033[0m"
+
 /**
  * Výčet typů errorů
  */
@@ -38,8 +44,8 @@ typedef enum ErrorTypes
 } error_type;
 
 // Řetězce pro výpis
-extern const char *error_type_names[10];
-extern const char *error_type_names50[10];
+extern char *error_type_names[10];
+extern char *error_type_names50[11];
 
 /**
  * error_severity
@@ -52,7 +58,7 @@ typedef enum ErrorSeverity
 } error_sev;
 
 // Řetězce pro výpis
-extern const char *error_sev_names[3];
+extern char *error_sev_names[3];
 
 // Globální proměnná s kódem erroru
 extern error_type global_error_code;
