@@ -48,6 +48,7 @@ int getToken(FILE *f, Token *token){
         if((c = fgetc(f)) == EOF){
             add_simple_data(token, EOFILE);
             --line_count; //is this okay?
+            indentStackDestroy(stack);
             return 0;
         }
         
@@ -98,48 +99,28 @@ int getToken(FILE *f, Token *token){
                 } // ' simpole apostrophe
                 if(c == 34){ present_state = Q3; break;} // \" double apostrophe
                 if(c == 35){ present_state = Q8; break;} // # number sign (hash)
-                //operators
+                //-----------operators-----------
                 if(c == 47){
-                    if((our_string = init_cstring_size(2)) == NULL){
-                        global_error_code = INTERNAL_ERROR;
-                        return INTERNAL_ERROR;
-                    }
                     present_state = F22;
                     scanner_first_token = false;
                     break;
                 } // /
                 if(c == 61){
-                    if((our_string = init_cstring_size(2)) == NULL){
-                        global_error_code = INTERNAL_ERROR;
-                        return INTERNAL_ERROR; //wihtout \0
-                    }
                     present_state = F11;
                     scanner_first_token = false;
                     break;
                 } // =
                 if(c == 60){
-                    if((our_string = init_cstring_size(2)) == NULL){
-                        global_error_code = INTERNAL_ERROR;
-                        return INTERNAL_ERROR; //wihtout \0
-                    }
                     present_state = F13;
                     scanner_first_token = false;
                     break;
                 } // <
                 if(c == 62){
-                    if((our_string = init_cstring_size(2)) == NULL){
-                        global_error_code = INTERNAL_ERROR;
-                        return INTERNAL_ERROR; //wihtout \0
-                    }
                     present_state = F15;
                     scanner_first_token = false;
                     break;
                 } // >
                 if(c == 33){
-                    if((our_string = init_cstring_size(2)) == NULL){
-                        global_error_code = INTERNAL_ERROR;
-                        return INTERNAL_ERROR; //wihtout \0
-                    }
                     present_state = Q9;
                     scanner_first_token = false;
                     break;
@@ -152,9 +133,12 @@ int getToken(FILE *f, Token *token){
                 if(c == 45){ present_state = F21; break;} // -
                 */
                 //united operator processing - last final state eliminated, terminating right from S
-                if(c == 58 || (c >= 40 && c <= 43) || c == 45){
+                if(c == 58 || (c >= 40 && c <= 43) || c == 45 || c == 44){
                     scanner_first_token = false;
-                    our_string = init_cstring_size(2);
+                    if((our_string = init_cstring_size(2)) == NULL){
+                        global_error_code = INTERNAL_ERROR;
+                        return INTERNAL_ERROR; //wihtout \0
+                    }
                     append_char(our_string, c);
                     for(int i=0; i<16; i++){
                         if(compare_string(our_string, op_conv[i].str)){
@@ -166,7 +150,6 @@ int getToken(FILE *f, Token *token){
                     //the program cannot get here
                 }
                 //error
-                if(!our_string) free_cstring(our_string);
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
                 return LEXICAL_ANALYSIS_ERROR;
             //--------------------------------STATES--------------------------------
@@ -336,6 +319,7 @@ int getToken(FILE *f, Token *token){
                 break;
             case F2:
                 //generating token EOL
+                ungetc(c, f);
                 scanner_first_token = true;
                 add_simple_data(token, EOL);
                 ++line_count;
@@ -353,6 +337,7 @@ int getToken(FILE *f, Token *token){
                     //checking for keyword
                     if(isKeyword(our_string) != 999){ //is keyword
                         add_simple_data(token, isKeyword(our_string));
+                        free_cstring(our_string);
                         return 0;
                     }
                     add_id(token, our_string);
@@ -420,6 +405,7 @@ int getToken(FILE *f, Token *token){
                 return 0;
             case F9: //end of the string
                 ungetc(c, f);
+                resize_cstring(our_string, our_string->length+1);
                 add_string(token, our_string);
                 return 0;
             case F11: //assignment op
@@ -525,7 +511,8 @@ e_type isKeyword(cstring *string){
 }
 
 bool isSpace(char c){
-    return (c >= 8 && c <= 13) || (c == 32); //ascii ws
+    //ws without new line
+    return c == 8 || c == 9 || c == 11 || c == 12 || c == 32; //ascii ws
 }
 bool isIdNameStart(char c){
     //_a..zA..Z
