@@ -18,9 +18,6 @@
 //size of the allocation chunk
 #define DYN_CHUNK_SIZE 256
 
-/**
- * cstring structure
- */
 typedef struct cstring_struct
 {
     char *str;             // Pointer to allocated string of cstring struct
@@ -34,17 +31,17 @@ typedef struct cstring_struct
  * @param str Pointer, or string to data to initialize cstring to
  * @returns Pointer to allocated cstring
  */
+
 cstring *init_cstring(const char *str);
 
 /**
  * Initializes new instance of cstring  with string of specified size
  * The size is without '\0' at the end.
- * 
- * @param size Size of string in cstring
- * @returns Pointer to allocated cstring
- */
-cstring *init_cstring_size(size_t size);
+cstring *init_cstring(char *str);
 
+/**
+ * Initializes new instance of cstring  with string of specified size
+>>>>>>> aac9c4130a2a861a0d333b47da4fe204c4211b71
 /**
  * Resizes string to new size
  * 
@@ -91,10 +88,6 @@ bool compare_string(cstring *cstr, const char *str);
  * @param cstr1 Pointer to first previouslly allocated cstring to compare
  * @param cstr2 Pointer to second previouslly allocated cstring to compare
  * @returns True if instances of cstring are equal
- */
-bool compare_cstring(cstring *cstr1, cstring *cstr2);
-
-/* Returns the string value of the cstr
  *
  * THIS FUNCTION IS READ ONLY!
  * DO NOT FREE THE RETURNED POINTER!
