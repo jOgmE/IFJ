@@ -70,5 +70,4 @@ void indentStackDestroy(tIndentStack *s)
     curr_item = prev_item;
   }
   free(s);
-  s = NULL;
 }

@@ -49,6 +49,7 @@ int getToken(FILE *f, Token *token){
             add_simple_data(token, EOFILE);
             --line_count; //is this okay?
             indentStackDestroy(stack);
+            stack = NULL;
             return 0;
         }
         
