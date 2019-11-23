@@ -1,20 +1,18 @@
 /** @file errors.h
- *  Library for error handling
+ *  Knihovna pro práci s chybami
  *  
- *  Created as a part of IFJcode19 interpreter for IFJ course at BUT FIT
- * 
  *  @author Jaroslav Hort
  *  @date 2019
  */
-#ifndef ERRORS_H
-#define ERRORS_H
+#ifndef _ERRORS_H
+#define _ERRORS_H
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 
 /**
- * error_type, general erros that can occur, functions should return following errors
+ * Výčet typů errorů
  */
 typedef enum ErrorTypes
 {
@@ -39,21 +37,21 @@ typedef enum ErrorTypes
     INTERNAL_ERROR = 99,                // Interní chyba překladače tj.neovlivněná vstupním programem(např.chyba alokace paměti, atd.)
 } error_type;
 
-// TODO
-// String values for print
-extern const char *error_type_names[5];
+// Řetězce pro výpis
+extern const char *error_type_names[10];
+extern const char *error_type_names50[10];
 
 /**
  * error_severity
  */
 typedef enum ErrorSeverity
 {
-    INFO,    // Information
-    WARNING, // Warning, can compile
-    ERROR    // Error, cannot compile
+    INFO,    // Informace
+    WARNING, // Varování, kompilace pokračuje
+    ERROR    // Chyba, kompilace selhala
 } error_sev;
 
-// String values for print
+// Řetězce pro výpis
 extern const char *error_sev_names[3];
 
 // Globální proměnná s kódem erroru
@@ -62,8 +60,24 @@ extern error_type global_error_code;
 // Bool proměnná pro kontrolu zda nastala chyba při analýze
 extern bool kill_after_analysis;
 
+/**
+ * Výpis ve formátu interní chyby
+ * 
+ * @param type Typ chyby
+ * @param severity Závažnost chyby
+ * @param message Zpráva pro vypsání
+ */
 void print_internal_error(error_type type, error_sev severity, char *message);
 
+/**
+ * Výpis ve formátu kompilační chyby
+ * 
+ * @param type Typ chyby
+ * @param severity Závažnost chyby
+ * @param line_num Číslo řádku ve zdrojové souboru, kde chyba nastala
+ * @param file_name Název zdrovojého souboru
+ * @param message Zpráva pro vypsání
+ */
 void print_compile_error(error_type type, error_sev severity, size_t line_num, char *file_name, char *message);
 
 #endif // ERRORS_H
