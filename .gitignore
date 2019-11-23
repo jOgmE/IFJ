@@ -5,7 +5,16 @@
 # Files
 
 **/dynamic_string_test
+**/dynamic_string
 **/errors_test
+**/errors
+**/gen_frame_tables_test
+**/gen_frame_tables
+**/generator_test
+**/generator
+**/ifj19_test
+**/ifj19
+**/.exe
 
 #trash from hojkas stack testing
 indent_stack
