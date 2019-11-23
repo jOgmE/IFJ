@@ -24,12 +24,12 @@
 *               na label, je-li 0, neskočí
 * ASSIGN      - (ASSIGN, op1, , res) - přiřadí do res op1
 * aritmetické funkce
-* (PLUS, op1, op2, res)
+* (ADD, op1, op2, res)
 * provede res = op1 + op2
-*   PLUS,       - res = op1 + op2
-*   MINUS,      - res = op1 - op2
-*   TIMES,      - res = op1 * op2
-*   DIVIDE,     - res = op1 / op2
+*   ADD,        - res = op1 + op2
+*   SUB,        - res = op1 - op2
+*   MUL,        - res = op1 * op2
+*   DIV,        - res = op1 / op2
 *   DIVINT,     - res = op1 // op2
 * relační funkce
 * (EQUAL, op1, op2, res)
@@ -43,19 +43,48 @@
 */
 typedef enum {
   LABEL, RET, CALL, JUMP, COND_JUMP,
-  ACPLUS, ACMINUS, TIMES, DIVIDE, DIVINT, ASSIGN,
-  EQUAL, NOT_EQUAL, GREATER, GE, SMALLER, SE
+  ADD, SUB, MUL, DIV, DIVINT, ASSIGN,
+  EQUAL, NOT_EQUAL, GREATER, GE, LESS, LE,
+  UNDEFINED
 } ac_type;
 
-typedef struct {
+/*
+* Pro funkce důležité tyto globální proměnné, potřebu-je li se na ně
+* v jiných částech sahat, nutno vložit jako extern proměnné
+* tAC* first_ac = NULL;
+* tAC* last_ac = NULL;
+*/
+
+typedef struct tAC {
   ac_type type;
-  Token op1;
-  Token op2;
-  Token res;
-} adress_code;
+  Token* op1;
+  Token* op2;
+  Token* res;
+  struct tAC *next;
+} tAC;
 
-void dosomething();
+//------------------------
+// FCE pro parser
+//------------------------
 
+/**
+* Inicializuje jeden řádek AC a vloží ho do listu.
+* @param ac_type typ funkce AC
+* @param *op1 ukazatel na token 1
+* @param *op1 ukazatel na token 2
+* @param *res ukazatel na třetí token, obvykle na uložení výsledku
+* Není-li využit některý token, je třeba místo něj předat hodnotu NULL!!
+*/
+void appendAC(ac_type, Token* op1, Token* op2, Token* res);
+
+/**
+* Uvolní celý seznam AC včetně tokenů na něj navázaných.
+*/
+void destroyACStack();
+
+//----------------------
+// FCE pro generátor
+//----------------------
 
 
 #endif //_ADRESS_CODE_H_

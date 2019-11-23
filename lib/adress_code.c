@@ -8,7 +8,54 @@
 
 #include "adress_code.h"
 
-void dosomething()
+tAC* first_ac = NULL;
+tAC* last_ac = NULL;
+tAC* curr_ac = NULL;
+
+tAC* initAC()
 {
-  printf("Got here\n");
+  tAC* ac = malloc(sizeof(tAC));
+  if(ac == NULL) {
+    /*TODO uncomment when error library finished
+    print_internal_error(INTERNAL_ERROR, ERROR, "Interní chyba alokace paměti pro initAC v adress_code.c.\n");*/
+    global_error_code = INTERNAL_ERROR;
+    return NULL;
+  }
+  ac->type = UNDEFINED;
+  ac->op1 = NULL;
+  ac->op2 = NULL;
+  ac->res = NULL;
+  ac->next = NULL;
+  return ac;
+}
+
+void appendAC(ac_type type, Token* op1, Token* op2, Token* res) {
+  tAC* ac = initAC();
+  if(ac == NULL) return;
+  ac->type = type;
+  ac->op1 = op1;
+  ac->op2 = op2;
+  ac->res = res;
+  if(first_ac == NULL) {
+    first_ac = ac;
+    last_ac = ac;
+  }
+  else {
+    last_ac->next = ac;
+    last_ac = ac;
+  }
+}
+
+void destroyACStack()
+{
+  tAC* curr = first_ac;
+  tAC* next = curr;
+  while(curr != NULL) {
+    next = curr->next;
+    if(curr->op1 != NULL) free_token(curr->op1);
+    if(curr->op2 != NULL) free_token(curr->op2);
+    if(curr->res != NULL) free_token(curr->res);
+    free(curr);
+    curr = next;
+  }
 }
