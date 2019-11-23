@@ -9,14 +9,15 @@
 #ifndef _ADRESS_CODE_H_
 #define _ADRESS_CODE_H_
 
-//#include "token.h"
+#include "../scanner/token.h"
+#include "errors.h"
 
 /**
 * (FUNKCE, , , res) znamená, že první a druhý prostor pro ak není u funkce
 * využit, v praxi bude NULL
 * LABEL       - (LABEL, , , name) - vytvoří label s názvem "name"
-* RETURN      - (RETURN, , , ) - vrátí se z funkce
-*               (RETURN, , , res) - vrátí hodnotu
+* RET         - (RET, , , ) - vrátí se z funkce
+*               (RET, , , res) - vrátí hodnotu
 * CALL        - (CALL, , , label) - zavolá funkci na "label"
 * JUMP        - (JUMP, , label) - skočí na "label"
 * COND_JUMP   - (COND_JUMP, cond, , label) - je-li cond nenulová hodnota, skočí
@@ -41,11 +42,20 @@
 *   LE          - less or equal, op1 <= op2
 */
 typedef enum {
-  LABEL, RETURN, CALL, JUMP, COND_JUMP,
-  PLUS, MINUS, TIMES, DIVIDE, DIVINT, ASSIGN,
+  LABEL, RET, CALL, JUMP, COND_JUMP,
+  ACPLUS, ACMINUS, TIMES, DIVIDE, DIVINT, ASSIGN,
   EQUAL, NOT_EQUAL, GREATER, GE, SMALLER, SE
-} ak_type;
+} ac_type;
 
-typedef struct
+typedef struct {
+  ac_type type;
+  Token op1;
+  Token op2;
+  Token res;
+} adress_code;
+
+void dosomething();
+
+
 
 #endif //_ADRESS_CODE_H_
