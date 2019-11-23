@@ -11,6 +11,9 @@
 FILE *result_code_file = NULL;
 char *result_code_filename;
 
+cstring *result_main_function_code = NULL;
+cstring *result_functions_code = NULL;
+
 void init_gen(char *filename)
 {
     if (result_code_file != NULL)
@@ -28,6 +31,9 @@ void init_gen(char *filename)
         perror("Chyba vytvoreni vystupniho souboru.");
         return;
     }
+
+    fprintf(result_code_file, ".IFJcode19\nJUMP $$main\n");
+    result_main_function_code = init_cstring("LABEL $$main\n");
 
     init_table(32, GLOBAL_FRAME);
     init_table(16, LOCAL_FRAME);
@@ -51,6 +57,24 @@ void remove_gen_file()
     return;
 }
 
+void print_gen_all()
+{
+    if (result_code_file == NULL)
+    {
+        return;
+    }
+
+    if (result_functions_code != NULL)
+    {
+        fprintf(result_code_file, result_functions_code->str);
+    }
+
+    if (result_main_function_code != NULL)
+    {
+        fprintf(result_code_file, result_main_function_code->str);
+    }
+}
+
 void free_gen()
 {
     if (result_code_file == NULL)
@@ -65,7 +89,17 @@ void free_gen()
     clear_table(TEMP_FRAME);
 }
 
-void append_instruction()
+void write_instruction()
+{
+    //TODO
+}
+
+void create_function()
+{
+    //TODO
+}
+
+void call_function()
 {
     //TODO
 }
