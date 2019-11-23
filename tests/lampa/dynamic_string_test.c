@@ -217,7 +217,7 @@ void test_dynamic_string()
     printf("[Y] free_cstring(third_cstr) test passed\n");
 }
 
-int main(int argc, char const *argv[])
+int main()
 {
     test_dynamic_string();
     return 0;

@@ -8,11 +8,15 @@
  */
 
 #ifndef DYNAMIC_STRING_H
+#define DYNAMIC_STRING_H
 
 #include <stdlib.h>  //malloc, realloc, free
 #include <string.h>  //strlen, strcmp. memcpy
 #include <stdbool.h> //bool type
 #include "errors.h"
+
+//size of the allocation chunk
+#define DYN_CHUNK_SIZE 256
 
 /**
  * cstring structure
@@ -30,10 +34,11 @@ typedef struct cstring_struct
  * @param str Pointer, or string to data to initialize cstring to
  * @returns Pointer to allocated cstring
  */
-cstring *init_cstring(char *str);
+cstring *init_cstring(const char *str);
 
 /**
  * Initializes new instance of cstring  with string of specified size
+ * The size is without '\0' at the end.
  * 
  * @param size Size of string in cstring
  * @returns Pointer to allocated cstring
@@ -78,7 +83,7 @@ void append_cstring(cstring *dest, cstring *src);
  * @param str Pointer to previouslly allocated string to compare
  * @returns True if cstring string is equal to str
  */
-bool compare_string(cstring *cstr, char *str);
+bool compare_string(cstring *cstr, const char *str);
 
 /**
  * Compares two instances of cstring
@@ -88,6 +93,17 @@ bool compare_string(cstring *cstr, char *str);
  * @returns True if instances of cstring are equal
  */
 bool compare_cstring(cstring *cstr1, cstring *cstr2);
+
+/* Returns the string value of the cstr
+ *
+ * THIS FUNCTION IS READ ONLY!
+ * DO NOT FREE THE RETURNED POINTER!
+ * IT SHOULD BE FREED BY THE FUNCTION free_cstring!!!!
+ *
+ * @param cstr Pointer to the type cstring
+ * @returns The pointer to the string stored in cstring or NULL when cstring not initialized.
+ */
+const char *get_string(cstring *cstr);
 
 /**
  * Frees previously allocated cstring

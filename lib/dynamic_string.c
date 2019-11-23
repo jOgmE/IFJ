@@ -21,7 +21,7 @@ cstring *init_cstring_size(size_t size)
         return NULL;
     }
 
-    cstr->str = (char *)malloc(size);
+    cstr->str = (char *)malloc(size+1); //include '\0' at the end
 
     // Check if string was allocated succesfully
     if (cstr->str == NULL)
@@ -30,13 +30,14 @@ cstring *init_cstring_size(size_t size)
         return NULL;
     }
 
+    cstr->str[0] = '\0';
     cstr->length = 0;
-    cstr->allocated_size = size;
+    cstr->allocated_size = size+1;
 
     return cstr;
 }
 
-cstring *init_cstring(char *str)
+cstring *init_cstring(const char *str)
 {
     size_t size = sizeof(str);
 
@@ -60,7 +61,7 @@ void resize_cstring(cstring *cstr, size_t new_size)
         return;
     }
 
-    cstr->str = (char *)realloc(cstr->str, new_size);
+    cstr->str = (char *)realloc(cstr->str, new_size+1); //ending '\0'
 
     // Check if string was reallocated succesfully
     if (cstr->str == NULL)
@@ -78,7 +79,7 @@ void append_char(cstring *cstr, char c)
     // Resize cstr->str string if char c cannot fit
     if (cstr->allocated_size < cstr->length + 1)
     {
-        resize_cstring(cstr, cstr->allocated_size + 1);
+        resize_cstring(cstr, cstr->allocated_size + DYN_CHUNK_SIZE);
     }
 
     // Concatenate string and character
@@ -118,7 +119,7 @@ void append_cstring(cstring *dest, cstring *src)
     dest->length = new_size;
 }
 
-bool compare_string(cstring *cstr, char *str)
+bool compare_string(cstring *cstr, const char *str)
 {
     return strcmp(cstr->str, str) == 0;
 }
@@ -135,6 +136,15 @@ bool compare_cstring(cstring *cstr1, cstring *cstr2)
     bool equal = allocated_size_comparison && length_comparison && str_comparison;
 
     return equal;
+}
+
+const char *get_string(cstring *cstr){
+    //return pointer to str or NULL if cstr is not initialized
+    if(cstr){
+        const char *tmp = cstr->str;
+        return tmp;
+    }
+    return NULL;
 }
 
 void free_cstring(cstring *cstr)
