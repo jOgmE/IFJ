@@ -21,7 +21,7 @@ cstring *init_cstring_size(size_t size)
         return NULL;
     }
 
-    cstr->str = (char *)malloc(size+1); //include '\0' at the end
+    cstr->str = (char *)malloc(size + 1); //include '\0' at the end
 
     // Check if string was allocated succesfully
     if (cstr->str == NULL)
@@ -32,7 +32,7 @@ cstring *init_cstring_size(size_t size)
 
     cstr->str[0] = '\0';
     cstr->length = 0;
-    cstr->allocated_size = size+1;
+    cstr->allocated_size = size + 1;
 
     return cstr;
 }
@@ -61,7 +61,7 @@ void resize_cstring(cstring *cstr, size_t new_size)
         return;
     }
 
-    cstr->str = (char *)realloc(cstr->str, new_size+1); //ending '\0'
+    cstr->str = (char *)realloc(cstr->str, new_size + 1); //ending '\0'
 
     // Check if string was reallocated succesfully
     if (cstr->str == NULL)
@@ -141,7 +141,8 @@ bool compare_cstring(cstring *cstr1, cstring *cstr2)
 const char *get_string(cstring *cstr)
 {
     //return pointer to str or NULL if cstr is not initialized
-    if(cstr){
+    if (cstr)
+    {
         const char *tmp = cstr->str;
         return tmp;
     }
