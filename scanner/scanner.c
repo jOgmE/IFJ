@@ -10,13 +10,13 @@
 
 #include "scanner.h"
 
-size_t line_count = 0;
+size_t line_count = 1;
 static bool scanner_first_token = true; //first token being readed
+static unsigned ws = 0; //ws counter
+static tIndentStack *stack;
 
 int getToken(FILE *f, Token *token){
     //checking static variable
-    static tIndentStack *stack;
-    static unsigned ws = 0; //ws counter
     if(stack == NULL){
         stack = indentStackInit();
     }
@@ -55,8 +55,13 @@ int getToken(FILE *f, Token *token){
         switch(present_state){
             //-------------------------STARTING STATE-------------------------------
             case S:
-                if(isSpace(c)){ present_state = scanner_first_token ? F1 : S; ws++; break;} //incrementing ws
-                if(c == '\n'){ present_state = scanner_first_token ? S : F2; break;}
+                if(c == 13) c = fgetc(f); //fcking windows with \r\n
+                if(c == 10){ present_state = scanner_first_token ? S : F2; break;} //\n
+                if(isSpace(c)){
+                    present_state = scanner_first_token ? F1 : S;
+                    if(scanner_first_token) ws++;
+                    break;
+                } //incrementing ws
                 if(isIdNameStart(c)){
                     if((our_string = init_cstring_size(256)) == NULL){
                         global_error_code = INTERNAL_ERROR;
@@ -64,9 +69,14 @@ int getToken(FILE *f, Token *token){
                     }
                     append_char(our_string, c);
                     present_state = F4;
+                    scanner_first_token = false;
                     break;
                 }
-                if(c == 48){ present_state = F8; break;} // 0
+                if(c == 48){
+                    present_state = F8;
+                    scanner_first_token = false;
+                    break;
+                } // 0
                 if(is19num(c)){
                     if((our_string = init_cstring_size(32)) == NULL){
                         global_error_code = INTERNAL_ERROR;
@@ -74,6 +84,7 @@ int getToken(FILE *f, Token *token){
                     }
                     append_char(our_string, c);
                     present_state = F5;
+                    scanner_first_token = false;
                     break;
                 } //numbers 1..9
                 if(c == 39){
@@ -82,6 +93,7 @@ int getToken(FILE *f, Token *token){
                         return INTERNAL_ERROR;
                     }
                     present_state = Q2;
+                    scanner_first_token = false;
                     break;
                 } // ' simpole apostrophe
                 if(c == 34){ present_state = Q3; break;} // \" double apostrophe
@@ -93,6 +105,7 @@ int getToken(FILE *f, Token *token){
                         return INTERNAL_ERROR;
                     }
                     present_state = F22;
+                    scanner_first_token = false;
                     break;
                 } // /
                 if(c == 61){
@@ -101,6 +114,7 @@ int getToken(FILE *f, Token *token){
                         return INTERNAL_ERROR; //wihtout \0
                     }
                     present_state = F11;
+                    scanner_first_token = false;
                     break;
                 } // =
                 if(c == 60){
@@ -109,6 +123,7 @@ int getToken(FILE *f, Token *token){
                         return INTERNAL_ERROR; //wihtout \0
                     }
                     present_state = F13;
+                    scanner_first_token = false;
                     break;
                 } // <
                 if(c == 62){
@@ -117,6 +132,7 @@ int getToken(FILE *f, Token *token){
                         return INTERNAL_ERROR; //wihtout \0
                     }
                     present_state = F15;
+                    scanner_first_token = false;
                     break;
                 } // >
                 if(c == 33){
@@ -125,6 +141,7 @@ int getToken(FILE *f, Token *token){
                         return INTERNAL_ERROR; //wihtout \0
                     }
                     present_state = Q9;
+                    scanner_first_token = false;
                     break;
                 } // !
                 /*if(c == 58){ present_state = F18; break;} // :
@@ -136,6 +153,7 @@ int getToken(FILE *f, Token *token){
                 */
                 //united operator processing - last final state eliminated, terminating right from S
                 if(c == 58 || (c >= 40 && c <= 43) || c == 45){
+                    scanner_first_token = false;
                     our_string = init_cstring_size(2);
                     append_char(our_string, c);
                     for(int i=0; i<16; i++){

@@ -56,7 +56,7 @@ typedef enum{
     L, LEQ, G, GEQ, EQ, ASS, NEQ, PLUS, MINUS,
     AST, SL, DSL, COL, LPA, RPA, EOFILE, COM,
     DEF, ELSE, IF, NONE, PASS, RETURN, WHILE,
-    DOCS
+    DOCS, TEMP_ID
 } e_type;
 
 /* Structure for converting string literals

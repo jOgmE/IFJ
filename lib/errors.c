@@ -69,11 +69,3 @@ void print_compile_error(error_type type, error_sev severity, size_t line_num, c
 {
     fprintf(stderr, "[%s] %s " BOLD_WHITE "%s:%zu" RESET_COLOR " (%s)\n", error_sev_names[severity], message, file_name, line_num, get_error(type));
 }
-
-int main(int argc, char const *argv[])
-{
-    print_internal_error(SYNTAX_ANALYSIS_ERROR, INFO, "first test message");
-    print_internal_error(INTERNAL_ERROR, ERROR, "second test message");
-    print_compile_error(INTERPRET_OPERAND_ERROR, WARNING, 20, "test.c", "this is a message");
-    return 0;
-}
