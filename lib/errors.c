@@ -46,7 +46,7 @@ char *get_error(error_type type)
     {
         return error_type_names[type];
     }
-    else if (type > 50)
+    else if (type >= 50 && type <= 60)
     {
         return error_type_names50[type - 50];
     }
