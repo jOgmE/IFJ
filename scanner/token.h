@@ -11,6 +11,8 @@
 #define _TOKEN_
 
 #include "../lib/dynamic_string.h"
+#include <stdlib.h>
+#include <malloc.h>
 
 /* INDENT - indent
  * DEDENT - dedent
@@ -49,51 +51,56 @@
  * return
  * while
  */
-typedef enum{
-    INDENT, DEDENT, EOL, DEC, INT, ID, STR,
-    L, LEQ, G, GEQ, EQ, ASS, NEQ, PLUS, MINUS,
-    AST, SL, DSL, COL, LPA, RPA, EOFILE, COM,
-    DEF, ELSE, IF, NONE, PASS, RETURN, WHILE,
-    ENDOFFILE, DOCS
+typedef enum
+{
+    INDENT = 1,
+    DEDENT,
+    EOL,
+    DEC,
+    INT,
+    ID,
+    STR,
+    L,
+    LEQ,
+    G,
+    GEQ,
+    EQ,
+    ASS,
+    NEQ,
+    PLUS,
+    MINUS,
+    AST,
+    SL,
+    DSL,
+    COL,
+    LPA,
+    RPA,
+    EOFILE,
+    COM,
+    DEF,
+    ELSE,
+    IF,
+    NONE,
+    PASS,
+    RETURN,
+    WHILE,
+    DOCS,
+    TEMP_ID
 } e_type;
 
 /* Structure for converting string literals
  * to enum e_type
  */
-typedef const struct {
+typedef const struct
+{
     e_type type;
     const char *str;
-}convert;
+} convert;
 
 //struct converting keywords
-convert keyword_conv[] = {
-    {DEF, "def"},
-    {ELSE, "else"},
-    {IF, "if"},
-    {NONE, "None"},
-    {PASS, "pass"},
-    {RETURN, "return"},
-    {WHILE, "while"}
-};
+extern convert keyword_conv[];
 //struct converting operators
-convert op_conv[] = {
-    {L, "<"},
-    {LEQ, "<="},
-    {G, ">"},
-    {GEQ, ">="},
-    {EQ, "=="},
-    {ASS, "="},
-    {NEQ, "!="},
-    {PLUS, "+"},
-    {MINUS, "-"},
-    {AST, "*"},
-    {SL, "/"},
-    {DSL, "//"},
-    {COL, ":"},
-    {LPA, "("},
-    {RPA, ")"},
-    {COM, ","}
-};
+extern convert op_conv[];
 
 /* The structure represents one token.
  * type - holds the type of the token defined
@@ -103,18 +110,13 @@ convert op_conv[] = {
  * when type id, str is being used to
  * store the pointer to the variable
  */
-typedef struct Token{
+typedef struct Token
+{
     double dec;
     int i;
     e_type type;
-    void *var_ptr;
     cstring *str;
 } Token;
-
-/* Array of python keywords.
- * Used to for comparing the input strings if keyword or not.
- */
-//const char keywords[7][7] = {"def", "else", "if", "None", "pass", "return", "while"};
 
 //---------------------------------------------------------
 //             Functions to write a token
@@ -122,20 +124,14 @@ typedef struct Token{
 
 /* initializing the token
  * @param token to be initialized
- * @return 0 if no errors happened
+ * @return pointer to token no errors happened, otherwise NULL
  */
-int init_token(Token *token);
-/* Adding type to the token.
- *
- * This function is adding the token an e_type.
- * In case of complex token (with data f.e. DEC)
- * use the specific function (which is adding implicitly
- * the token type).
+Token *init_token();
+/* Freeing initialized token
  *
  * @param token to set the type
  * @param e_type type of the token
  */
-void add_simple_data(Token *token, e_type type);
 /* Set token data (for int)
  *
  * Makes an INT type token with data.
@@ -195,14 +191,34 @@ int getDecValue(Token *token, double *num);
 /* Returns the data for STR token.
  *
  * @param token reading from
- * @param str var the data to be saved
- * @returns !0 if the token type != STR otherwise 0
+ * @return cstring pointer or NULL if token is not STR type
  */
-int getStrValue(Token *token, cstring *str);
-
+cstring *getTokenStrValue(Token *token);
 
 //---------------------------------------------------------
-//           Internal functions (Don't use them)
+//             Functions to work with tokens
 //---------------------------------------------------------
+
+/* Initializes an array of tokens with size size
+ *
+ * The functions initializes all the tokens inside the array.
+ *
+ * @param size The size of the array
+ * @return on success returns a pointer to the array, otherwise NULL
+ */
+Token **initTokenArr(size_t size);
+
+int reallocTokenArr(Token **token_arr, size_t oldSize, size_t newSize);
+
+/* Destructing/Deleting the token array.
+ *
+ * All the tokens are freed.
+ *
+ * @param token_arr The token array to be deleted
+ * @return 0 on success, otherwise -1
+ */
+void destrTokenArr(Token **token_arr);
+
+void freeTokenArr(Token **token_arr, size_t size);
 
 #endif /*_TOKEN_*/
