@@ -279,17 +279,3 @@ void clear_table(frame_t frame)
         }
     } while (!all_clear);
 }
-
-int main(int argc, char const *argv[])
-{
-    init_table(5, GLOBAL_FRAME);
-    insert_table_item("test", GLOBAL_FRAME);
-    char *val = get_table_item("test", GLOBAL_FRAME);
-    bool exists = item_exists_table("test", GLOBAL_FRAME);
-    delete_table_item("test", GLOBAL_FRAME);
-    exists = item_exists_table("test", GLOBAL_FRAME);
-    clear_table(GLOBAL_FRAME);
-    exists = true;
-    exists = item_exists_table("test", GLOBAL_FRAME);
-    return 0;
-}
