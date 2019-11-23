@@ -1,6 +1,6 @@
-#include <stdio.h>
+#include "ifj19.h"
 
-#include "generator.h"
+FILE *source_file;
 
 int main(int argc, char const *argv[])
 {
@@ -9,9 +9,9 @@ int main(int argc, char const *argv[])
         perror("Nebyla zadana cesta ke vstupnimu souboru.");
     }
 
-    FILE *source = fopen(argv[1], "r");
+    source_file = fopen(argv[1], "r");
 
-    if (source == NULL)
+    if (source_file == NULL)
     {
         perror("Vstupní soubor se nepodařilo otevřít.");
         return 1;
