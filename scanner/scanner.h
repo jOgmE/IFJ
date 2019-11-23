@@ -62,6 +62,12 @@
 //#define F25 38
 //the last number is 38 - F25
 
+//---------------------------------------------------------
+//                    GLOBAL VARIABES
+//---------------------------------------------------------
+
+extern size_t line_count;
+
 /* Brief get a Token from the stream f
  *
  * Function implements the FSM needed to get a token.
@@ -70,7 +76,7 @@
  * @param[out] Writing token to that pointer
  * @pre f != NULL
  * @pre isOpen(f) == true
- * @returns 0 if ok.\n 2 if EOF
+ * @returns 0 on success otherwise errorcode
  */
 int getToken(FILE *f, Token *token);
 
@@ -134,4 +140,13 @@ e_type isKeyword(cstring *string);
  */
 int cstrToInt(cstring *our_string, Token *token);
 
+/* Converts an cstring to decimal,
+ * makes an appropriate token of dec and
+ * frees the cstring
+ *
+ * @param our_string The string to be converted into a dec
+ * @param token The token to be writed
+ * @returns 0 on success otherwise INTERNAL_ERROR
+ */
+int cstrToDec(cstring *our_string, Token *token);
 #endif /*_SCANNER_HEADER_FILE_*/

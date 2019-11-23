@@ -10,11 +10,13 @@
 
 #include "scanner.h"
 
+size_t line_count = 0;
+static bool scanner_first_token = true; //first token being readed
+
 int getToken(FILE *f, Token *token){
     //checking static variable
     static tIndentStack *stack;
     static unsigned ws = 0; //ws counter
-    static bool scanner_first_token = true; //first token being readed
     if(stack == NULL){
         stack = indentStackInit();
     }
@@ -44,7 +46,8 @@ int getToken(FILE *f, Token *token){
     //ends while when resolved == 0
     while(resolved){
         if((c = fgetc(f)) == EOF){
-            add_simple_data(token, ENDOFFILE);
+            add_simple_data(token, EOFILE);
+            --line_count; //is this okay?
             return 0;
         }
         
@@ -55,19 +58,29 @@ int getToken(FILE *f, Token *token){
                 if(isSpace(c)){ present_state = scanner_first_token ? F1 : S; ws++; break;} //incrementing ws
                 if(c == '\n'){ present_state = scanner_first_token ? S : F2; break;}
                 if(isIdNameStart(c)){
-                    if((our_string = init_cstring_size(256)) == NULL) return INTERNAL_ERROR; //wihtout \0
+                    if((our_string = init_cstring_size(256)) == NULL){
+                        global_error_code = INTERNAL_ERROR;
+                        return INTERNAL_ERROR; //wihtout \0
+                    }
+                    append_char(our_string, c);
                     present_state = F4;
                     break;
                 }
                 if(c == 48){ present_state = F8; break;} // 0
                 if(is19num(c)){
-                    if((our_string = init_cstring_size(32)) == NULL) return INTERNAL_ERROR;
+                    if((our_string = init_cstring_size(32)) == NULL){
+                        global_error_code = INTERNAL_ERROR;
+                        return INTERNAL_ERROR;
+                    }
                     append_char(our_string, c);
                     present_state = F5;
                     break;
                 } //numbers 1..9
                 if(c == 39){
-                    if((our_string = init_cstring_size(256)) == NULL) return INTERNAL_ERROR;
+                    if((our_string = init_cstring_size(256)) == NULL){
+                        global_error_code = INTERNAL_ERROR;
+                        return INTERNAL_ERROR;
+                    }
                     present_state = Q2;
                     break;
                 } // ' simpole apostrophe
@@ -75,27 +88,42 @@ int getToken(FILE *f, Token *token){
                 if(c == 35){ present_state = Q8; break;} // # number sign (hash)
                 //operators
                 if(c == 47){
-                    if((our_string = init_cstring_size(2)) == NULL) return INTERNAL_ERROR;
+                    if((our_string = init_cstring_size(2)) == NULL){
+                        global_error_code = INTERNAL_ERROR;
+                        return INTERNAL_ERROR;
+                    }
                     present_state = F22;
                     break;
                 } // /
                 if(c == 61){
-                    if((our_string = init_cstring_size(2)) == NULL) return INTERNAL_ERROR; //wihtout \0
+                    if((our_string = init_cstring_size(2)) == NULL){
+                        global_error_code = INTERNAL_ERROR;
+                        return INTERNAL_ERROR; //wihtout \0
+                    }
                     present_state = F11;
                     break;
                 } // =
                 if(c == 60){
-                    if((our_string = init_cstring_size(2)) == NULL) return INTERNAL_ERROR; //wihtout \0
+                    if((our_string = init_cstring_size(2)) == NULL){
+                        global_error_code = INTERNAL_ERROR;
+                        return INTERNAL_ERROR; //wihtout \0
+                    }
                     present_state = F13;
                     break;
                 } // <
                 if(c == 62){
-                    if((our_string = init_cstring_size(2)) == NULL) return INTERNAL_ERROR; //wihtout \0
+                    if((our_string = init_cstring_size(2)) == NULL){
+                        global_error_code = INTERNAL_ERROR;
+                        return INTERNAL_ERROR; //wihtout \0
+                    }
                     present_state = F15;
                     break;
                 } // >
                 if(c == 33){
-                    if((our_string = init_cstring_size(2)) == NULL) return INTERNAL_ERROR; //wihtout \0
+                    if((our_string = init_cstring_size(2)) == NULL){
+                        global_error_code = INTERNAL_ERROR;
+                        return INTERNAL_ERROR; //wihtout \0
+                    }
                     present_state = Q9;
                     break;
                 } // !
@@ -121,6 +149,7 @@ int getToken(FILE *f, Token *token){
                 }
                 //error
                 if(!our_string) free_cstring(our_string);
+                global_error_code = LEXICAL_ANALYSIS_ERROR;
                 return LEXICAL_ANALYSIS_ERROR;
             //--------------------------------STATES--------------------------------
             case Q1:
@@ -137,6 +166,7 @@ int getToken(FILE *f, Token *token){
                 //error
                 free_cstring(our_string);
                 indentStackDestroy(stack);
+                global_error_code = LEXICAL_ANALYSIS_ERROR;
                 return LEXICAL_ANALYSIS_ERROR;
             case Q2: //raw string processsing - KEEPING ESC CHAR
                 if(c == 92){
@@ -152,16 +182,19 @@ int getToken(FILE *f, Token *token){
                 //error
                 free_cstring(our_string);
                 indentStackDestroy(stack);
+                global_error_code = LEXICAL_ANALYSIS_ERROR;
                 return LEXICAL_ANALYSIS_ERROR;
             case Q3:
                 if(c == 34){ present_state = Q4; break;} //"
                 //error
                 indentStackDestroy(stack);
+                global_error_code = LEXICAL_ANALYSIS_ERROR;
                 return LEXICAL_ANALYSIS_ERROR;
             case Q4:
                 if(c == 34){ present_state = Q5; break;} //"
                 //error
                 indentStackDestroy(stack);
+                global_error_code = LEXICAL_ANALYSIS_ERROR;
                 return LEXICAL_ANALYSIS_ERROR;
             case Q5:
                 if(c == 34){ present_state = Q6; break;} //"
@@ -188,6 +221,7 @@ int getToken(FILE *f, Token *token){
                 } //=
                 free_cstring(our_string);
                 indentStackDestroy(stack);
+                global_error_code = LEXICAL_ANALYSIS_ERROR;
                 return LEXICAL_ANALYSIS_ERROR;
             case Q10:
                 if(is09num(c)){
@@ -197,6 +231,7 @@ int getToken(FILE *f, Token *token){
                 }
                 free_cstring(our_string);
                 indentStackDestroy(stack);
+                global_error_code = LEXICAL_ANALYSIS_ERROR;
                 return LEXICAL_ANALYSIS_ERROR;
             case Q11:
                 if(is09num(c)){
@@ -206,6 +241,7 @@ int getToken(FILE *f, Token *token){
                 }
                 free_cstring(our_string);
                 indentStackDestroy(stack);
+                global_error_code = LEXICAL_ANALYSIS_ERROR;
                 return LEXICAL_ANALYSIS_ERROR;
             case Q12:
                 if(isPrintChar(c)){
@@ -215,6 +251,7 @@ int getToken(FILE *f, Token *token){
                 }
                 free_cstring(our_string);
                 indentStackDestroy(stack);
+                global_error_code = LEXICAL_ANALYSIS_ERROR;
                 return LEXICAL_ANALYSIS_ERROR;
             //-------------------------FINAL STATES----------------------------------
             case F1:
@@ -245,6 +282,7 @@ int getToken(FILE *f, Token *token){
                         if(dedent){
                             //error
                             indentStackDestroy(stack);
+                            global_error_code = LEXICAL_ANALYSIS_ERROR;
                             return LEXICAL_ANALYSIS_ERROR;
                         }
                         indentStackPush(stack, ws);
@@ -265,6 +303,7 @@ int getToken(FILE *f, Token *token){
                             if(ws){
                                 //error
                                 indentStackDestroy(stack);
+                                global_error_code = LEXICAL_ANALYSIS_ERROR;
                                 return LEXICAL_ANALYSIS_ERROR;
                             }
                             ws = 0;
@@ -281,6 +320,7 @@ int getToken(FILE *f, Token *token){
                 //generating token EOL
                 scanner_first_token = true;
                 add_simple_data(token, EOL);
+                ++line_count;
                 return 0;
             case F4:
                 //pre -> our_string != NULL
@@ -319,7 +359,7 @@ int getToken(FILE *f, Token *token){
                 
                 //end of the number
                 ungetc(c, f);
-                cstrToInt(our_string, token);
+                cstrToInt(our_string, token); //check return value!!!
                 return 0;
             case F6:
                 if(is09num(c)){
@@ -353,6 +393,7 @@ int getToken(FILE *f, Token *token){
                 if(is19num(c) || isIdNameStart(c)){
                     //error
                     indentStackDestroy(stack);
+                    global_error_code = LEXICAL_ANALYSIS_ERROR;
                     return LEXICAL_ANALYSIS_ERROR;
                 }
 
@@ -426,21 +467,32 @@ int getToken(FILE *f, Token *token){
             //cases F24-25 moved to S
         }
     }
-    return -1; //only for compiling NOT SURE for this line tbh
+    global_error_code = LEXICAL_ANALYSIS_ERROR;
+    return LEXICAL_ANALYSIS_ERROR; //only for compiling NOT SURE for this line tbh
 }
 
-void cstrToInt(cstring *our_string, Token *token){
+int cstrToInt(cstring *our_string, Token *token){
     int tmp;
-    if(sscanf(get_string(our_string), "%i", &tmp) == EOF) return INTERNAL_ERROR;
+    if(sscanf(get_cstring_string(our_string), "%i", &tmp) == EOF){
+        global_error_code = INTERNAL_ERROR;
+        return INTERNAL_ERROR;
+    }
     add_int(token, tmp);
     free_cstring(our_string);
+    
+    return 0;
 }
 
-void cstrToDec(cstring *our_string, Token *token){
+int cstrToDec(cstring *our_string, Token *token){
     double tmp;
-    if(sscanf(get_string(our_string), "%lf", &tmp) == EOF) return INTERNAL_ERROR;
+    if(sscanf(get_cstring_string(our_string), "%lf", &tmp) == EOF){
+        global_error_code = INTERNAL_ERROR;
+        return INTERNAL_ERROR;
+    }
     add_dec(token, tmp);
     free_cstring(our_string);
+    
+    return 0;
 }
 
 e_type isKeyword(cstring *string){
