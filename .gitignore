@@ -14,7 +14,8 @@
 **/generator
 **/ifj19_test
 **/ifj19
-**/.exe
+**/*.exe
+**/*.ic19
 
 #trash from hojkas stack testing
 indent_stack

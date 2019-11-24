@@ -39,7 +39,7 @@ cstring *init_cstring_size(size_t size)
 
 cstring *init_cstring(const char *str)
 {
-    size_t size = sizeof(str);
+    size_t size = strlen(str);
 
     cstring *cstr = init_cstring_size(size);
 
