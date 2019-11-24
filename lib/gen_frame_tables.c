@@ -149,17 +149,27 @@ ftItem_t *search_table(char *key, frame_t frame)
     return NULL;
 }
 
+void update_table_item_token(char *item, Token *token, frame_t frame)
+{
+    ftItem_t *table_item = search_table(item, frame);
+
+    if (table_item != NULL)
+    {
+        table_item->token = token;
+    }
+}
+
 void update_table_item_type(char *item, e_type type, frame_t frame)
 {
     ftItem_t *table_item = search_table(item, frame);
 
     if (table_item != NULL)
     {
-        table_item->type = type;
+        table_item->token->type = type;
     }
 }
 
-void insert_table_item(char *item, e_type type, frame_t frame)
+void insert_table_item(char *item, Token *token, frame_t frame)
 {
     int index = hashcode(item, frame);
     ftItem_t *table_item = search_table(item, frame);
@@ -168,7 +178,7 @@ void insert_table_item(char *item, e_type type, frame_t frame)
     {
         ftItem_t *new_item = (ftItem_t *)malloc(sizeof(ftItem_t));
         new_item->key = item;
-        new_item->type = type;
+        new_item->token = token;
         new_item->next = NULL;
 
         if (frame == GLOBAL_FRAME)
@@ -198,17 +208,31 @@ void insert_table_item(char *item, e_type type, frame_t frame)
     }
 }
 
-e_type get_table_item_type(char *key, frame_t frame)
+Token *get_table_item_token(char *key, frame_t frame)
 {
     ftItem_t *item = search_table(key, frame);
 
-    if (item != NULL)
+    if (item != NULL && item->token != NULL)
     {
-        return item->type;
+        return item->token;
     }
     else
     {
         return NULL;
+    }
+}
+
+e_type get_table_item_type(char *key, frame_t frame)
+{
+    ftItem_t *item = search_table(key, frame);
+
+    if (item != NULL && item->token != NULL)
+    {
+        return item->token->type;
+    }
+    else
+    {
+        return NONE;
     }
 }
 

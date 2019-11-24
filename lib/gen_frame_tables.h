@@ -22,7 +22,7 @@
 typedef struct ftItem
 {
     char *key;           //Klíč hodnoty
-    e_type type;         //Typ hodnoty
+    Token *token;        //Token hodnoty
     struct ftItem *next; //Ukazatel na další hodnotu na stejném indexu
 } ftItem_t;
 
@@ -90,13 +90,22 @@ ftItem_t *search_table(char *key, frame_t frame);
 void update_table_item_type(char *item, e_type type, frame_t frame);
 
 /**
+ * Aktualizuje typ položky v tabulce
+ * 
+ * @param item Klíč hodnoty
+ * @param Token Novy token typ hodnoty
+ * @param frame Rámec
+ */
+void update_table_item_token(char *item, Token *token, frame_t frame);
+
+/**
  * Vložení položky do tabulky
  * 
  * @param item Klíč hodnoty
  * @param type Datový typ hodnoty
  * @param frame Rámec
  */
-void insert_table_item(char *item, e_type type, frame_t frame);
+void insert_table_item(char *item, Token *token, frame_t frame);
 
 /**
  * Vyhledání hodnoty v tabulce
@@ -112,7 +121,16 @@ char *get_table_item(char *key, frame_t frame);
  * 
  * @param key Klíč hodnoty
  * @param frame Rámec
- * @return Typ polozky v tabulce
+ * @return Token položky
+ */
+Token *get_table_item_token(char *key, frame_t frame);
+
+/**
+ * Vyhledání hodnoty v tabulce
+ * 
+ * @param key Klíč hodnoty
+ * @param frame Rámec
+ * @return Typ položky v tabulce
  */
 e_type get_table_item_type(char *key, frame_t frame);
 
