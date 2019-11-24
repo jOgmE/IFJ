@@ -111,6 +111,45 @@ void free_gen()
     clear_table(TEMP_FRAME);
 }
 
+char *convert_int_to_string(int data)
+{
+    size_t length = snprintf(NULL, 0, "%d", data);
+    char *str = malloc(length + 1);
+    snprintf(str, length + 1, "%d", data);
+    return str;
+}
+
+char *convert_float_to_string(double data)
+{
+    size_t length = snprintf(NULL, 0, "%a", data);
+    char *str = malloc(length + 1);
+    snprintf(str, length + 1, "%a", data);
+    return str;
+}
+
+char *convert_string(char *string)
+{
+    size_t len = strlen(string);
+
+    cstring *result = init_cstring_size(1);
+
+    for (size_t i = 0; i < len; i++)
+    {
+        if ((string[i] >= 0 && string[i] <= 32) || string[i] == 35 || string[i] == 92)
+        {
+            append_string(result, "\\");
+            append_char(result, '0');
+            append_string(result, convert_int_to_string(string[i]));
+        }
+        else
+        {
+            append_char(result, string[i]);
+        }
+    }
+
+    return result->str;
+}
+
 void write_symbol_id(Token *symb, char *symb_frame)
 {
     append_string(CURRENT_BLOCK, symb_frame);
@@ -124,20 +163,20 @@ void write_symbol_type(Token *symb)
     switch (symb->type)
     {
     case INT:
-        append_string(CURRENT_BLOCK, "int");
+        append_string(CURRENT_BLOCK, "int@");
+        append_string(CURRENT_BLOCK, convert_int_to_string(symb->i));
         break;
     case DEC:
-        append_string(CURRENT_BLOCK, "float");
+        append_string(CURRENT_BLOCK, "float@");
+        append_string(CURRENT_BLOCK, convert_float_to_string(symb->dec));
         break;
     case STR:
-        append_string(CURRENT_BLOCK, "string");
+        append_string(CURRENT_BLOCK, "string@");
+        append_string(CURRENT_BLOCK, convert_string(symb->str->str));
         break;
     default:
         break;
     }
-
-    append_string(CURRENT_BLOCK, "@");
-    append_string(CURRENT_BLOCK, symb->str->str);
 
     append_string(CURRENT_BLOCK, " ");
 }
@@ -186,6 +225,11 @@ void write_defvar(Token *res)
 
 char *check_and_define(Token *token)
 {
+    if (token->type != ID)
+    {
+        return "";
+    }
+
     bool token_exists_global = item_exists_table(token->str->str, GLOBAL_FRAME);
 
     char *token_frame_str;
@@ -297,11 +341,20 @@ int main(int argc, char const *argv[])
     Token *op1 = malloc(sizeof(Token));
     Token *res = malloc(sizeof(Token));
 
-    cstring *op1_str = init_cstring("50");
+    cstring *op1_str = init_cstring("Test string \n");
     cstring *res_str = init_cstring("result");
 
+    // op1->str = NULL;
+    // op1->dec = 50.5050;
+    // op1->type = DEC;
+
+    // op1->str = NULL;
+    // op1->dec = 1234;
+    // op1->type = INT;
+
     op1->str = op1_str;
-    op1->type = INT;
+    op1->type = STR;
+
     res->str = res_str;
     res->type = ID;
 
