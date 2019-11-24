@@ -70,7 +70,7 @@ void printToken(Token *token){
         getDecValue(token, &d);
         printf(", %lf]", d);
     }
-    else if(type == STR){
+    else if(type == STR || type == ID){
         //something
         cstring *s = getTokenStrValue(token);
         printf(", %s]", get_cstring_string(s));
@@ -82,33 +82,37 @@ void printToken(Token *token){
 
 void printTokenArr(Token **token_arr, size_t size){
     if(token_arr){
-        printf("--------------------Tokens--------------------\n");
+        printf("\n--------------------Tokens--------------------\n");
         printf(">Number of tokens: %ld\n\n", size);
         for(size_t i=0; i<size; i++){
             printToken(token_arr[i]);
-            printf(", ");
-            if(!(i % 10)) printf("\n"); //10 on one line
+            if(getTokenType(token_arr[i]) != EOFILE) printf(", ");
+            else printf("\n");
+            if(getTokenType(token_arr[i]) == EOL) printf("\n"); //10 on one line
         }
-        printf("----------------------------------------------\n");
+        printf("----------------------------------------------\n\n");
     }
 }
 
 void printSeparator(const char *sep){
-    printf("---------------------------------------------------------\n");
-    printf("%30s\n", sep);
-    printf("---------------------------------------------------------\n");
+    printf("**************\n");
+    printf("   %s\n", sep);
+    printf("**************\n");
 }
 
 int testTokenReading(){
     size_t sizeOfArr = 124;
     Token **token_arr = initTokenArr(sizeOfArr);
+    if(token_arr == NULL){
+        return -1;
+    }
     size_t i = 0;
-    while(getTokenType(token_arr[i]) != EOFILE){//don't fcking know if this works or not
+    do{
         getToken(f, token_arr[i++]);
         if(global_error_code != SUCCESS){
             //edit to print error message
-            fprintf(stderr, "error happened\n");
-            //print_internal_error(global_error_code, ERROR, "error happened\n");
+            //fprintf(stderr, "error happened\n");
+            print_internal_error(global_error_code, ERROR, "error happened\n");
             freeTokenArr(token_arr, sizeOfArr);
             return -1; //error
         }
@@ -120,19 +124,25 @@ int testTokenReading(){
             }
             sizeOfArr *= 2;
         }
-    }
+    }while(getTokenType(token_arr[i-1]) != EOFILE);
+
     printTokenArr(token_arr, i);
     freeTokenArr(token_arr, sizeOfArr);
     return 0;
 }
 
-int main(){
-    //TEST1
-    f = fopen("test1", "r");
-    printSeparator("Test 1");
+void runTest(const char *test){
+    f = fopen(test, "r");
+    printSeparator(test);
     testTokenReading();
-    printSeparator("END Test 1");
     fclose(f);
+}
+
+int main(){
+    //test1
+    runTest("test1");
+    //test2
+    runTest("test2");
 
     return 0;
 }
