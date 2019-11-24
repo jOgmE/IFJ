@@ -129,6 +129,16 @@ typedef struct Token
 Token *init_token();
 /* Freeing initialized token
  *
+ * @param token Token to be freed.
+ */
+void free_token(Token *token);
+/* Adding type to the token.
+ *
+ * This function is adding the token an e_type.
+ * In case of complex token (with data f.e. DEC)
+ * use the specific function (which is adding implicitly
+ * the token type).
+ *
  * @param token to set the type
  * @param e_type type of the token
  */

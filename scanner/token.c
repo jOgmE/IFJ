@@ -34,8 +34,7 @@ convert op_conv[] = {
     {COL, ":"},
     {LPA, "("},
     {RPA, ")"},
-    {COM, ","} //ADD IT TO THE FSM!!!!!!!!!!!
-};
+    {COM, ","}};
 
 Token *init_token()
 {
@@ -101,7 +100,7 @@ int getDecValue(Token *token, double *num)
 
 cstring *getTokenStrValue(Token *token)
 {
-    if (getTokenType(token) == STR)
+    if (getTokenType(token) == STR || getTokenType(token) == ID)
     {
         return token->str;
     }

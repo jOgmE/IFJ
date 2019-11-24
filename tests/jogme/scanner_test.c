@@ -4,29 +4,14 @@
  * Test file for scanner.
  */
 
-<<<<<<< HEAD
-#define _libPath_ "../../lib/"
-#define _scannerPath_ "../../scanner/"
-
-#include _scannerPath_"scanner.h"
-#include _scannerPath_"token.h"
-#include _libPath_"dynamic_string.h"
-=======
 #include "../../lib/dynamic_string.h"
 #include "../../lib/errors.h"
 #include "../../scanner/token.h"
 #include "../../scanner/scanner.h"
->>>>>>> ee4a0ed6695c05ef80cd91b513796429dc3e0495
 
 //global variable for file
 FILE *f;
 
-<<<<<<< HEAD
-void printToken(Token *token){
-    printf("-------Token-------\n");
-    e_type type = getTokenType(token);
-    printf("[%s", type);
-=======
 convert types[] = {
     {INDENT, "indent"},
     {DEDENT, "dedent"},
@@ -59,126 +44,127 @@ convert types[] = {
     {PASS, "pass"},
     {RETURN, "return"},
     {WHILE, "while"},
-    {DOCS, "DOCS"}
-};
+    {DOCS, "DOCS"}};
 
-const char *getTokenTypeStr(e_type type){
-    for(int i=0; i<32; i++){
-        if(types[i].type == type) return types[i].str;
+const char *getTokenTypeStr(e_type type)
+{
+    for (int i = 0; i < 32; i++)
+    {
+        if (types[i].type == type)
+            return types[i].str;
     }
 
     return "NaN";
 }
 
-void printToken(Token *token){
+void printToken(Token *token)
+{
     //printf("-------Token-------\n");
     e_type type = getTokenType(token);
     printf("[%s", getTokenTypeStr(type));
->>>>>>> ee4a0ed6695c05ef80cd91b513796429dc3e0495
 
-    if(type == INT){
+    if (type == INT)
+    {
         int i;
         getIntValue(token, &i);
-<<<<<<< HEAD
-        printf(", %i]\n", i);
-=======
         printf(", %i]", i);
->>>>>>> ee4a0ed6695c05ef80cd91b513796429dc3e0495
     }
-    else if(type == DEC){
+    else if (type == DEC)
+    {
         double d;
         getDecValue(token, &d);
-<<<<<<< HEAD
-        printf(", %lf]\n", d);
-    }
-    else if(type == STR){
-        //something
-        cstring *s;
-        getStrValue(token, s);
-        printf(", %s]\n", getString(s));
-    }
-    else{
-        printf("]\n");
-=======
         printf(", %lf]", d);
     }
-    else if(type == STR){
+    else if (type == STR || type == ID)
+    {
         //something
         cstring *s = getTokenStrValue(token);
         printf(", %s]", get_cstring_string(s));
     }
-    else{
+    else
+    {
         printf("]");
     }
 }
 
-void printTokenArr(Token **token_arr, size_t size){
-    if(token_arr){
-        printf("--------------------Tokens--------------------\n");
+void printTokenArr(Token **token_arr, size_t size)
+{
+    if (token_arr)
+    {
+        printf("\n--------------------Tokens--------------------\n");
         printf(">Number of tokens: %ld\n\n", size);
-        for(size_t i=0; i<size; i++){
+        for (size_t i = 0; i < size; i++)
+        {
             printToken(token_arr[i]);
-            printf(", ");
-            if(!(i % 10)) printf("\n"); //10 on one line
+            if (getTokenType(token_arr[i]) != EOFILE)
+                printf(", ");
+            else
+                printf("\n");
+            if (getTokenType(token_arr[i]) == EOL)
+                printf("\n"); //10 on one line
         }
-        printf("----------------------------------------------\n");
->>>>>>> ee4a0ed6695c05ef80cd91b513796429dc3e0495
+        printf("----------------------------------------------\n\n");
     }
 }
 
-void printSeparator(const char *sep){
-    printf("---------------------------------------------------------\n");
-<<<<<<< HEAD
-    printf("%20s\n", sep);
-    printf("---------------------------------------------------------\n");
+void printSeparator(const char *sep)
+{
+    printf("**************\n");
+    printf("   %s\n", sep);
+    printf("**************\n");
 }
 
-int test1(Token token){
-    
-=======
-    printf("%30s\n", sep);
-    printf("---------------------------------------------------------\n");
-}
-
-int testTokenReading(){
+int testTokenReading()
+{
     size_t sizeOfArr = 124;
     Token **token_arr = initTokenArr(sizeOfArr);
+    if (token_arr == NULL)
+    {
+        return -1;
+    }
     size_t i = 0;
-    while(getTokenType(token_arr[i]) != EOFILE){//don't fcking know if this works or not
+    do
+    {
         getToken(f, token_arr[i++]);
-        if(global_error_code != SUCCESS){
+        if (global_error_code != SUCCESS)
+        {
             //edit to print error message
-            fprintf(stderr, "error happened\n");
-            //print_internal_error(global_error_code, ERROR, "error happened\n");
+            //fprintf(stderr, "error happened\n");
+            print_internal_error(global_error_code, ERROR, "error happened\n");
             freeTokenArr(token_arr, sizeOfArr);
             return -1; //error
         }
-        if(i == sizeOfArr){
+        if (i == sizeOfArr)
+        {
             //realloc token_arr
-            if((reallocTokenArr(token_arr, sizeOfArr, sizeOfArr*2))){
+            if ((reallocTokenArr(token_arr, sizeOfArr, sizeOfArr * 2)))
+            {
                 //error happened
                 return -1;
             }
             sizeOfArr *= 2;
         }
-    }
+    } while (getTokenType(token_arr[i - 1]) != EOFILE);
+
     printTokenArr(token_arr, i);
     freeTokenArr(token_arr, sizeOfArr);
     return 0;
->>>>>>> ee4a0ed6695c05ef80cd91b513796429dc3e0495
 }
 
-int main(){
-    //TEST1
-    f = fopen("test1", "r");
-    printSeparator("Test 1");
-<<<<<<< HEAD
-    test1(token1);
-=======
+void runTest(const char *test)
+{
+    f = fopen(test, "r");
+    printSeparator(test);
     testTokenReading();
-    printSeparator("END Test 1");
     fclose(f);
->>>>>>> ee4a0ed6695c05ef80cd91b513796429dc3e0495
+}
+
+int main()
+{
+    //test1
+    runTest("test1");
+    //test2
+    runTest("test2");
 
     return 0;
 }
