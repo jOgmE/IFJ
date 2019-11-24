@@ -155,7 +155,12 @@ void update_table_item_token(char *item, Token *token, frame_t frame)
 
     if (table_item != NULL)
     {
-        table_item->token = token;
+        Token *table_token = init_token();
+        table_token->dec = token->dec;
+        table_token->i = token->i;
+        table_token->type = token->type;
+
+        table_item->token = table_token;
     }
 }
 
