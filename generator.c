@@ -13,7 +13,9 @@ char *result_code_filename;
 cstring *result_main_function_code = NULL;
 cstring *result_functions_code = NULL;
 
+cstring *CURRENT_BLOCK;
 frame_t CURRENT_FRAME = GLOBAL_FRAME;
+char *CURRENT_FRAME_STRING;
 
 void init_gen_test()
 {
@@ -47,9 +49,13 @@ void init_gen(char *filename)
         return;
     }
 
-    fprintf(result_code_file, ".IFJcode19\nJUMP $$main\n");
+    fprintf(result_code_file, ".IFJcode19\nJUMP $$main\n\n");
     result_main_function_code = init_cstring("LABEL $$main\n");
     result_functions_code = init_cstring_size(1);
+
+    CURRENT_FRAME = GLOBAL_FRAME;
+    CURRENT_BLOCK = result_main_function_code;
+    CURRENT_FRAME_STRING = get_frame_string(CURRENT_FRAME);
 
     init_table(32, GLOBAL_FRAME);
     init_table(16, LOCAL_FRAME);
@@ -105,86 +111,154 @@ void free_gen()
     clear_table(TEMP_FRAME);
 }
 
-void write_instruction()
+void write_symbol_id(Token *symb, char *symb_frame)
 {
-    //TODO
+    append_string(CURRENT_BLOCK, symb_frame);
+    append_string(CURRENT_BLOCK, "@");
+    append_string(CURRENT_BLOCK, symb->str->str);
+    append_string(CURRENT_BLOCK, " ");
 }
 
-void create_function()
+void write_symbol_type(Token *symb)
 {
-    //TODO
-}
-
-void call_function()
-{
-    //TODO
-}
-
-void write_move(cstring *code_block, char *frame_string, Token *op1, Token *res)
-{
-    append_string(code_block, "MOVE ");
-
-    //var
-    append_string(code_block, frame_string);
-    append_string(code_block, "@");
-    append_string(code_block, res->str->str);
-    append_string(code_block, " ");
-
-    //symb
-
-    switch (op1->type)
+    switch (symb->type)
     {
-    case ID:
-        append_string(code_block, frame_string);
-        break;
     case INT:
-        append_string(code_block, "int");
+        append_string(CURRENT_BLOCK, "int");
         break;
     case DEC:
-        append_string(code_block, "float");
+        append_string(CURRENT_BLOCK, "float");
         break;
     case STR:
-        append_string(code_block, "string");
+        append_string(CURRENT_BLOCK, "string");
         break;
     default:
         break;
     }
 
-    append_string(code_block, "@");
-    append_string(code_block, op1->str->str);
+    append_string(CURRENT_BLOCK, "@");
+    append_string(CURRENT_BLOCK, symb->str->str);
 
-    append_string(code_block, "\n");
+    append_string(CURRENT_BLOCK, " ");
 }
 
-void write_defvar(cstring *code_block, char *frame_string, Token *res)
+void write_symbol(Token *symb, char *symb_frame)
 {
-    append_string(code_block, "DEFVAR ");
+    if (symb->type == ID)
+    {
+        write_symbol_id(symb, symb_frame);
+    }
+    else if (symb->type >= DEC && symb->type <= STR)
+    {
+        write_symbol_type(symb);
+    }
+    else
+    {
+        global_error_code = INTERNAL_ERROR;
+        print_internal_error(INTERNAL_ERROR, ERROR, "Typ tokenu mimo hranice enumu tokenu");
+    }
+}
+
+void write_move(Token *op1, char *op1_frame, Token *res, char *res_frame)
+{
+    append_string(CURRENT_BLOCK, "MOVE ");
 
     //var
-    append_string(code_block, frame_string);
-    append_string(code_block, "@");
-    append_string(code_block, res->str->str);
+    write_symbol(res, res_frame);
 
-    append_string(code_block, "\n");
+    //symb
+    write_symbol(op1, op1_frame);
+
+    append_string(CURRENT_BLOCK, "\n");
+}
+
+void write_defvar(Token *res)
+{
+    insert_table_item(res->str->str, CURRENT_FRAME);
+
+    append_string(CURRENT_BLOCK, "DEFVAR ");
+
+    //var
+    write_symbol(res, CURRENT_FRAME_STRING);
+
+    append_string(CURRENT_BLOCK, "\n");
+}
+
+char *check_and_define(Token *token)
+{
+    bool token_exists_global = item_exists_table(token->str->str, GLOBAL_FRAME);
+
+    char *token_frame_str;
+
+    if (token_exists_global)
+    {
+        token_frame_str = get_frame_string(GLOBAL_FRAME);
+    }
+    else
+    {
+        if (CURRENT_FRAME == GLOBAL_FRAME)
+        {
+            write_defvar(token);
+            token_frame_str = get_frame_string(GLOBAL_FRAME);
+        }
+        else
+        {
+            bool token_exists_current = item_exists_table(token->str->str, CURRENT_FRAME);
+
+            if (!token_exists_current)
+            {
+                write_defvar(token);
+            }
+            token_frame_str = CURRENT_FRAME_STRING;
+        }
+    }
+
+    return token_frame_str;
 }
 
 void write_assign(Token *op1, Token *res)
 {
-    bool res_exists_global = item_exists_table(res->str->str, GLOBAL_FRAME);
-    bool res_exists_current = item_exists_table(res->str->str, CURRENT_FRAME);
+    char *op1_frame_str = check_and_define(op1);
+    char *res_frame_str = check_and_define(res);
 
-    cstring *code_block = CURRENT_FRAME == GLOBAL_FRAME ? result_main_function_code : result_functions_code;
+    write_move(op1, op1_frame_str, res, res_frame_str);
+}
 
-    char *frame_string = get_frame_string(CURRENT_FRAME);
+void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
+{
+    char *op1_frame_str = check_and_define(op1);
+    char *op2_frame_str = check_and_define(op2);
+    char *res_frame_str = check_and_define(res);
 
-    if (!res_exists_current)
+    switch (type)
     {
-        insert_table_item(res->str->str, CURRENT_FRAME);
-
-        write_defvar(code_block, frame_string, res);
+    case ADD:
+        append_string(CURRENT_BLOCK, "ADD ");
+        break;
+    case SUB:
+        append_string(CURRENT_BLOCK, "SUB ");
+        break;
+    case MUL:
+        append_string(CURRENT_BLOCK, "MUL ");
+        break;
+    case DIV:
+        append_string(CURRENT_BLOCK, "DIV ");
+        break;
+    case DIVINT:
+        append_string(CURRENT_BLOCK, "IDIV ");
+        break;
+    default:
+        break;
     }
 
-    write_move(code_block, frame_string, op1, res);
+    //res
+    write_symbol(res, res_frame_str);
+
+    //op1
+    write_symbol(op1, op1_frame_str);
+
+    //op2
+    write_symbol(op2, op2_frame_str);
 }
 
 void generate_code()
@@ -229,6 +303,7 @@ int main(int argc, char const *argv[])
     op1->str = op1_str;
     op1->type = INT;
     res->str = res_str;
+    res->type = ID;
 
     write_assign(op1, res);
 
