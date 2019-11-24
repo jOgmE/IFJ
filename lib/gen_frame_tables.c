@@ -158,6 +158,7 @@ void insert_table_item(char *item, frame_t frame)
     {
         ftItem_t *new_item = (ftItem_t *)malloc(sizeof(ftItem_t));
         new_item->key = item;
+        new_item->next = NULL;
 
         if (frame == GLOBAL_FRAME)
         {
