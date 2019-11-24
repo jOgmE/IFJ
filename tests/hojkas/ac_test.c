@@ -46,21 +46,53 @@ void print_all_ac()
   printf("--- print ac end ---\n");
 }
 
+void print_all_by_f()
+{
+  setACAct();
+  while(isACActive()) {
+    print_ac(readAC());
+    actAC();
+  }
+}
+
 int main()
 {
-  print_all_ac();
+  //print_all_ac();
+  print_all_by_f();
 
   printf("Creating tokens and adding them, INT = 5, DEC = 5.5 and id = hi\n");
   Token* op1 = init_token();
   Token* op2 = init_token();
   Token* res = init_token();
-  add_int(op1, 5);
-  add_dec(op2, 5.5);
-  cstring* str = init_cstring("hi");
+  add_int(op1, 1);
+  add_dec(op2, 1.0);
+  cstring* str = init_cstring("jedna");
   add_id(res, str);
   appendAC(ADD, op1, op2, res);
-  print_all_ac();
-  destroyACStack();
+
+  op1 = init_token();
+  op2 = init_token();
+  res = init_token();
+  add_int(op1, 2);
+  add_dec(op2, 2.0);
+  cstring* str2 = init_cstring("dva");
+  add_id(res, str2);
+  appendAC(ADD, op1, op2, res);
+
+  op1 = init_token();
+  op2 = init_token();
+  res = init_token();
+  add_int(op1, 3);
+  add_dec(op2, 3.0);
+  cstring* str3 = init_cstring("tri");
+  add_id(res, str3);
+  appendAC(ADD, op1, op2, res);
+
+  //print_all_ac();
+  print_all_by_f();
+
+
+  destroyACList();
 
   return 0;
 }

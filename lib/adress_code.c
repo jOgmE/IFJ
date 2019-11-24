@@ -46,7 +46,7 @@ void appendAC(ac_type type, Token* op1, Token* op2, Token* res) {
   }
 }
 
-void destroyACStack()
+void destroyACList()
 {
   tAC* curr = first_ac;
   tAC* next = curr;
@@ -58,4 +58,49 @@ void destroyACStack()
     free(curr);
     curr = next;
   }
+}
+
+void setACAct()
+{
+  curr_ac = first_ac;
+}
+
+void actAC()
+{
+  if(curr_ac != NULL) curr_ac = curr_ac->next;
+}
+
+bool isACActive()
+{
+  if(curr_ac == NULL) return false;
+  return true;
+}
+
+tAC* readAC()
+{
+  return curr_ac;
+}
+
+ac_type readACtype()
+{
+  if(curr_ac != NULL) return curr_ac->type;
+  return UNDEFINED;
+}
+
+Token* readACop1()
+{
+  if(curr_ac != NULL) return curr_ac->op1;
+  return NULL;
+}
+
+Token* readACop2()
+{
+  if(curr_ac != NULL) return curr_ac->op2;
+  return NULL;
+}
+
+Token* readACres()
+{
+  if(curr_ac != NULL) return curr_ac->res;
+  return NULL;
 }

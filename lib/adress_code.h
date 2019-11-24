@@ -11,6 +11,7 @@
 
 #include "../scanner/token.h"
 #include "errors.h"
+#include <stdbool.h>
 
 /**
 * (FUNKCE, , , res) znamená, že první a druhý prostor pro ak není u funkce
@@ -80,11 +81,30 @@ void appendAC(ac_type, Token* op1, Token* op2, Token* res);
 /**
 * Uvolní celý seznam AC včetně tokenů na něj navázaných.
 */
-void destroyACStack();
+void destroyACList();
 
 //----------------------
 // FCE pro generátor
 //----------------------
+
+//Nastaví aktivitu na první prvek (nebo NULL, je-li seznam prázdný)
+void setACAct();
+//Posune aktivitu na další prvek, byl-li právě aktivní poslední nebo nebyl-li
+//aktivní vůbec, aktivita není (NULL)
+void actAC();
+//Vrací "true" je-li aktivní prvek v seznamu, "false", není-li
+bool isACActive();
+//vrací ukazatel na aktivní položku seznamu
+tAC* readAC();
+//vrací typ aktivní položky seznamu nebo UNDEFINED nebyl-li seznam aktivní
+ac_type readACtype();
+//vrací op1 aktivní položky, NULL pokud daná položka pro příkaz neexistuje
+//nebo seznam nebyl aktivní
+Token* readACop1();
+//jako readACop1, jen přečte op2
+Token* readACop2();
+//jako readACop1, jen přečte res
+Token* readACres();
 
 
 #endif //_ADRESS_CODE_H_
