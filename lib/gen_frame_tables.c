@@ -149,6 +149,16 @@ ftItem_t *search_table(char *key, frame_t frame)
     return NULL;
 }
 
+void update_table_item_type(char *item, e_type type, frame_t frame)
+{
+    ftItem_t *table_item = search_table(item, frame);
+
+    if (table_item != NULL)
+    {
+        table_item->type = type;
+    }
+}
+
 void insert_table_item(char *item, e_type type, frame_t frame)
 {
     int index = hashcode(item, frame);

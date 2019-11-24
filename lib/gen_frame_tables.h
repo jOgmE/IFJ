@@ -74,16 +74,25 @@ void init_table(size_t size, frame_t frame);
 /**
  * Vyhledání položky v tabulkce
  * 
- * @param key Velikost tabulky
+ * @param key Klíč hodnoty
  * @param frame Rámec
  * @return Ukazatel na nalezenou položku
  */
 ftItem_t *search_table(char *key, frame_t frame);
 
 /**
+ * Aktualizuje typ položky v tabulce
+ * 
+ * @param item Klíč hodnoty
+ * @param type Novy Datový typ hodnoty
+ * @param frame Rámec
+ */
+void update_table_item_type(char *item, e_type type, frame_t frame);
+
+/**
  * Vložení položky do tabulky
  * 
- * @param item Velikost tabulky
+ * @param item Klíč hodnoty
  * @param type Datový typ hodnoty
  * @param frame Rámec
  */
@@ -92,7 +101,7 @@ void insert_table_item(char *item, e_type type, frame_t frame);
 /**
  * Vyhledání hodnoty v tabulce
  * 
- * @param key Velikost tabulky
+ * @param key Klíč hodnoty
  * @param frame Rámec
  * @return Hodnotu, pokud byla nalezena, NULL jinak
  */
@@ -101,16 +110,16 @@ char *get_table_item(char *key, frame_t frame);
 /**
  * Vyhledání hodnoty v tabulce
  * 
- * @param key Velikost tabulky
+ * @param key Klíč hodnoty
  * @param frame Rámec
- * @return Typ, pokud byla nalezena hodnota, UNDEFINED jinak
+ * @return Typ polozky v tabulce
  */
 e_type get_table_item_type(char *key, frame_t frame);
 
 /**
  * Zjištění, zda se položka nachází v tabulce
  * 
- * @param key Velikost tabulky
+ * @param key Klíč hodnoty
  * @param frame Rámec
  * @returns TRUE pokud položka existuje, FALSE pokud ne
  */
@@ -119,7 +128,7 @@ bool item_exists_table(char *key, frame_t frame);
 /**
  * Odstraní položku z tabulky
  * 
- * @param key Velikost tabulky
+ * @param key Klíč hodnoty
  * @param frame Rámec
  */
 void delete_table_item(char *key, frame_t frame);
