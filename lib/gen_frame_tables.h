@@ -12,6 +12,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "errors.h"
+#include "../scanner/token.h"
 
 #define extension_chunk 32
 
@@ -21,6 +22,7 @@
 typedef struct ftItem
 {
     char *key;           //Klíč hodnoty
+    e_type type;         //Typ hodnoty
     struct ftItem *next; //Ukazatel na další hodnotu na stejném indexu
 } ftItem_t;
 
@@ -82,9 +84,10 @@ ftItem_t *search_table(char *key, frame_t frame);
  * Vložení položky do tabulky
  * 
  * @param item Velikost tabulky
+ * @param type Datový typ hodnoty
  * @param frame Rámec
  */
-void insert_table_item(char *item, frame_t frame);
+void insert_table_item(char *item, e_type type, frame_t frame);
 
 /**
  * Vyhledání hodnoty v tabulce
@@ -94,6 +97,15 @@ void insert_table_item(char *item, frame_t frame);
  * @return Hodnotu, pokud byla nalezena, NULL jinak
  */
 char *get_table_item(char *key, frame_t frame);
+
+/**
+ * Vyhledání hodnoty v tabulce
+ * 
+ * @param key Velikost tabulky
+ * @param frame Rámec
+ * @return Typ, pokud byla nalezena hodnota, UNDEFINED jinak
+ */
+e_type get_table_item_type(char *key, frame_t frame);
 
 /**
  * Zjištění, zda se položka nachází v tabulce
