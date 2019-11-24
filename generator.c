@@ -150,6 +150,24 @@ char *convert_string(char *string)
     return result->str;
 }
 
+char *get_table_key_from_token(Token *token)
+{
+    switch (token->type)
+    {
+    case STR:
+    case ID:
+        return token->str->str;
+    case INT:
+        return convert_int_to_string(token->i);
+    case DEC:
+        return convert_int_to_string(token->dec);
+    default:
+        global_error_code = INTERNAL_ERROR;
+        print_internal_error(INTERNAL_ERROR, ERROR, "Typ tokenu mimo hranice moznych typu promennych a symbolu");
+        return "";
+    }
+}
+
 void write_symbol_id(Token *symb, char *symb_frame)
 {
     append_string(CURRENT_BLOCK, symb_frame);
@@ -213,7 +231,7 @@ void write_move(Token *op1, char *op1_frame, Token *res, char *res_frame)
 
 void write_defvar(Token *res)
 {
-    insert_table_item(res->str->str, CURRENT_FRAME);
+    insert_table_item(get_table_key_from_token(res), NONE, CURRENT_FRAME);
 
     append_string(CURRENT_BLOCK, "DEFVAR ");
 
@@ -223,14 +241,86 @@ void write_defvar(Token *res)
     append_string(CURRENT_BLOCK, "\n");
 }
 
-char *check_and_define(Token *token)
+Token *get_table_token(Token *token)
+{
+    char *token_key = token->str->str;
+
+    if (item_exists_table(token_key, GLOBAL_FRAME))
+    {
+        return get_table_item_token(token_key, GLOBAL_FRAME);
+    }
+    else
+    {
+        return get_table_item_token(token_key, CURRENT_FRAME);
+    }
+}
+
+e_type get_token_type(Token *token)
+{
+    char *token_key = token->str->str;
+
+    if (item_exists_table(token_key, GLOBAL_FRAME))
+    {
+        return get_table_item_type(token_key, GLOBAL_FRAME);
+    }
+    else
+    {
+        return get_table_item_type(token_key, CURRENT_FRAME);
+    }
+}
+
+void write_convert_type(Token *token, char *frame_str, e_type destType)
+{
+    if (token->type == destType)
+    {
+        return;
+    }
+
+    if (token->type != ID)
+    {
+        return;
+    }
+
+    Token *table_token = get_table_token(token);
+
+    switch (table_token->type)
+    {
+    case INT:
+        if (destType == DEC)
+        {
+            append_string(CURRENT_BLOCK, "INT2FLOAT ");
+            write_symbol(token, frame_str);
+            write_symbol(table_token, frame_str);
+            // append_string(CURRENT_BLOCK, convert_int_to_string(table_token->i));
+            append_string(CURRENT_BLOCK, "\n");
+        }
+        break;
+    case DEC:
+        if (destType == INT)
+        {
+            append_string(CURRENT_BLOCK, "FLOAT2INT ");
+            write_symbol(token, frame_str);
+            write_symbol(table_token, frame_str);
+            // append_string(CURRENT_BLOCK, convert_float_to_string(table_token->dec));
+            append_string(CURRENT_BLOCK, "\n");
+        }
+        break;
+    default:
+        break;
+    }
+}
+
+char *write_check_and_define(Token *token)
 {
     if (token->type != ID)
     {
         return "";
     }
 
-    bool token_exists_global = item_exists_table(token->str->str, GLOBAL_FRAME);
+    // char *token_key = get_table_key_from_token(token);
+    char *token_key = token->str->str;
+
+    bool token_exists_global = item_exists_table(token_key, GLOBAL_FRAME);
 
     char *token_frame_str;
 
@@ -247,7 +337,7 @@ char *check_and_define(Token *token)
         }
         else
         {
-            bool token_exists_current = item_exists_table(token->str->str, CURRENT_FRAME);
+            bool token_exists_current = item_exists_table(token_key, CURRENT_FRAME);
 
             if (!token_exists_current)
             {
@@ -262,17 +352,65 @@ char *check_and_define(Token *token)
 
 void write_assign(Token *op1, Token *res)
 {
-    char *op1_frame_str = check_and_define(op1);
-    char *res_frame_str = check_and_define(res);
+    char *op1_frame_str = write_check_and_define(op1);
+    char *res_frame_str = write_check_and_define(res);
+
+    frame_t frame = item_exists_table(res->str->str, GLOBAL_FRAME) ? GLOBAL_FRAME : CURRENT_FRAME;
+
+    update_table_item_token(res->str->str, op1, frame);
 
     write_move(op1, op1_frame_str, res, res_frame_str);
 }
 
 void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
 {
-    char *op1_frame_str = check_and_define(op1);
-    char *op2_frame_str = check_and_define(op2);
-    char *res_frame_str = check_and_define(res);
+    char *op1_frame_str = write_check_and_define(op1);
+    char *op2_frame_str = write_check_and_define(op2);
+    char *res_frame_str = write_check_and_define(res);
+
+    e_type artihmetic_type = get_token_type(res);
+
+    if (op1->type != op2->type)
+    {
+        // float type is lower in enum :(
+        if (op1->type < artihmetic_type)
+        {
+            artihmetic_type = op1->type;
+        }
+        if (op2->type < artihmetic_type)
+        {
+            artihmetic_type = op2->type;
+        }
+
+        if (op1->type != ID && op1->type != artihmetic_type)
+        {
+            op1->type = artihmetic_type;
+
+            if (artihmetic_type == DEC)
+            {
+                op1->dec = (double)op1->i;
+            }
+        }
+        // if (op1->type != artihmetic_type && op1->type != ID)
+        else if (op1->type != artihmetic_type)
+        {
+            write_convert_type(op1, op1_frame_str, artihmetic_type);
+        }
+
+        if (op2->type != ID && op2->type != artihmetic_type)
+        {
+            op2->type = artihmetic_type;
+
+            if (artihmetic_type == DEC)
+            {
+                op2->dec = (double)op2->i;
+            }
+        }
+        else if (op2->type != artihmetic_type)
+        {
+            write_convert_type(op2, op2_frame_str, artihmetic_type);
+        }
+    }
 
     switch (type)
     {
@@ -339,26 +477,50 @@ int main(int argc, char const *argv[])
     init_gen("testout");
 
     Token *op1 = malloc(sizeof(Token));
+    Token *op2 = malloc(sizeof(Token));
     Token *res = malloc(sizeof(Token));
 
-    cstring *op1_str = init_cstring("Test string \n");
+    cstring *op1_str = init_cstring("operatorOne");
+    cstring *op2_str = init_cstring("operatorTwo");
     cstring *res_str = init_cstring("result");
 
     // op1->str = NULL;
     // op1->dec = 50.5050;
     // op1->type = DEC;
 
+    op1->str = NULL;
+    op1->i = 5;
+    op1->type = INT;
+
+    op2->str = op2_str;
+    op2->type = ID;
+
+    write_assign(op1, op2);
+
+    op1->str = NULL;
+    op1->dec = 5.6;
+    op1->type = DEC;
+
     // op1->str = NULL;
-    // op1->dec = 1234;
+    // op1->i = 1234;
     // op1->type = INT;
 
-    op1->str = op1_str;
-    op1->type = STR;
+    // op2->str = NULL;
+    // op2->i = 5678;
+    // op2->type = INT;
+
+    // op2->str = NULL;
+    // op2->dec = 5.6;
+    // op2->type = DEC;
+
+    // res->str = res_str;
+    // res->type = ID;
 
     res->str = res_str;
+    res->i = 9;
     res->type = ID;
 
-    write_assign(op1, res);
+    write_arithmetic(ADD, op1, op2, op2);
 
     print_gen_all();
 
