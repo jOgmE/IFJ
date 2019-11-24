@@ -54,6 +54,7 @@ typedef enum {
 * v jiných částech sahat, nutno vložit jako extern proměnné
 * tAC* first_ac = NULL;
 * tAC* last_ac = NULL;
+* tAC* curr_ac = NULL;
 */
 
 typedef struct tAC {
