@@ -16,7 +16,12 @@ tAC* initAC()
 {
   tAC* ac = malloc(sizeof(tAC));
   if(ac == NULL) {
+<<<<<<< HEAD
     print_internal_error(INTERNAL_ERROR, ERROR, "Interní chyba alokace paměti pro initAC v adress_code.c.\n");
+=======
+    /*TODO uncomment when error library finished
+    print_internal_error(INTERNAL_ERROR, ERROR, "Interní chyba alokace paměti pro initAC v adress_code.c.\n");*/
+>>>>>>> de93d617ce7b2929385fc19c5aca0147eb1d3928
     global_error_code = INTERNAL_ERROR;
     return NULL;
   }

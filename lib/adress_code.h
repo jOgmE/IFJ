@@ -41,17 +41,23 @@
 *   GE,         - greater or equal, op1 >= op2
 *   LESS,    - op1 < op2
 *   LE          - less or equal, op1 <= op2
+<<<<<<< HEAD
 * pomocné informace
 * (DEF_START, , , )
 *   DEF_START začíná definice funkce
 *   DEF_END končí definice funkce
 *   PARAM_START začíná přiřazování parametrů před voláním  funkce
+=======
+>>>>>>> de93d617ce7b2929385fc19c5aca0147eb1d3928
 */
 typedef enum {
   LABEL, RET, CALL, JUMP, COND_JUMP,
   ADD, SUB, MUL, DIV, DIVINT, ASSIGN,
   EQUAL, NOT_EQUAL, GREATER, GE, LESS, LE,
+<<<<<<< HEAD
   DEF_START, DEF_END, PARAM_START,
+=======
+>>>>>>> de93d617ce7b2929385fc19c5aca0147eb1d3928
   UNDEFINED
 } ac_type;
 
@@ -60,7 +66,10 @@ typedef enum {
 * v jiných částech sahat, nutno vložit jako extern proměnné
 * tAC* first_ac = NULL;
 * tAC* last_ac = NULL;
+<<<<<<< HEAD
 * tAC* curr_ac = NULL;
+=======
+>>>>>>> de93d617ce7b2929385fc19c5aca0147eb1d3928
 */
 
 typedef struct tAC {
