@@ -41,11 +41,17 @@
 *   GE,         - greater or equal, op1 >= op2
 *   LESS,    - op1 < op2
 *   LE          - less or equal, op1 <= op2
+* pomocné informace
+* (DEF_START, , , )
+*   DEF_START začíná definice funkce
+*   DEF_END končí definice funkce
+*   PARAM_START začíná přiřazování parametrů před voláním  funkce
 */
 typedef enum {
   LABEL, RET, CALL, JUMP, COND_JUMP,
   ADD, SUB, MUL, DIV, DIVINT, ASSIGN,
   EQUAL, NOT_EQUAL, GREATER, GE, LESS, LE,
+  DEF_START, DEF_END, PARAM_START,
   UNDEFINED
 } ac_type;
 

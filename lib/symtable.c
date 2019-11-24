@@ -6,4 +6,7 @@
  * @date 24.11.2019
  */
 
+STable* global_st;
+STable* local_st;
+
  #include "symtable.h"
