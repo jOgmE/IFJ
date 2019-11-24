@@ -9,6 +9,23 @@ fTable_t *gf_table;
 fTable_t *lf_table;
 fTable_t *tf_table;
 
+char *get_frame_string(frame_t frame)
+{
+    switch (frame)
+    {
+    case GLOBAL_FRAME:
+        return "GF";
+    case LOCAL_FRAME:
+        return "LF";
+    case TEMP_FRAME:
+        return "TF";
+    default:
+        global_error_code = INTERNAL_ERROR;
+        print_internal_error(INTERNAL_ERROR, ERROR, "Frame index mimo rozsah enumu");
+        return "";
+    }
+}
+
 size_t get_table_size(frame_t frame)
 {
     switch (frame)

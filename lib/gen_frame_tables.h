@@ -47,6 +47,14 @@ extern size_t LF_SIZE;
 extern size_t TF_SIZE;
 
 /**
+ * Vrací název rámce pro výpis do výsledného kódu
+ * 
+ * @param frame Rámec
+ * @return Název rámce
+ */
+char *get_frame_string(frame_t frame);
+
+/**
  * Hash funkce pro získání klíče
  * 
  * @param key Název hodnoty pro vyhledání
