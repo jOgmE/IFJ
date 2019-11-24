@@ -9,6 +9,8 @@
 
 #include "lib/dynamic_string.h"
 #include "lib/errors.h"
+#include "lib/adress_code.h"
+#include "lib/gen_frame_tables.h"
 
 #define INPUTS_FUNC
 #define INPUTI_FUNC
@@ -19,6 +21,8 @@
 #define ORD_FUNC
 #define CHR_FUNC
 
+extern frame_t CURRENT_FRAME;
+
 /**
  * Incializace generátoru
  */
@@ -28,6 +32,11 @@ void init_gen();
  * V případě chyby uzavře file stream odstraní výsledný soubor
  */
 void remove_gen_file();
+
+/**
+ * Vytiskne všechen kód do výstupního souboru
+ */
+void print_gen_all();
 
 /**
  * Uklizení prostředků použiých generátorem
@@ -55,8 +64,13 @@ void call_function();
 void return_from_function();
 
 /**
- * Vytiskne všechen kód do výstupního souboru
+ * Zpracuje 3AK pro přiřazení
  */
-void print_gen_all();
+void write_assign(Token *op1, Token *res);
+
+/**
+ * Spustí generátor kódu nad seznamem 3AK
+ */
+void generate_code();
 
 #endif // _GENERATOR_H
