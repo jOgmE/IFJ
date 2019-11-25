@@ -305,6 +305,11 @@ void write_convert_type(Token *token, char *frame_str, e_type destType)
             append_string(CURRENT_BLOCK, "\n");
         }
         break;
+    case STR:
+        append_string(CURRENT_BLOCK, "EXIT int@4\n");
+        print_compile_error(4, ERROR, 0, result_code_filename, "Chyba pri konverzi typu pro aritmetickou operaci, operand nebyl číselného typu");
+        global_error_code = 4;
+        return;
     default:
         break;
     }
