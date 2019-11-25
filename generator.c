@@ -81,7 +81,7 @@ void remove_gen_file()
 
 void print_gen_all()
 {
-    if (result_code_file == NULL)
+    if (result_code_file == NULL || global_error_code != SUCCESS)
     {
         return;
     }
@@ -362,6 +362,30 @@ void write_assign(Token *op1, Token *res)
     write_move(op1, op1_frame_str, res, res_frame_str);
 }
 
+void convert_to_same_type(Token *token, char *frame_str, e_type type)
+{
+    if (token->type != type)
+    {
+        if (token->type != ID)
+        {
+            token->type = type;
+
+            if (type == DEC)
+            {
+                token->dec = (double)token->i;
+            }
+            else if (type == INT)
+            {
+                token->i = (int)token->dec;
+            }
+        }
+        else
+        {
+            write_convert_type(token, frame_str, type);
+        }
+    }
+}
+
 void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
 {
     char *op1_frame_str = write_check_and_define(op1);
@@ -370,7 +394,8 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
 
     e_type artihmetic_type = get_token_type(res);
 
-    if (op1->type != op2->type)
+    // ADD and SUB same type conversion
+    if ((type == ADD || type == SUB) && (op1->type != op2->type))
     {
         // float type is lower in enum :(
         if (op1->type < artihmetic_type)
@@ -409,6 +434,29 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
         else if (op2->type != artihmetic_type)
         {
             write_convert_type(op2, op2_frame_str, artihmetic_type);
+        }
+    }
+    else if (type == DIV && (op1->type != DEC || op2->type != DEC))
+    {
+        convert_to_same_type(op1, op1_frame_str, DEC);
+
+        convert_to_same_type(op2, op2_frame_str, DEC);
+
+        if (op2->dec == 0)
+        {
+            global_error_code = DIVISION_BY_ZERO_ERROR;
+            print_compile_error(DIVISION_BY_ZERO_ERROR, ERROR, 0, result_code_filename, "Chyba dělení nulou");
+        }
+    }
+    else if (type == DIVINT && (op1->type != INT || op2->type != INT))
+    {
+        convert_to_same_type(op1, op1_frame_str, INT);
+        convert_to_same_type(op2, op2_frame_str, INT);
+
+        if (op2->i == 0)
+        {
+            global_error_code = DIVISION_BY_ZERO_ERROR;
+            print_compile_error(DIVISION_BY_ZERO_ERROR, ERROR, 0, result_code_filename, "Chyba dělení nulou");
         }
     }
 
@@ -463,7 +511,11 @@ void generate_code()
         case ASSIGN:
             write_assign(op1, res);
             break;
-
+        case ADD:
+        case SUB:
+        case MUL:
+        case DIVINT:
+            write_arithmetic(type, op1, op2, res);
         default:
             break;
         }
