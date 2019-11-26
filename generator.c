@@ -473,18 +473,130 @@ void write_assign(Token *op1, Token *res)
     write_move(op1, op1_frame_str, res, res_frame_str);
 }
 
-void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
+e_type compare_symbol_types_and_convert(Token *op1, Token *op2)
+{
+    e_type arithmetic_type = INT;
+
+    if (op1->type != ID)
+    {
+        arithmetic_type = op1->type;
+    }
+
+    if (op2->type != ID)
+    {
+        if (arithmetic_type > op2->type)
+        {
+            arithmetic_type = op2->type;
+
+            if (op1->type != ID && arithmetic_type != op1->type)
+            {
+                if (arithmetic_type == INT)
+                {
+                    op1->type = INT;
+                    op1->i = (int)op1->dec;
+                }
+                else if (arithmetic_type == DEC)
+                {
+                    op1->type = DEC;
+                    op1->dec = (double)op1->i;
+                }
+            }
+        }
+        else if (arithmetic_type < op2->type)
+        {
+            op2->type = DEC;
+            op2->dec = (double)op2->i;
+        }
+    }
+
+    return arithmetic_type;
+}
+
+void write_equal_greater_less(ac_type type, Token *op1, Token *op2, Token *res)
 {
     char *op1_frame_str = write_check_and_define(op1);
     char *op2_frame_str = write_check_and_define(op2);
     char *res_frame_str = write_check_and_define(res);
 
+    e_type arithmetic_type = compare_symbol_types_and_convert(op1, op2);
+
+    bool op1_converted = false;
+    bool op2_converted = false;
+
+    if (op1->type == ID)
+    {
+        write_convert_type(op1, op1_frame_str, arithmetic_type);
+        op1_converted = true;
+    }
+
+    if (op2->type == ID)
+    {
+        write_convert_type(op2, op2_frame_str, arithmetic_type);
+        op2_converted = true;
+    }
+
+    //res
     switch (type)
     {
     case EQUAL:
-
+    case NOT_EQUAL:
+        append_string(CURRENT_BLOCK, "EQ ");
         break;
+    case LESS:
+        append_string(CURRENT_BLOCK, "LT ");
+        break;
+    case GREATER:
+        append_string(CURRENT_BLOCK, "GT ");
+        break;
+    default:
+        break;
+    }
+    write_symbol(res, res_frame_str, false);
 
+    //symb1
+    write_symbol(op1, op1_frame_str, true);
+    if (op1_converted)
+    {
+        append_string(CURRENT_BLOCK, "$tmp ");
+    }
+    else
+    {
+        append_string(CURRENT_BLOCK, " ");
+    }
+
+    //symb2
+    write_symbol(op2, op2_frame_str, true);
+    if (op2_converted)
+    {
+        append_string(CURRENT_BLOCK, "$tmp ");
+    }
+    else
+    {
+        append_string(CURRENT_BLOCK, " ");
+    }
+
+    if (type == NOT_EQUAL)
+    {
+        append_string(CURRENT_BLOCK, "NOT ");
+        write_symbol(res, res_frame_str, false);
+        write_symbol(res, res_frame_str, true);
+    }
+}
+
+void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
+{
+    switch (type)
+    {
+    case EQUAL:
+    case GREATER:
+    case LESS:
+    case NOT_EQUAL:
+        write_equal_greater_less(type, op1, op2, res);
+        break;
+    case GE:
+        break;
+    case LE:
+        break;
     default:
         break;
     }
@@ -503,37 +615,7 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
 
     if (type != DIV && type != DIVINT)
     {
-        if (op1->type != ID)
-        {
-            arithmetic_type = op1->type;
-        }
-
-        if (op2->type != ID)
-        {
-            if (arithmetic_type > op2->type)
-            {
-                arithmetic_type = op2->type;
-
-                if (op1->type != ID && arithmetic_type != op1->type)
-                {
-                    if (arithmetic_type == INT)
-                    {
-                        op1->type = INT;
-                        op1->i = (int)op1->dec;
-                    }
-                    else if (arithmetic_type == DEC)
-                    {
-                        op1->type = DEC;
-                        op1->dec = (double)op1->i;
-                    }
-                }
-            }
-            else if (arithmetic_type < op2->type)
-            {
-                op2->type = DEC;
-                op2->dec = (double)op2->i;
-            }
-        }
+        arithmetic_type = compare_symbol_types_and_convert(op1, op2);
     }
     else
     {
@@ -639,6 +721,17 @@ void generate_code()
         case MUL:
         case DIVINT:
             write_arithmetic(type, op1, op2, res);
+        case EQUAL:
+        case NOT_EQUAL:
+        case GREATER:
+        case GE:
+        case LESS:
+        case LE:
+            write_comparison(type, op1, op2, res);
+            break;
+        case LABEL:
+            write_label(op1->str->str);
+            break;
         default:
             break;
         }
