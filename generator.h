@@ -113,6 +113,14 @@ e_type get_token_type(Token *token);
 void change_token_types(Token *token, e_type arithmetic_type);
 
 /**
+ * Změní porovna typy dvou tokenů symbolů a převede na stejný typ
+ * 
+ * @param op1 Symbol token pro změnu
+ * @param op2 Symbol token pro změnu
+ */
+e_type compare_symbol_types_and_convert(Token *op1, Token *op2);
+
+/**
  * Zapíše symbol proměnné
  * 
  * @param symb Token pro zápis
@@ -186,6 +194,21 @@ void write_convert_type(Token *token, char *frame_str, e_type destType);
  * @param res Token pro výsledek
  */
 void write_assign(Token *op1, Token *res);
+
+/**
+ * Zpracuje 3AK pro skok
+ * 
+ * @param res Token pro label na skok
+ */
+void write_jump(Token *res);
+
+/**
+ * Zpracuje 3AK pro pomíněný skok
+ * 
+ * @param op1 Token pro podmínku rovnou true
+ * @param res Token pro label na skok
+ */
+void write_cond_jump(Token *op1, Token *res);
 
 /**
  * Zpracuje 3AK pro porovnání

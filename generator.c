@@ -236,6 +236,45 @@ void change_token_types(Token *token, e_type arithmetic_type)
     }
 }
 
+e_type compare_symbol_types_and_convert(Token *op1, Token *op2)
+{
+    e_type arithmetic_type = INT;
+
+    if (op1->type != ID)
+    {
+        arithmetic_type = op1->type;
+    }
+
+    if (op2->type != ID)
+    {
+        if (arithmetic_type > op2->type)
+        {
+            arithmetic_type = op2->type;
+
+            if (op1->type != ID && arithmetic_type != op1->type)
+            {
+                if (arithmetic_type == INT)
+                {
+                    op1->type = INT;
+                    op1->i = (int)op1->dec;
+                }
+                else if (arithmetic_type == DEC)
+                {
+                    op1->type = DEC;
+                    op1->dec = (double)op1->i;
+                }
+            }
+        }
+        else if (arithmetic_type < op2->type)
+        {
+            op2->type = DEC;
+            op2->dec = (double)op2->i;
+        }
+    }
+
+    return arithmetic_type;
+}
+
 //******************************************************************************************//
 //******************************************************************************************//
 //********************                  Symboly                               **************//
@@ -487,45 +526,6 @@ void write_assign(Token *op1, Token *res)
     update_table_item_token(res->str->str, op1, frame);
 
     write_move(op1, op1_frame_str, res, res_frame_str);
-}
-
-e_type compare_symbol_types_and_convert(Token *op1, Token *op2)
-{
-    e_type arithmetic_type = INT;
-
-    if (op1->type != ID)
-    {
-        arithmetic_type = op1->type;
-    }
-
-    if (op2->type != ID)
-    {
-        if (arithmetic_type > op2->type)
-        {
-            arithmetic_type = op2->type;
-
-            if (op1->type != ID && arithmetic_type != op1->type)
-            {
-                if (arithmetic_type == INT)
-                {
-                    op1->type = INT;
-                    op1->i = (int)op1->dec;
-                }
-                else if (arithmetic_type == DEC)
-                {
-                    op1->type = DEC;
-                    op1->dec = (double)op1->i;
-                }
-            }
-        }
-        else if (arithmetic_type < op2->type)
-        {
-            op2->type = DEC;
-            op2->dec = (double)op2->i;
-        }
-    }
-
-    return arithmetic_type;
 }
 
 void write_jump(Token *res)
