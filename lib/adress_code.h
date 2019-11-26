@@ -41,6 +41,11 @@
 *   GE,         - greater or equal, op1 >= op2
 *   LESS,    - op1 < op2
 *   LE          - less or equal, op1 <= op2
+* pomocné informace
+* (DEF_START, , , )
+*   DEF_START začíná definice funkce
+*   DEF_END končí definice funkce
+*   PARAM_START začíná přiřazování parametrů před voláním  funkce
 */
 typedef enum
 {
@@ -61,6 +66,9 @@ typedef enum
   GE,
   LESS,
   LE,
+  DEF_START,
+  DEF_END,
+  PARAM_START,
   UNDEFINED
 } ac_type;
 
@@ -69,6 +77,7 @@ typedef enum
 * v jiných částech sahat, nutno vložit jako extern proměnné
 * tAC* first_ac = NULL;
 * tAC* last_ac = NULL;
+* tAC* curr_ac = NULL;
 */
 
 typedef struct tAC
