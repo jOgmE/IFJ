@@ -41,23 +41,34 @@
 *   GE,         - greater or equal, op1 >= op2
 *   LESS,    - op1 < op2
 *   LE          - less or equal, op1 <= op2
-<<<<<<< HEAD
 * pomocné informace
 * (DEF_START, , , )
 *   DEF_START začíná definice funkce
 *   DEF_END končí definice funkce
 *   PARAM_START začíná přiřazování parametrů před voláním  funkce
-=======
->>>>>>> de93d617ce7b2929385fc19c5aca0147eb1d3928
 */
-typedef enum {
-  LABEL, RET, CALL, JUMP, COND_JUMP,
-  ADD, SUB, MUL, DIV, DIVINT, ASSIGN,
-  EQUAL, NOT_EQUAL, GREATER, GE, LESS, LE,
-<<<<<<< HEAD
-  DEF_START, DEF_END, PARAM_START,
-=======
->>>>>>> de93d617ce7b2929385fc19c5aca0147eb1d3928
+typedef enum
+{
+  LABEL,
+  RET,
+  CALL,
+  JUMP,
+  COND_JUMP,
+  ADD,
+  SUB,
+  MUL,
+  DIV,
+  DIVINT,
+  ASSIGN,
+  EQUAL,
+  NOT_EQUAL,
+  GREATER,
+  GE,
+  LESS,
+  LE,
+  DEF_START,
+  DEF_END,
+  PARAM_START,
   UNDEFINED
 } ac_type;
 
@@ -66,17 +77,15 @@ typedef enum {
 * v jiných částech sahat, nutno vložit jako extern proměnné
 * tAC* first_ac = NULL;
 * tAC* last_ac = NULL;
-<<<<<<< HEAD
 * tAC* curr_ac = NULL;
-=======
->>>>>>> de93d617ce7b2929385fc19c5aca0147eb1d3928
 */
 
-typedef struct tAC {
+typedef struct tAC
+{
   ac_type type;
-  Token* op1;
-  Token* op2;
-  Token* res;
+  Token *op1;
+  Token *op2;
+  Token *res;
   struct tAC *next;
 } tAC;
 
@@ -92,7 +101,7 @@ typedef struct tAC {
 * @param *res ukazatel na třetí token, obvykle na uložení výsledku
 * Není-li využit některý token, je třeba místo něj předat hodnotu NULL!!
 */
-void appendAC(ac_type, Token* op1, Token* op2, Token* res);
+void appendAC(ac_type, Token *op1, Token *op2, Token *res);
 
 /**
 * Uvolní celý seznam AC včetně tokenů na něj navázaných.
@@ -111,16 +120,15 @@ void actAC();
 //Vrací "true" je-li aktivní prvek v seznamu, "false", není-li
 bool isACActive();
 //vrací ukazatel na aktivní položku seznamu
-tAC* readAC();
+tAC *readAC();
 //vrací typ aktivní položky seznamu nebo UNDEFINED nebyl-li seznam aktivní
 ac_type readACtype();
 //vrací op1 aktivní položky, NULL pokud daná položka pro příkaz neexistuje
 //nebo seznam nebyl aktivní
-Token* readACop1();
+Token *readACop1();
 //jako readACop1, jen přečte op2
-Token* readACop2();
+Token *readACop2();
 //jako readACop1, jen přečte res
-Token* readACres();
-
+Token *readACres();
 
 #endif //_ADRESS_CODE_H_
