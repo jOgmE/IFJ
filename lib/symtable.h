@@ -13,19 +13,21 @@
 #include "token.h"
 #include "dynamic_string.h"
 #include <stdbool.h>
+//TODO delete this, should be probably linked in parser anyway
+#include "scanner.h"
 
 typedef enum {
   ST_INT, ST_FLOAT, ST_STRING, ST_FUNCTION, ST_LABEL, ST_UNDEFINED
 } st_type;
 
 typedef struct STItem {
-  st_type type;         /**Typ položky*/
-  bool defined;         /**True, byla-li už definovaná, jinak false*/
-  cstring *id;          /**Identifikátor typu cstring (dynamický string)*/
-  int first_occur_line; /**Číslo řádku, na němž se poprvé objevila, pro
-                           případ, že by nastala chyba nedefinování*/
-  int number_of_params; /**Je-li to funkce, je zde uveden počet parametrů*/
-  STItem *next;         /**Ukazatel na další položku*/
+  st_type type;         //Typ položky
+  bool defined;         //True, byla-li už definovaná, jinak false
+  cstring *id;          //Identifikátor typu cstring (dynamický string)
+  int first_occur_line; //Číslo řádku, na němž se poprvé objevila, pro
+                        //případ, že by nastala chyba nedefinování
+  int number_of_params; //Je-li to funkce, je zde uveden počet parametrů
+  STItem *next;         //Ukazatel na další položku
 } STItem;
 
 typedef struct STLine {
