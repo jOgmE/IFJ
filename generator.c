@@ -515,7 +515,7 @@ e_type compare_symbol_types_and_convert(Token *op1, Token *op2)
     return arithmetic_type;
 }
 
-void write_equal_greater_less(ac_type type, Token *op1, Token *op2, Token *res)
+void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
 {
     char *op1_frame_str = write_check_and_define(op1);
     char *op2_frame_str = write_check_and_define(op2);
@@ -538,6 +538,55 @@ void write_equal_greater_less(ac_type type, Token *op1, Token *op2, Token *res)
         op2_converted = true;
     }
 
+    if (type == LE || type == GE)
+    {
+        append_string(CURRENT_BLOCK, "DEFVAR ");
+        write_symbol(res, res_frame_str, true);
+        append_string(CURRENT_BLOCK, "$tmpeq\n");
+
+        append_string(CURRENT_BLOCK, "EQ ");
+        write_symbol(res, res_frame_str, true);
+        append_string(CURRENT_BLOCK, "$tmpeq ");
+
+        write_symbol(op1, op1_frame_str, true);
+        if (op1_converted)
+        {
+            append_string(CURRENT_BLOCK, "$tmp ");
+        }
+        else
+        {
+            append_string(CURRENT_BLOCK, " ");
+        }
+
+        write_symbol(op2, op2_frame_str, true);
+        if (op2_converted)
+        {
+            append_string(CURRENT_BLOCK, "$tmp\n");
+        }
+        else
+        {
+            append_string(CURRENT_BLOCK, "\n");
+        }
+
+        append_string(CURRENT_BLOCK, "DEFVAR ");
+        write_symbol(res, res_frame_str, true);
+
+        if (type == LE)
+        {
+            append_string(CURRENT_BLOCK, "$tmplt$");
+        }
+        else
+        {
+            append_string(CURRENT_BLOCK, "$tmpgt$");
+        }
+
+        append_string(CURRENT_BLOCK, convert_int_to_string((int)tmp_var_counter));
+
+        ++tmp_var_counter;
+
+        append_string(CURRENT_BLOCK, "\n");
+    }
+
     //res
     switch (type)
     {
@@ -546,15 +595,30 @@ void write_equal_greater_less(ac_type type, Token *op1, Token *op2, Token *res)
         append_string(CURRENT_BLOCK, "EQ ");
         break;
     case LESS:
+    case LE:
         append_string(CURRENT_BLOCK, "LT ");
         break;
     case GREATER:
+    case GE:
         append_string(CURRENT_BLOCK, "GT ");
         break;
     default:
         break;
     }
-    write_symbol(res, res_frame_str, false);
+
+    write_symbol(res, res_frame_str, true);
+    if (type == LE)
+    {
+        append_string(CURRENT_BLOCK, "$tmplt$ ");
+    }
+    else if (type == GE)
+    {
+        append_string(CURRENT_BLOCK, "$tmpgt$ ");
+    }
+    else
+    {
+        append_string(CURRENT_BLOCK, " ");
+    }
 
     //symb1
     write_symbol(op1, op1_frame_str, true);
@@ -578,30 +642,30 @@ void write_equal_greater_less(ac_type type, Token *op1, Token *op2, Token *res)
         append_string(CURRENT_BLOCK, " ");
     }
 
+    append_string(CURRENT_BLOCK, "\n");
+
     if (type == NOT_EQUAL)
     {
         append_string(CURRENT_BLOCK, "NOT ");
         write_symbol(res, res_frame_str, false);
         write_symbol(res, res_frame_str, true);
+        append_string(CURRENT_BLOCK, "\n");
     }
-}
-
-void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
-{
-    switch (type)
+    else if (type == LE || type == GE)
     {
-    case EQUAL:
-    case GREATER:
-    case LESS:
-    case NOT_EQUAL:
-        write_equal_greater_less(type, op1, op2, res);
-        break;
-    case GE:
-        break;
-    case LE:
-        break;
-    default:
-        break;
+        append_string(CURRENT_BLOCK, "OR ");
+        write_symbol(res, res_frame_str, true);
+        append_string(CURRENT_BLOCK, "$tmpeq ");
+        write_symbol(res, res_frame_str, true);
+
+        if (type == LE)
+        {
+            append_string(CURRENT_BLOCK, "$tmplt\n");
+        }
+        else
+        {
+            append_string(CURRENT_BLOCK, "$tmpgt");
+        }
     }
 }
 
