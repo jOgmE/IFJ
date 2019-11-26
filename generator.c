@@ -465,6 +465,23 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
     }
 }
 
+void change_token_types(Token *token, e_type arithmetic_type)
+{
+    if (token->type != arithmetic_type)
+    {
+        if (token->type == INT)
+        {
+            token->type == DEC;
+            token->dec = (double)token->i;
+        }
+        else if (token->type == DEC)
+        {
+            token->type == INT;
+            token->i = (int)token->dec;
+        }
+    }
+}
+
 void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
 {
     char *op1_frame_str = write_check_and_define(op1);
@@ -473,46 +490,63 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
 
     e_type arithmetic_type = INT;
 
-    if (op1->type != ID)
-    {
-        arithmetic_type = op1->type;
-    }
+    bool op1_converted = false;
+    bool op2_converted = false;
 
-    if (op2->type != ID)
+    if (type != DIV && type != DIVINT)
     {
-        if (arithmetic_type > op2->type)
+        if (op1->type != ID)
         {
-            arithmetic_type = op2->type;
+            arithmetic_type = op1->type;
+        }
 
-            if (op1->type != ID && arithmetic_type != op1->type)
+        if (op2->type != ID)
+        {
+            if (arithmetic_type > op2->type)
             {
-                if (arithmetic_type == INT)
+                arithmetic_type = op2->type;
+
+                if (op1->type != ID && arithmetic_type != op1->type)
                 {
-                    op1->type = INT;
-                    op1->i = (int)op1->dec;
-                }
-                else if (arithmetic_type == DEC)
-                {
-                    op1->type = DEC;
-                    op1->dec = (double)op1->i;
+                    if (arithmetic_type == INT)
+                    {
+                        op1->type = INT;
+                        op1->i = (int)op1->dec;
+                    }
+                    else if (arithmetic_type == DEC)
+                    {
+                        op1->type = DEC;
+                        op1->dec = (double)op1->i;
+                    }
                 }
             }
-        }
-        else if (arithmetic_type < op2->type)
-        {
-            op2->type = DEC;
-            op2->dec = (double)op2->i;
+            else if (arithmetic_type < op2->type)
+            {
+                op2->type = DEC;
+                op2->dec = (double)op2->i;
+            }
         }
     }
+    else
+    {
+        if (type == DIV)
+        {
+            arithmetic_type = DEC;
+        }
+        else if (type == DIVINT)
+        {
+            arithmetic_type = INT;
+        }
+        change_token_types(op1, arithmetic_type);
+        change_token_types(op2, arithmetic_type);
+    }
 
-    bool op1_converted = false;
     if (op1->type == ID)
     {
         write_convert_type(op1, op1_frame_str, arithmetic_type);
         op1_converted = true;
     }
 
-    bool op2_converted = false;
     if (op2->type == ID)
     {
         write_convert_type(op2, op2_frame_str, arithmetic_type);
