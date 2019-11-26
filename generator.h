@@ -104,6 +104,12 @@ Token *get_table_token(Token *token);
  */
 e_type get_token_type(Token *token);
 
+/**
+ * Změní typ tokenu v tabulce
+ * 
+ * @param token Token pro změnu
+ * @param e_type Nový typ tokenu
+ */
 void change_token_types(Token *token, e_type arithmetic_type);
 
 /**
