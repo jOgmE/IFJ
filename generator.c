@@ -17,6 +17,9 @@ cstring *CURRENT_BLOCK;
 frame_t CURRENT_FRAME = GLOBAL_FRAME;
 char *CURRENT_FRAME_STRING;
 
+size_t tmp_if_counter = 0;
+size_t tmp_var_counter = 0;
+
 void init_gen_test()
 {
     result_main_function_code = init_cstring("LABEL $$main\n");
@@ -111,6 +114,12 @@ void free_gen()
     clear_table(TEMP_FRAME);
 }
 
+void switch_frame(frame_t frame)
+{
+    CURRENT_FRAME = frame;
+    CURRENT_FRAME_STRING = get_frame_string(frame);
+}
+
 char *convert_int_to_string(int data)
 {
     size_t length = snprintf(NULL, 0, "%d", data);
@@ -168,15 +177,19 @@ char *get_table_key_from_token(Token *token)
     }
 }
 
-void write_symbol_id(Token *symb, char *symb_frame)
+void write_symbol_id(Token *symb, char *symb_frame, bool skip_space)
 {
     append_string(CURRENT_BLOCK, symb_frame);
     append_string(CURRENT_BLOCK, "@");
     append_string(CURRENT_BLOCK, symb->str->str);
-    append_string(CURRENT_BLOCK, " ");
+
+    if (!skip_space)
+    {
+        append_string(CURRENT_BLOCK, " ");
+    }
 }
 
-void write_symbol_type(Token *symb)
+void write_symbol_type(Token *symb, bool skip_space)
 {
     switch (symb->type)
     {
@@ -196,18 +209,21 @@ void write_symbol_type(Token *symb)
         break;
     }
 
-    append_string(CURRENT_BLOCK, " ");
+    if (!skip_space)
+    {
+        append_string(CURRENT_BLOCK, " ");
+    }
 }
 
-void write_symbol(Token *symb, char *symb_frame)
+void write_symbol(Token *symb, char *symb_frame, bool skip_space)
 {
     if (symb->type == ID)
     {
-        write_symbol_id(symb, symb_frame);
+        write_symbol_id(symb, symb_frame, skip_space);
     }
     else if (symb->type >= DEC && symb->type <= STR)
     {
-        write_symbol_type(symb);
+        write_symbol_type(symb, skip_space);
     }
     else
     {
@@ -221,10 +237,10 @@ void write_move(Token *op1, char *op1_frame, Token *res, char *res_frame)
     append_string(CURRENT_BLOCK, "MOVE ");
 
     //var
-    write_symbol(res, res_frame);
+    write_symbol(res, res_frame, false);
 
     //symb
-    write_symbol(op1, op1_frame);
+    write_symbol(op1, op1_frame, false);
 
     append_string(CURRENT_BLOCK, "\n");
 }
@@ -236,7 +252,7 @@ void write_defvar(Token *res)
     append_string(CURRENT_BLOCK, "DEFVAR ");
 
     //var
-    write_symbol(res, CURRENT_FRAME_STRING);
+    write_symbol(res, CURRENT_FRAME_STRING, false);
 
     append_string(CURRENT_BLOCK, "\n");
 }
@@ -269,50 +285,91 @@ e_type get_token_type(Token *token)
     }
 }
 
+void write_label(char *label)
+{
+    append_string(CURRENT_BLOCK, "LABEL ");
+    append_string(CURRENT_BLOCK, label);
+    append_string(CURRENT_BLOCK, "\n");
+}
+
 void write_convert_type(Token *token, char *frame_str, e_type destType)
 {
-    if (token->type == destType)
+    if (token->type == destType || token->type != ID)
     {
         return;
     }
 
-    if (token->type != ID)
+    // frame_t prev_frame = CURRENT_FRAME;
+    // switch_frame(LOCAL_FRAME);
+
+    cstring *iflabel_float = init_cstring_size(1);
+
+    append_string(iflabel_float, "$if$");
+    append_string(iflabel_float, token->str->str);
+    append_string(iflabel_float, "$true$float$");
+    append_string(iflabel_float, convert_int_to_string((int)tmp_if_counter));
+    append_string(iflabel_float, " ");
+
+    cstring *iflabel_int = init_cstring_size(1);
+
+    append_string(iflabel_int, "$if$");
+    append_string(iflabel_int, token->str->str);
+    append_string(iflabel_int, "$true$int$");
+    append_string(iflabel_int, convert_int_to_string((int)tmp_if_counter));
+    append_string(iflabel_int, " ");
+
+    append_string(CURRENT_BLOCK, "DEFVAR ");
+    write_symbol(token, frame_str, true);
+    append_string(CURRENT_BLOCK, "$type\n");
+
+    append_string(CURRENT_BLOCK, "DEFVAR ");
+    write_symbol(token, frame_str, true);
+    append_string(CURRENT_BLOCK, "$tmp\n");
+
+    append_string(CURRENT_BLOCK, "TYPE ");
+    write_symbol(token, frame_str, true);
+    append_string(CURRENT_BLOCK, "$type ");
+    write_symbol(token, frame_str, true);
+    append_string(CURRENT_BLOCK, "\n");
+
+    append_string(CURRENT_BLOCK, "JUMPIFEQ ");
+    append_cstring(CURRENT_BLOCK, iflabel_int);
+    write_symbol(token, frame_str, true);
+    append_string(CURRENT_BLOCK, "$type ");
+    append_string(CURRENT_BLOCK, "string@int\n");
+
+    append_string(CURRENT_BLOCK, "JUMPIFEQ ");
+    append_cstring(CURRENT_BLOCK, iflabel_float);
+    write_symbol(token, frame_str, true);
+    append_string(CURRENT_BLOCK, "$type ");
+    append_string(CURRENT_BLOCK, "string@float\n");
+
+    append_string(CURRENT_BLOCK, "EXIT int@4\n");
+
+    if (destType == DEC)
     {
-        return;
+        write_label(iflabel_int->str);
+        append_string(CURRENT_BLOCK, "INT2FLOAT ");
+        write_symbol(token, frame_str, true);
+        append_string(CURRENT_BLOCK, "$tmp ");
+        write_symbol(token, frame_str, true);
+        append_string(CURRENT_BLOCK, "\n");
+        write_label(iflabel_float->str);
+    }
+    else if (destType == INT)
+    {
+        write_label(iflabel_float->str);
+        append_string(CURRENT_BLOCK, "FLOAT2INT ");
+        write_symbol(token, frame_str, true);
+        append_string(CURRENT_BLOCK, "$tmp ");
+        write_symbol(token, frame_str, true);
+        append_string(CURRENT_BLOCK, "\n");
+        write_label(iflabel_int->str);
     }
 
-    Token *table_token = get_table_token(token);
+    ++tmp_if_counter;
 
-    switch (table_token->type)
-    {
-    case INT:
-        if (destType == DEC)
-        {
-            append_string(CURRENT_BLOCK, "INT2FLOAT ");
-            write_symbol(token, frame_str);
-            write_symbol(table_token, frame_str);
-            // append_string(CURRENT_BLOCK, convert_int_to_string(table_token->i));
-            append_string(CURRENT_BLOCK, "\n");
-        }
-        break;
-    case DEC:
-        if (destType == INT)
-        {
-            append_string(CURRENT_BLOCK, "FLOAT2INT ");
-            write_symbol(token, frame_str);
-            write_symbol(table_token, frame_str);
-            // append_string(CURRENT_BLOCK, convert_float_to_string(table_token->dec));
-            append_string(CURRENT_BLOCK, "\n");
-        }
-        break;
-    case STR:
-        append_string(CURRENT_BLOCK, "EXIT int@4\n");
-        print_compile_error(4, ERROR, 0, result_code_filename, "Chyba pri konverzi typu pro aritmetickou operaci, operand nebyl číselného typu");
-        global_error_code = 4;
-        return;
-    default:
-        break;
-    }
+    // switch_frame(prev_frame);
 }
 
 char *write_check_and_define(Token *token)
@@ -391,78 +448,75 @@ void convert_to_same_type(Token *token, char *frame_str, e_type type)
     }
 }
 
+void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
+{
+    char *op1_frame_str = write_check_and_define(op1);
+    char *op2_frame_str = write_check_and_define(op2);
+    char *res_frame_str = write_check_and_define(res);
+
+    switch (type)
+    {
+    case EQUAL:
+
+        break;
+
+    default:
+        break;
+    }
+}
+
 void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
 {
     char *op1_frame_str = write_check_and_define(op1);
     char *op2_frame_str = write_check_and_define(op2);
     char *res_frame_str = write_check_and_define(res);
 
-    e_type artihmetic_type = get_token_type(res);
+    e_type arithmetic_type = INT;
 
-    // ADD and SUB same type conversion
-    if ((type == ADD || type == SUB) && (op1->type != op2->type))
+    if (op1->type != ID)
     {
-        // float type is lower in enum :(
-        if (op1->type < artihmetic_type)
-        {
-            artihmetic_type = op1->type;
-        }
-        if (op2->type < artihmetic_type)
-        {
-            artihmetic_type = op2->type;
-        }
+        arithmetic_type = op1->type;
+    }
 
-        if (op1->type != ID && op1->type != artihmetic_type)
+    if (op2->type != ID)
+    {
+        if (arithmetic_type > op2->type)
         {
-            op1->type = artihmetic_type;
+            arithmetic_type = op2->type;
 
-            if (artihmetic_type == DEC)
+            if (op1->type != ID && arithmetic_type != op1->type)
             {
-                op1->dec = (double)op1->i;
+                if (arithmetic_type == INT)
+                {
+                    op1->type = INT;
+                    op1->i = (int)op1->dec;
+                }
+                else if (arithmetic_type == DEC)
+                {
+                    op1->type = DEC;
+                    op1->dec = (double)op1->i;
+                }
             }
         }
-        // if (op1->type != artihmetic_type && op1->type != ID)
-        else if (op1->type != artihmetic_type)
+        else if (arithmetic_type < op2->type)
         {
-            write_convert_type(op1, op1_frame_str, artihmetic_type);
-        }
-
-        if (op2->type != ID && op2->type != artihmetic_type)
-        {
-            op2->type = artihmetic_type;
-
-            if (artihmetic_type == DEC)
-            {
-                op2->dec = (double)op2->i;
-            }
-        }
-        else if (op2->type != artihmetic_type)
-        {
-            write_convert_type(op2, op2_frame_str, artihmetic_type);
+            op2->type = DEC;
+            op2->dec = (double)op2->i;
         }
     }
-    else if (type == DIV && (op1->type != DEC || op2->type != DEC))
+
+    bool op1_converted = false;
+    if (op1->type == ID)
     {
-        convert_to_same_type(op1, op1_frame_str, DEC);
-
-        convert_to_same_type(op2, op2_frame_str, DEC);
-
-        if (op2->dec == 0)
-        {
-            global_error_code = DIVISION_BY_ZERO_ERROR;
-            print_compile_error(DIVISION_BY_ZERO_ERROR, ERROR, 0, result_code_filename, "Chyba dělení nulou");
-        }
+        write_convert_type(op1, op1_frame_str, arithmetic_type);
+        op1_converted = true;
     }
-    else if (type == DIVINT && (op1->type != INT || op2->type != INT))
-    {
-        convert_to_same_type(op1, op1_frame_str, INT);
-        convert_to_same_type(op2, op2_frame_str, INT);
 
-        if (op2->i == 0)
-        {
-            global_error_code = DIVISION_BY_ZERO_ERROR;
-            print_compile_error(DIVISION_BY_ZERO_ERROR, ERROR, 0, result_code_filename, "Chyba dělení nulou");
-        }
+    bool op2_converted = false;
+    if (op2->type == ID)
+    {
+        write_convert_type(op2, op2_frame_str, arithmetic_type);
+        op2_converted = true;
     }
 
     switch (type)
@@ -487,13 +541,29 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
     }
 
     //res
-    write_symbol(res, res_frame_str);
+    write_symbol(res, res_frame_str, false);
 
     //op1
-    write_symbol(op1, op1_frame_str);
+    write_symbol(op1, op1_frame_str, true);
+    if (op1_converted)
+    {
+        append_string(CURRENT_BLOCK, "$tmp ");
+    }
+    else
+    {
+        append_string(CURRENT_BLOCK, " ");
+    }
 
     //op2
-    write_symbol(op2, op2_frame_str);
+    write_symbol(op2, op2_frame_str, true);
+    if (op2_converted)
+    {
+        append_string(CURRENT_BLOCK, "$tmp ");
+    }
+    else
+    {
+        append_string(CURRENT_BLOCK, " ");
+    }
 }
 
 void generate_code()
