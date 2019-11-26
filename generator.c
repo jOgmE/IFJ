@@ -7,6 +7,12 @@
 
 #include "generator.h"
 
+//******************************************************************************************//
+//******************************************************************************************//
+//********************                 Globalni promenne                      **************//
+//******************************************************************************************//
+//******************************************************************************************//
+
 FILE *result_code_file = NULL;
 char *result_code_filename;
 
@@ -20,15 +26,11 @@ char *CURRENT_FRAME_STRING;
 size_t tmp_if_counter = 0;
 size_t tmp_var_counter = 0;
 
-void init_gen_test()
-{
-    result_main_function_code = init_cstring("LABEL $$main\n");
-    result_functions_code = init_cstring_size(1);
-
-    init_table(32, GLOBAL_FRAME);
-    init_table(16, LOCAL_FRAME);
-    init_table(16, TEMP_FRAME);
-}
+//******************************************************************************************//
+//******************************************************************************************//
+//********************                   Inicializace                         **************//
+//******************************************************************************************//
+//******************************************************************************************//
 
 void init_gen(char *filename)
 {
@@ -120,6 +122,12 @@ void switch_frame(frame_t frame)
     CURRENT_FRAME_STRING = get_frame_string(frame);
 }
 
+//******************************************************************************************//
+//******************************************************************************************//
+//********************                 Prevody na string                      **************//
+//******************************************************************************************//
+//******************************************************************************************//
+
 char *convert_int_to_string(int data)
 {
     size_t length = snprintf(NULL, 0, "%d", data);
@@ -159,6 +167,12 @@ char *convert_string(char *string)
     return result->str;
 }
 
+//******************************************************************************************//
+//******************************************************************************************//
+//********************         Pomocne operace (frame tabulky, tokeny)        **************//
+//******************************************************************************************//
+//******************************************************************************************//
+
 char *get_table_key_from_token(Token *token)
 {
     switch (token->type)
@@ -176,6 +190,57 @@ char *get_table_key_from_token(Token *token)
         return "";
     }
 }
+
+Token *get_table_token(Token *token)
+{
+    char *token_key = token->str->str;
+
+    if (item_exists_table(token_key, GLOBAL_FRAME))
+    {
+        return get_table_item_token(token_key, GLOBAL_FRAME);
+    }
+    else
+    {
+        return get_table_item_token(token_key, CURRENT_FRAME);
+    }
+}
+
+e_type get_token_type(Token *token)
+{
+    char *token_key = token->str->str;
+
+    if (item_exists_table(token_key, GLOBAL_FRAME))
+    {
+        return get_table_item_type(token_key, GLOBAL_FRAME);
+    }
+    else
+    {
+        return get_table_item_type(token_key, CURRENT_FRAME);
+    }
+}
+
+void change_token_types(Token *token, e_type arithmetic_type)
+{
+    if (token->type != arithmetic_type)
+    {
+        if (token->type == INT)
+        {
+            token->type == DEC;
+            token->dec = (double)token->i;
+        }
+        else if (token->type == DEC)
+        {
+            token->type == INT;
+            token->i = (int)token->dec;
+        }
+    }
+}
+
+//******************************************************************************************//
+//******************************************************************************************//
+//********************                  Symboly                               **************//
+//******************************************************************************************//
+//******************************************************************************************//
 
 void write_symbol_id(Token *symb, char *symb_frame, bool skip_space)
 {
@@ -232,6 +297,12 @@ void write_symbol(Token *symb, char *symb_frame, bool skip_space)
     }
 }
 
+//******************************************************************************************//
+//******************************************************************************************//
+//********************                Zakladni operace                        **************//
+//******************************************************************************************//
+//******************************************************************************************//
+
 void write_move(Token *op1, char *op1_frame, Token *res, char *res_frame)
 {
     append_string(CURRENT_BLOCK, "MOVE ");
@@ -257,40 +328,58 @@ void write_defvar(Token *res)
     append_string(CURRENT_BLOCK, "\n");
 }
 
-Token *get_table_token(Token *token)
-{
-    char *token_key = token->str->str;
-
-    if (item_exists_table(token_key, GLOBAL_FRAME))
-    {
-        return get_table_item_token(token_key, GLOBAL_FRAME);
-    }
-    else
-    {
-        return get_table_item_token(token_key, CURRENT_FRAME);
-    }
-}
-
-e_type get_token_type(Token *token)
-{
-    char *token_key = token->str->str;
-
-    if (item_exists_table(token_key, GLOBAL_FRAME))
-    {
-        return get_table_item_type(token_key, GLOBAL_FRAME);
-    }
-    else
-    {
-        return get_table_item_type(token_key, CURRENT_FRAME);
-    }
-}
-
 void write_label(char *label)
 {
     append_string(CURRENT_BLOCK, "LABEL ");
     append_string(CURRENT_BLOCK, label);
     append_string(CURRENT_BLOCK, "\n");
 }
+
+char *write_check_and_define(Token *token)
+{
+    if (token->type != ID)
+    {
+        return "";
+    }
+
+    // char *token_key = get_table_key_from_token(token);
+    char *token_key = token->str->str;
+
+    bool token_exists_global = item_exists_table(token_key, GLOBAL_FRAME);
+
+    char *token_frame_str;
+
+    if (token_exists_global)
+    {
+        token_frame_str = get_frame_string(GLOBAL_FRAME);
+    }
+    else
+    {
+        if (CURRENT_FRAME == GLOBAL_FRAME)
+        {
+            write_defvar(token);
+            token_frame_str = get_frame_string(GLOBAL_FRAME);
+        }
+        else
+        {
+            bool token_exists_current = item_exists_table(token_key, CURRENT_FRAME);
+
+            if (!token_exists_current)
+            {
+                write_defvar(token);
+            }
+            token_frame_str = CURRENT_FRAME_STRING;
+        }
+    }
+
+    return token_frame_str;
+}
+
+//******************************************************************************************//
+//******************************************************************************************//
+//********************                   Aritmetika                           **************//
+//******************************************************************************************//
+//******************************************************************************************//
 
 void write_convert_type(Token *token, char *frame_str, e_type destType)
 {
@@ -372,46 +461,6 @@ void write_convert_type(Token *token, char *frame_str, e_type destType)
     // switch_frame(prev_frame);
 }
 
-char *write_check_and_define(Token *token)
-{
-    if (token->type != ID)
-    {
-        return "";
-    }
-
-    // char *token_key = get_table_key_from_token(token);
-    char *token_key = token->str->str;
-
-    bool token_exists_global = item_exists_table(token_key, GLOBAL_FRAME);
-
-    char *token_frame_str;
-
-    if (token_exists_global)
-    {
-        token_frame_str = get_frame_string(GLOBAL_FRAME);
-    }
-    else
-    {
-        if (CURRENT_FRAME == GLOBAL_FRAME)
-        {
-            write_defvar(token);
-            token_frame_str = get_frame_string(GLOBAL_FRAME);
-        }
-        else
-        {
-            bool token_exists_current = item_exists_table(token_key, CURRENT_FRAME);
-
-            if (!token_exists_current)
-            {
-                write_defvar(token);
-            }
-            token_frame_str = CURRENT_FRAME_STRING;
-        }
-    }
-
-    return token_frame_str;
-}
-
 void write_assign(Token *op1, Token *res)
 {
     char *op1_frame_str = write_check_and_define(op1);
@@ -422,30 +471,6 @@ void write_assign(Token *op1, Token *res)
     update_table_item_token(res->str->str, op1, frame);
 
     write_move(op1, op1_frame_str, res, res_frame_str);
-}
-
-void convert_to_same_type(Token *token, char *frame_str, e_type type)
-{
-    if (token->type != type)
-    {
-        if (token->type != ID)
-        {
-            token->type = type;
-
-            if (type == DEC)
-            {
-                token->dec = (double)token->i;
-            }
-            else if (type == INT)
-            {
-                token->i = (int)token->dec;
-            }
-        }
-        else
-        {
-            write_convert_type(token, frame_str, type);
-        }
-    }
 }
 
 void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
@@ -462,23 +487,6 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
 
     default:
         break;
-    }
-}
-
-void change_token_types(Token *token, e_type arithmetic_type)
-{
-    if (token->type != arithmetic_type)
-    {
-        if (token->type == INT)
-        {
-            token->type == DEC;
-            token->dec = (double)token->i;
-        }
-        else if (token->type == DEC)
-        {
-            token->type == INT;
-            token->i = (int)token->dec;
-        }
     }
 }
 
@@ -600,6 +608,12 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
     }
 }
 
+//******************************************************************************************//
+//******************************************************************************************//
+//********************                  Hlavni funkce                         **************//
+//******************************************************************************************//
+//******************************************************************************************//
+
 void generate_code()
 {
     setACAct();
@@ -632,6 +646,12 @@ void generate_code()
         actAC();
     }
 }
+
+//******************************************************************************************//
+//******************************************************************************************//
+//********************              !!!!TESTOVANI, SMAZAT!!!                  **************//
+//******************************************************************************************//
+//******************************************************************************************//
 
 int main(int argc, char const *argv[])
 {
