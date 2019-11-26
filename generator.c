@@ -456,6 +456,9 @@ void write_convert_type(Token *token, char *frame_str, e_type destType)
         write_label(iflabel_int->str);
     }
 
+    free_cstring(iflabel_float);
+    free_cstring(iflabel_int);
+
     ++tmp_if_counter;
 
     // switch_frame(prev_frame);
