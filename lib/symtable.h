@@ -41,5 +41,6 @@ void start_symtable_with_functions();
 void destroy_symtable(STable **st);
 void append_item(STItem* item);
 void define_id_from_info(cstring *id, st_type type, int param_count);
+bool search_st(STable *st, cstring *key);
 
 #endif //_SYMTABLE_H_

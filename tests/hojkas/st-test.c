@@ -40,6 +40,11 @@ int main()
   define_id_from_info(str, ST_INT, 0);
 
   print_table(global_st, 10);
+  if(search_st(global_st, str)) printf("string that shoud be there is there\n");
+  else printf("whoopsie\n");
+  str = init_cstring("dva");
+  if(search_st(global_st, str)) printf("now this is bad\n");
+  else printf("not there, yay\n");
 
   destroy_symtable(&global_st);
   return 0;

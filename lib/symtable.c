@@ -126,7 +126,17 @@ bool search_st(STable *st, cstring *key)
   //TODO
   if(st == NULL) fprintf(stderr, "[hojkas] symtable.c: search_st(): Tabulka neexistuje\n");
 
-  //just search given table, return yes or no
+  unsigned line = hashCode(key) % st->size;
+  STItem *curr = st->item_array[line];
+  bool found = false;
+  while(curr != NULL) {
+    if(compare_cstring(key, curr->key)) {
+      found = true;
+      break;
+    }
+    curr = curr->next;
+  }
+  return found;
 }
 
 //**************************
