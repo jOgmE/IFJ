@@ -23,6 +23,8 @@ cstring *CURRENT_BLOCK;
 frame_t CURRENT_FRAME = GLOBAL_FRAME;
 char *CURRENT_FRAME_STRING;
 
+bool function_call_assign = false;
+
 size_t tmp_if_counter = 0;
 size_t tmp_var_counter = 0;
 
@@ -518,14 +520,17 @@ void write_convert_type(Token *token, char *frame_str, e_type destType)
 
 void write_assign(Token *op1, Token *res)
 {
-    char *op1_frame_str = write_check_and_define(op1);
-    char *res_frame_str = write_check_and_define(res);
+    if (!function_call_assign)
+    {
+        char *op1_frame_str = write_check_and_define(op1);
+        char *res_frame_str = write_check_and_define(res);
 
-    frame_t frame = item_exists_table(res->str->str, GLOBAL_FRAME) ? GLOBAL_FRAME : CURRENT_FRAME;
+        frame_t frame = item_exists_table(res->str->str, GLOBAL_FRAME) ? GLOBAL_FRAME : CURRENT_FRAME;
 
-    update_table_item_token(res->str->str, op1, frame);
+        update_table_item_token(res->str->str, op1, frame);
 
-    write_move(op1, op1_frame_str, res, res_frame_str);
+        write_move(op1, op1_frame_str, res, res_frame_str);
+    }
 }
 
 void write_jump(Token *res)
@@ -835,6 +840,12 @@ void generate_code()
             break;
         case COND_JUMP:
             write_cond_jump(op1, res);
+            break;
+        case PARAM_START:
+            function_call_assign = true;
+            break;
+        case CALL: //PARAM_START
+            function_call_assign = false;
             break;
         default:
             break;
