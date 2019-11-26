@@ -330,6 +330,19 @@ void write_defvar(Token *res)
 
 void write_label(char *label)
 {
+    bool label_exists = item_exists_table(label, GLOBAL_FRAME);
+
+    if (!label_exists)
+    {
+        // TODO : token probably shouldn't be null
+        insert_table_item(label, NULL, GLOBAL_FRAME);
+    }
+    else
+    {
+        append_string(CURRENT_BLOCK, "EXIT 52");
+        return;
+    }
+
     append_string(CURRENT_BLOCK, "LABEL ");
     append_string(CURRENT_BLOCK, label);
     append_string(CURRENT_BLOCK, "\n");
@@ -513,6 +526,24 @@ e_type compare_symbol_types_and_convert(Token *op1, Token *op2)
     }
 
     return arithmetic_type;
+}
+
+void write_jump(Token *res)
+{
+    append_string(CURRENT_BLOCK, "JUMP ");
+    append_string(CURRENT_BLOCK, res->str->str);
+    append_string(CURRENT_BLOCK, "\n");
+}
+
+void write_cond_jump(Token *op1, Token *res)
+{
+    char *op1_frame_str = write_check_and_define(op1);
+
+    append_string(CURRENT_BLOCK, "JUMPIFEQ ");
+    append_string(CURRENT_BLOCK, res->str->str);
+    append_string(CURRENT_BLOCK, " ");
+    write_symbol(op1, op1_frame_str, false);
+    append_string(CURRENT_BLOCK, "bool@true\n");
 }
 
 void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
@@ -798,6 +829,12 @@ void generate_code()
             break;
         case LABEL:
             write_label(op1->str->str);
+            break;
+        case JUMP:
+            write_jump(res);
+            break;
+        case COND_JUMP:
+            write_cond_jump(op1, res);
             break;
         default:
             break;
