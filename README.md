@@ -16,18 +16,22 @@ V místě, kde k nám mohla přijít chyba:
 - ostatní chyby - neřešit
 
 **symtable state**
+
 What's working:
 - go_in_global()
 - go_in_local()
 - clean_all_symtables()
 - define_id_from_info(...)
+
 Kinda working:
 - start_symtable_with_functions(): chybi preload funkci
 what needs to be done:
+
 - add_undef_id_from_info(...)
 - add_undef_id_from_token(...)
 - get_id_type(...)
 - define_id_from_token(...)
+
 **BEWARE**
 Lot of //TODOs, mostly error handling, needs to be dealt with.
 But all should be callable.
