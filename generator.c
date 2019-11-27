@@ -20,10 +20,12 @@ cstring *result_main_function_code = NULL;
 cstring *result_functions_code = NULL;
 
 cstring *CURRENT_BLOCK;
+frame_t PREVIOUS_FRAME;
 frame_t CURRENT_FRAME = GLOBAL_FRAME;
 char *CURRENT_FRAME_STRING;
 
 bool function_call_assign = false;
+bool function_definition = false;
 
 size_t tmp_if_counter = 0;
 size_t tmp_var_counter = 0;
@@ -277,6 +279,25 @@ e_type compare_symbol_types_and_convert(Token *op1, Token *op2)
     return arithmetic_type;
 }
 
+void definition_start()
+{
+    CURRENT_BLOCK = result_functions_code;
+    PREVIOUS_FRAME = CURRENT_FRAME;
+    switch_frame(LOCAL_FRAME);
+    function_definition = true;
+}
+
+void definition_end()
+{
+    append_string(CURRENT_BLOCK, "POPFRAME\nRETURN\n");
+
+    CURRENT_BLOCK = result_functions_code;
+    frame_t temp_frame_var = CURRENT_FRAME;
+    switch_frame(PREVIOUS_FRAME);
+    PREVIOUS_FRAME = temp_frame_var;
+    function_definition = false;
+}
+
 //******************************************************************************************//
 //******************************************************************************************//
 //********************                  Symboly                               **************//
@@ -387,6 +408,11 @@ void write_label(char *label)
     append_string(CURRENT_BLOCK, "LABEL ");
     append_string(CURRENT_BLOCK, label);
     append_string(CURRENT_BLOCK, "\n");
+
+    if (function_definition)
+    {
+        append_string(CURRENT_BLOCK, "PUSHFRAME");
+    }
 }
 
 char *write_check_and_define(Token *token)
@@ -427,6 +453,40 @@ char *write_check_and_define(Token *token)
     }
 
     return token_frame_str;
+}
+
+void write_call(char *label)
+{
+    bool label_exists = item_exists_table(label, GLOBAL_FRAME);
+
+    if (label_exists)
+    {
+        append_string(CURRENT_BLOCK, "CALL ");
+        append_string(CURRENT_BLOCK, label);
+
+        switch_frame(LOCAL_FRAME);
+        CURRENT_BLOCK = result_main_function_code;
+    }
+    else
+    {
+        append_string(CURRENT_BLOCK, "EXIT 52");
+
+        cstring *error_string = init_cstring("Funkce ");
+
+        append_cstring(error_string, label);
+        append_cstring(error_string, " nebyla definovana.");
+
+        global_error_code = 52;
+        print_compile_error(52, ERROR, 0, result_code_filename, error_string->str);
+
+        free_cstring(error_string);
+    }
+}
+
+void write_crate_frame()
+{
+    append_string(CURRENT_BLOCK, "CREATE FRAME\n");
+    switch_frame(TEMP_FRAME);
 }
 
 //******************************************************************************************//
@@ -520,16 +580,21 @@ void write_convert_type(Token *token, char *frame_str, e_type destType)
 
 void write_assign(Token *op1, Token *res)
 {
+    char *res_frame_str = write_check_and_define(res);
     if (!function_call_assign)
     {
         char *op1_frame_str = write_check_and_define(op1);
-        char *res_frame_str = write_check_and_define(res);
 
         frame_t frame = item_exists_table(res->str->str, GLOBAL_FRAME) ? GLOBAL_FRAME : CURRENT_FRAME;
 
         update_table_item_token(res->str->str, op1, frame);
 
         write_move(op1, op1_frame_str, res, res_frame_str);
+    }
+    else
+    {
+        write_assign(op1, res);
+        write_move(op1, CURRENT_FRAME_STRING, res, res_frame_str);
     }
 }
 
@@ -841,10 +906,17 @@ void generate_code()
         case COND_JUMP:
             write_cond_jump(op1, res);
             break;
+        case DEF_START:
+            definition_start();
+            break;
+        case DEF_END:
+            definition_end();
+            break;
         case PARAM_START:
             function_call_assign = true;
+            write_crate_frame();
             break;
-        case CALL: //PARAM_START
+        case CALL:
             function_call_assign = false;
             break;
         default:
