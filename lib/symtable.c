@@ -6,6 +6,9 @@
  * @date 24.11.2019
  */
 
+//TODO když to najde error, nečistí to key string... asi i jinde
+//prostě přidat, že když to key nezpracuje, ať ho to vymaže
+
 
 #include "symtable.h"
 
@@ -84,6 +87,7 @@ void destroy_symtable(STable **st)
   for(int i = 0; i < size; i++) destroy_line(&((*st)->item_array[i]));
   free((*st)->item_array);
   free((*st));
+  *st = NULL;
 }
 
 STItem* init_st_item()
@@ -153,13 +157,17 @@ void start_symtable_with_functions()
     return;
   }
 
+  //TODO
   //load it with all premade functions
 }
 
 void go_in_local()
 {
   //TODO just placeholder, this should NOT happen
-  if(in_global == false) fprintf(stderr, "[hojkas] symtable.c: go_in_local(): def fce uvnitr def fce, ma byt osetreno jinde\n");
+  if(in_global == false) {
+    fprintf(stderr, "[hojkas] symtable.c: go_in_local(): def fce uvnitr def fce, ma byt osetreno jinde\n");
+    return;
+  }
   in_global = false;
   create_symtable(&local_st, LOCAL_ST_SIZE);
 }
@@ -167,63 +175,130 @@ void go_in_local()
 void go_in_global()
 {
   //TODO just placeholder, this should NOT happen
-  if(in_global == true) fprintf(stderr, "[hojkas] symtable.c: go_in_global(): snaha vyskocit z funkce kdyz nejsme ve funkci\n");
+  if(in_global == true) {
+    fprintf(stderr, "[hojkas] symtable.c: go_in_global(): snaha vyskocit z funkce kdyz nejsme ve funkci\n");
+    return;
+  }
   in_global = true;
   destroy_symtable(&local_st);
 }
 
-void define_id_from_token(Token *token, int param_count)
-{
-  //TODO
-  if(token == NULL) fprintf(stderr, "[hojkas] symtable.c: define_id_from_token(): dostal empty token\n");
-
-  if(in_global == false) {
-    if(search_st(local_st, token->str)) {
-      //token už definovan v loc_table
-
-
-      return;
-    }
-  }
-
-  if(search_st(global_st, token->str)) {
-    //token už def v glob table
-
-    return;
-  }
-
-  //vše okay, vytvoř idčko
-  STItem *new = init_st_item();
-  if(new == NULL) return;
-  new->type = token->type;
-  new->number_of_params = param_count;
-  new->defined = true;
-  //TODO nemůžu přímo. Jak? (nemůžu proto, že bych tabulku uvolňovala dříve, než token v ac zrecyklovaný)
-  //new->key =
-}
-
-void define_id_from_info(cstring *id, st_type type, int param_count)
+void define_id_from_info(cstring *key, st_type type, int param_count)
 {
   //something that shouldn't but could go wrong?
   //search in local and global, if it is not already defined
   //if not, define it
   //if yes, error, print it, set stop after analysis, continue
+  printf("am I in global? %d\n", in_global);
+  unsigned line;
+  STItem *curr;
 
-  //serach first
-  //errror if found
+  if(!in_global) {
+    //prohledat lokální i globální
+    if(local_st == NULL) fprintf(stderr, "[hojkas] symtable.c: define_id_from_info(): Tabulka neexistuje\n");
+
+    line = hashCode(key) % local_st->size;
+    curr = local_st->item_array[line];
+
+    while(curr != NULL) {
+      if(compare_cstring(key, curr->key)) {
+        //nalezen key
+        if(curr->defined == true) {
+          //TODO
+          //chyba, symbol jiz definovan
+          //zahlasit semantickou chybu, nastavit kill, global error je-li potreba
+          fprintf(stderr, "placeholder: redefinition of local id with key %s\n", get_cstring_string(key));
+          return;
+        }
+
+        //nalezen key ale neni definovana
+        curr->defined = true;
+        curr->type = type;
+        curr->number_of_params = param_count;
+
+        return;
+      }
+      curr = curr->next;
+    }
+
+    //dostali jsme-li se sem, polozka neni v loc, ale jeste muze byt koflikt s global
+    //pokud je toto id v global, je to chyba
+    if(search_st(global_st, key)) {
+      //pruser, id v global je (:
+      //TODO
+      fprintf(stderr, "placeholder: redefinition of global id with key %s\n", get_cstring_string(key));
+      return;
+    }
+    //pokud to nenaslo ani v local ani global, spadne to do vytvor id
+  }
+  else {
+    //prohledat globalni
+    //dostali-li jsme se sem, neexistuje loc tabulka, jsme v global
+    if(global_st == NULL) fprintf(stderr, "[hojkas] symtable.c: define_id_from_info(): Tabulka neexistuje\n");
+
+    line = hashCode(key) % global_st->size;
+    curr = global_st->item_array[line];
+
+    while(curr != NULL) {
+      if(compare_cstring(key, curr->key)) {
+        //nalezen key
+        if(curr->defined == true) {
+          //TODO
+          //chyba, symbol jiz definovan
+          //zahlasit semantickou chybu, nastavit kill, global error je-li potreba            return;
+          fprintf(stderr, "placeholder: redefinition of global id with key %s\n", get_cstring_string(key));
+        }
+
+        //nalezen key ale neni definovana
+        curr->defined = true;
+        curr->type = type;
+        curr->number_of_params = param_count;
+        return;
+      }
+      curr = curr->next;
+    }
+  }
 
   STItem *new = init_st_item();
   if(new == NULL) return;
-  new->key = id;
+  new->key = key;
   new->type = type;
-  //TODO uncomment
-  //new->first_occur_line = line_count;
-  new->number_of_params = param_count;
+  new->first_occur_line = line_count;
+  if(type == ST_FUNCTION) new->number_of_params = param_count;
   new->defined = true;
   append_item(new);
 }
 
-void clean_symtables()
+void define_id_from_token(Token *token, int param_count)
+{
+  //TODO
+  if(token == NULL) {
+    fprintf(stderr, "[hojkas] symtable.c: define_id_from_token(): dostal empty token\n");
+    return;
+  }
+  //TODO
+  //butcher token, then call define_id_from_info
+}
+
+void add_undef_id_from_info(cstring *key)
 {
 
+}
+
+void add_undef_id_from_token(Token *token)
+{
+
+}
+
+st_type get_id_type(Token *token)
+{
+
+  return ST_UNDEFINED;
+}
+
+void clean_all_symtables()
+{
+  if(!in_global) destroy_symtable(&local_st);
+  in_global = true;
+  destroy_symtable(&global_st);
 }

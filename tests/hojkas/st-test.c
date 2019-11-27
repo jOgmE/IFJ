@@ -51,6 +51,17 @@ int main()
   else printf("not there, yay\n");
   free_cstring(str);
 
-  destroy_symtable(&global_st);
+  go_in_local();
+
+  str = init_cstring("dva");
+  define_id_from_info(str, ST_INT, 0);
+  str = init_cstring("jedna");
+  define_id_from_info(str, ST_INT, 0);
+
+  print_table(local_st, 5);
+
+  go_in_global();
+
+  clean_all_symtables();
   return 0;
 }
