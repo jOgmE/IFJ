@@ -68,14 +68,6 @@ void create_symtable(STable **st, size_t size)
 
   for(int i = 0; i < size; i++) (*st)->item_array[i] = NULL;
   return;
-
-  item_array_alloc_error:
-    free((*st));
-    //write message TODO
-    //set flag
-  table_alloc_error:
-    //write message
-    return;
 }
 
 void destroy_line(STItem **i)
@@ -113,6 +105,7 @@ STItem* init_st_item()
   new->first_occur_line = 0;
   new->number_of_params = 0;
   new->next = NULL;
+  return new;
 }
 
 void append_item(STItem* item)
