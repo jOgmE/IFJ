@@ -327,9 +327,9 @@ void clear_table(frame_t frame)
 
     do
     {
-        all_clear = true;
         for (size_t i = 0; i < table_size; ++i)
         {
+            all_clear = true;
             if (frame == GLOBAL_FRAME)
             {
                 item = gf_table[i];
