@@ -11,6 +11,5 @@
 //MAIN PARSERU
  void parser_do_magic()
  {
-
-
+   printf("Hello\n");
  }

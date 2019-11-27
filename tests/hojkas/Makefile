@@ -7,6 +7,9 @@ SCANPATH=../../scanner/
 CC=gcc
 CFLAGS=-Wall -std=c99 -pedantic -lm -I$(LIBPATH)
 
+p:
+	$(CC) $(CFLAGS) p_test.c $(LIBPATH)*.c $(SCANPATH)*.c -o p
+
 $(NAME):
 	$(CC) $(CFLAGS) $(TEST).c $(LIBPATH)$(NAME).c $(LIBPATH)errors.c -o $(NAME)
 
