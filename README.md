@@ -25,8 +25,8 @@ What's working:
 
 Kinda working:
 - start_symtable_with_functions(): chybi preload funkci
-what needs to be done:
 
+What needs to be done:
 - add_undef_id_from_info(...)
 - add_undef_id_from_token(...)
 - get_id_type(...)
