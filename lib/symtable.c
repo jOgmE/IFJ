@@ -9,6 +9,7 @@
 //TODO když to najde error, nečistí to key string... asi i jinde
 //prostě přidat, že když to key nezpracuje, ať ho to vymaže
 
+
 #include "symtable.h"
 
 STable* global_st = NULL;
@@ -67,6 +68,14 @@ void create_symtable(STable **st, size_t size)
 
   for(int i = 0; i < size; i++) (*st)->item_array[i] = NULL;
   return;
+
+  item_array_alloc_error:
+    free((*st));
+    //write message TODO
+    //set flag
+  table_alloc_error:
+    //write message
+    return;
 }
 
 void destroy_line(STItem **i)
@@ -208,6 +217,11 @@ void go_in_global()
 
 void define_id_from_info(cstring *key, st_type type, int param_count)
 {
+  //something that shouldn't but could go wrong?
+  //search in local and global, if it is not already defined
+  //if not, define it
+  //if yes, error, print it, set stop after analysis, continue
+  printf("am I in global? %d\n", in_global);
   unsigned line;
   STItem *curr;
 
