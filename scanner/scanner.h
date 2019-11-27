@@ -4,7 +4,7 @@
  *
  * @autor xpocsn00
  * @date 2019-11-02
- * @version 0.1
+ * @version 1.0
  *
  */
 
@@ -67,6 +67,7 @@
 //---------------------------------------------------------
 
 extern size_t line_count;
+extern FILE *f;
 
 /* Brief get a Token from the stream f
  *
@@ -75,10 +76,11 @@ extern size_t line_count;
  * @param[in] File *f The file from where the characters are readed. Can be stdin
  * @param[out] Writing token to that pointer
  * @pre f != NULL
+ * @pre f to be declared as global variabled
  * @pre isOpen(f) == true
  * @returns 0 on success otherwise errorcode
  */
-int getToken(FILE *f, Token *token);
+Token *getToken();
 
 //---------------------------------------------------------
 //          Intern functions (don't use them)
@@ -120,10 +122,6 @@ bool is19num(char c);
  */
 bool isPrintChar(char c);
 
-/*
- */
-int checkInDedent(unsigned ws, tIndentStack *stack);
-
 /* Checks if the param string is keyword or not.
  *
  * @return on success returns e_type of the keyword otherwise 999
@@ -149,4 +147,16 @@ int cstrToInt(cstring *our_string, Token *token);
  * @returns 0 on success otherwise INTERNAL_ERROR
  */
 int cstrToDec(cstring *our_string, Token *token);
+
+/* Checking if dedent needed or not
+ *
+ * If dedent needed it generates a DEDENT token
+ * puts the last char back to the stream f
+ * and pops the indent stack
+ *
+ * @param stack Stack for checking indents
+ * @return True if dedent was DONE otherwise false
+ */
+bool checkDedent(tIndentStack *stack, char c, Token *token);
+
 #endif /*_SCANNER_HEADER_FILE_*/
