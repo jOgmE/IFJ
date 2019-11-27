@@ -31,7 +31,7 @@ Token *PATop ( PAStack *s );
 
 void PAAddBracket ( PAStack *s );
 
-int PAApplyRyle ( PAStack *s, Token *res );
+int PAApplyRule ( PAStack *s, Token *res );
 
 void PAPop ( PAStack *s );
 

@@ -4,16 +4,14 @@
 
 void testHeader(int *i)
 {
-	printf("TEST #%d -- ", *i);
+	printf("TEST #%d -- \n", *i);
 	(*i)++;
 }
 
 void main ()
 {
-	printf("No way.\n");
 	int i;
 	i = 1;
-	printf("Really?\n");
 
 	testHeader(&i);
 	PAStack *s;
@@ -32,7 +30,31 @@ void main ()
 	assert(s->top->c == '$');
 
 	testHeader(&i);
+	s->top->c = 'E';
+	assert(PATopTerm(s)->type == INT);
+
+	PAPop(s);
+	
+	testHeader(&i); // 5
+	PAAddBracket(s);
+	printf("Bracket added\n");
+	printf("BRACKET ADDED\n");
+
+	testHeader(&i);
+	printf("4header\n");
+	PAPush(s, testToken);
+
+	Token *resToken = init_token();
+
+	testHeader(&i); // 7
+	printf("Rule about to be applied.\n");
+	PAApplyRule(s, resToken);
+	printf("diditwork.mp3\n");
+
+	testHeader(&i);
 	PAYeet(s);
 
 	free_token(testToken);
+	free_token(resToken);
 }
+
