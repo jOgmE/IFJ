@@ -3,18 +3,18 @@
 
 #include "PACharStack_lib.h"
 
-// polozka stacku
+/* polozka stacku
 struct pastackelement {
 	char c;
 	Token *content;	// TODO update other functions
 	struct pastackelement *belowPtr;
-};
+};*/
 
 
-// struktura stacku
+/* struktura stacku
 struct pastack {
 	PAStackElem *top;
-};
+};*/
 
 
 
