@@ -113,6 +113,7 @@ STItem* init_st_item()
   new->first_occur_line = 0;
   new->number_of_params = 0;
   new->next = NULL;
+  return new;
 }
 
 void append_item(STItem* item)
