@@ -100,6 +100,15 @@ void printSeparator(const char *sep){
     printf("**************\n");
 }
 
+void printFile(FILE *f){
+    char s[256];
+    printSeparator("Input file:");
+    while(fgets(s, sizeof(s), f) != NULL){
+        printf("%s", s);
+    }
+    printf("\n");
+}
+
 int testTokenReading(){
     size_t sizeOfArr = 124;
     Token **token_arr = initTokenArr(sizeOfArr);
@@ -108,12 +117,17 @@ int testTokenReading(){
     }
     size_t i = 0;
     do{
-        getToken(f, token_arr[i++]);
+        token_arr[i++] = getToken();
+        //for other tests reseting error code
         if(global_error_code != SUCCESS){
             //edit to print error message
             //fprintf(stderr, "error happened\n");
             print_internal_error(global_error_code, ERROR, "error happened\n");
+            //printing tokens
+            printTokenArr(token_arr, i);
             freeTokenArr(token_arr, sizeOfArr);
+            //for other tests reseting error code
+            global_error_code = SUCCESS;
             return -1; //error
         }
         if(i == sizeOfArr){
@@ -132,17 +146,22 @@ int testTokenReading(){
 }
 
 void runTest(const char *test){
+    f = fopen(test,"r");
+    printFile(f);
+    fclose(f);
     f = fopen(test, "r");
     printSeparator(test);
     testTokenReading();
     fclose(f);
+    printf(".............................................................\n\n\n");
 }
 
-int main(){
-    //test1
-    runTest("test1");
-    //test2
-    runTest("test2");
+int main(int argc, char *argv[]){
+    if(argc > 2){
+        fprintf(stderr, "Heeey budy, only one file at once\n");
+    }else{
+        runTest(argv[1]);
+    }
 
     return 0;
 }

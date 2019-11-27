@@ -100,7 +100,7 @@ cstring *getTokenStrValue(Token *token){
 Token **initTokenArr(size_t size){
     Token **token_arr;
     if((token_arr = (Token**)calloc(size, sizeof(Token*))) == NULL) return NULL;
-    for(size_t i = 0; i<size; i++){
+    /*for(size_t i = 0; i<size; i++){
         if(!(token_arr[i] = init_token())){
             //if error happened
             for(size_t j = 0; j<=i; j++){
@@ -110,7 +110,7 @@ Token **initTokenArr(size_t size){
             free(token_arr);
             return NULL;
         }
-    }
+    }*/
     return token_arr;
 }
 
@@ -136,6 +136,7 @@ int reallocTokenArr(Token **token_arr, size_t oldSize, size_t newSize){
 
 void freeTokenArr(Token **token_arr, size_t size){
     for(size_t i=0; i<size; i++){
+        if(!token_arr[i]) break;
         free_token(token_arr[i]);
     }
     free(token_arr);
@@ -146,4 +147,19 @@ void free_token(Token *token){
         free_cstring(token->str);
     }
     free(token);
+}
+
+Token *copy_token(Token *token){
+  Token *new = init_token();
+  if(new == NULL){
+    print_internal_error(INTERNAL_ERROR, ERROR, "Interní chyba alokace paměti pro token.\n");
+    global_error_code = INTERNAL_ERROR;
+  }
+
+  new->dec = token->dec;
+  new->i = token->i;
+  new->type = token->type;
+  cstring *str = init_cstring(get_cstring_string(token->str));
+  add_string(new, str);
+  return new;
 }

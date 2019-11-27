@@ -59,7 +59,6 @@ void PAPushTerm ( PAStack *s, e_type content )
 	s->top = newElem;
 }
 
-
 // push lbrackety do stacku
 void PAPushLBR ( PAStack *s )
 {
@@ -91,7 +90,6 @@ e_type PATop ( PAStack *s )
 	// DO ERROR HERE
 	return 0;
 }
-
 
 
 // zameni nejvyssi terminal 'i' za "i<"

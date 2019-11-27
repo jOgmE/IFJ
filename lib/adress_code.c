@@ -8,20 +8,16 @@
 
 #include "adress_code.h"
 
-tAC* first_ac = NULL;
-tAC* last_ac = NULL;
-tAC* curr_ac = NULL;
+tAC *first_ac = NULL;
+tAC *last_ac = NULL;
+tAC *curr_ac = NULL;
 
-tAC* initAC()
+tAC *initAC()
 {
-  tAC* ac = malloc(sizeof(tAC));
-  if(ac == NULL) {
-<<<<<<< HEAD
+  tAC *ac = malloc(sizeof(tAC));
+  if (ac == NULL)
+  {
     print_internal_error(INTERNAL_ERROR, ERROR, "Interní chyba alokace paměti pro initAC v adress_code.c.\n");
-=======
-    /*TODO uncomment when error library finished
-    print_internal_error(INTERNAL_ERROR, ERROR, "Interní chyba alokace paměti pro initAC v adress_code.c.\n");*/
->>>>>>> de93d617ce7b2929385fc19c5aca0147eb1d3928
     global_error_code = INTERNAL_ERROR;
     return NULL;
   }
@@ -33,18 +29,22 @@ tAC* initAC()
   return ac;
 }
 
-void appendAC(ac_type type, Token* op1, Token* op2, Token* res) {
-  tAC* ac = initAC();
-  if(ac == NULL) return;
+void appendAC(ac_type type, Token *op1, Token *op2, Token *res)
+{
+  tAC *ac = initAC();
+  if (ac == NULL)
+    return;
   ac->type = type;
   ac->op1 = op1;
   ac->op2 = op2;
   ac->res = res;
-  if(first_ac == NULL) {
+  if (first_ac == NULL)
+  {
     first_ac = ac;
     last_ac = ac;
   }
-  else {
+  else
+  {
     last_ac->next = ac;
     last_ac = ac;
   }
@@ -52,13 +52,17 @@ void appendAC(ac_type type, Token* op1, Token* op2, Token* res) {
 
 void destroyACList()
 {
-  tAC* curr = first_ac;
-  tAC* next = curr;
-  while(curr != NULL) {
+  tAC *curr = first_ac;
+  tAC *next = curr;
+  while (curr != NULL)
+  {
     next = curr->next;
-    if(curr->op1 != NULL) free_token(curr->op1);
-    if(curr->op2 != NULL) free_token(curr->op2);
-    if(curr->res != NULL) free_token(curr->res);
+    if (curr->op1 != NULL)
+      free_token(curr->op1);
+    if (curr->op2 != NULL)
+      free_token(curr->op2);
+    if (curr->res != NULL)
+      free_token(curr->res);
     free(curr);
     curr = next;
   }
@@ -71,40 +75,46 @@ void setACAct()
 
 void actAC()
 {
-  if(curr_ac != NULL) curr_ac = curr_ac->next;
+  if (curr_ac != NULL)
+    curr_ac = curr_ac->next;
 }
 
 bool isACActive()
 {
-  if(curr_ac == NULL) return false;
+  if (curr_ac == NULL)
+    return false;
   return true;
 }
 
-tAC* readAC()
+tAC *readAC()
 {
   return curr_ac;
 }
 
 ac_type readACtype()
 {
-  if(curr_ac != NULL) return curr_ac->type;
+  if (curr_ac != NULL)
+    return curr_ac->type;
   return UNDEFINED;
 }
 
-Token* readACop1()
+Token *readACop1()
 {
-  if(curr_ac != NULL) return curr_ac->op1;
+  if (curr_ac != NULL)
+    return curr_ac->op1;
   return NULL;
 }
 
-Token* readACop2()
+Token *readACop2()
 {
-  if(curr_ac != NULL) return curr_ac->op2;
+  if (curr_ac != NULL)
+    return curr_ac->op2;
   return NULL;
 }
 
-Token* readACres()
+Token *readACres()
 {
-  if(curr_ac != NULL) return curr_ac->res;
+  if (curr_ac != NULL)
+    return curr_ac->res;
   return NULL;
 }

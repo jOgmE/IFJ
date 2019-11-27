@@ -13,5 +13,8 @@ $(NAME):
 ac:
 	$(CC) $(CFLAGS) ac_test.c $(LIBPATH)*.c $(SCANPATH)*.c -o ac
 
+st:
+	$(CC) $(CFLAGS) st-test.c $(LIBPATH)adress_code.c $(LIBPATH)dynamic_string.c $(LIBPATH)errors.c $(LIBPATH)indent_stack.c $(LIBPATH)symtable.c $(SCANPATH)*.c $(SCANPATH)*.h -o st
+
 clean:
-	rm $(NAME) ac
+	rm $(NAME) ac st
