@@ -2,6 +2,8 @@
 
 #include "../../lib/parser.h"
 
+FILE *f = NULL; //scanner to ještě nreměl
+
 int main()
 {
   parser_do_magic();
