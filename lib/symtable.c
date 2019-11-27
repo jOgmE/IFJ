@@ -71,6 +71,7 @@ void destroy_line(STItem **i)
   STItem *next = *i;
   while(curr != NULL) {
     next = curr->next;
+    free_cstring(curr->key);
     free(curr);
     curr = next;
   }
@@ -123,7 +124,7 @@ void append_item(STItem* item)
 
 bool search_st(STable *st, cstring *key)
 {
-  //TODO
+  //TODO do something about it
   if(st == NULL) fprintf(stderr, "[hojkas] symtable.c: search_st(): Tabulka neexistuje\n");
 
   unsigned line = hashCode(key) % st->size;
@@ -170,14 +171,34 @@ void go_in_global()
   destroy_symtable(&local_st);
 }
 
-void define_id_from_token(Token *token, st_type type, int param_count)
+void define_id_from_token(Token *token, int param_count)
 {
   //TODO
   if(token == NULL) fprintf(stderr, "[hojkas] symtable.c: define_id_from_token(): dostal empty token\n");
 
-  //search in local and global, if it is not already defined
-  //if not, define it
-  //if yes, error, print it, set stop after analysis, continue
+  if(in_global == false) {
+    if(search_st(local_st, token->str)) {
+      //token už definovan v loc_table
+
+
+      return;
+    }
+  }
+
+  if(search_st(global_st, token->str)) {
+    //token už def v glob table
+
+    return;
+  }
+
+  //vše okay, vytvoř idčko
+  STItem *new = init_st_item();
+  if(new == NULL) return;
+  new->type = token->type;
+  new->number_of_params = param_count;
+  new->defined = true;
+  //TODO nemůžu přímo. Jak? (nemůžu proto, že bych tabulku uvolňovala dříve, než token v ac zrecyklovaný)
+  //new->key =
 }
 
 void define_id_from_info(cstring *id, st_type type, int param_count)

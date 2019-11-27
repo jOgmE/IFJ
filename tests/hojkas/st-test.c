@@ -45,6 +45,7 @@ int main()
   str = init_cstring("dva");
   if(search_st(global_st, str)) printf("now this is bad\n");
   else printf("not there, yay\n");
+  free_cstring(str);
 
   destroy_symtable(&global_st);
   return 0;
