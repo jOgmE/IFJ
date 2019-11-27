@@ -22,13 +22,13 @@ What's working:
 - go_in_local()
 - clean_all_symtables()
 - define_id_from_info(...)
+- add_undef_id_from_info(...)
+- add_undef_id_from_token(...)
 
 Kinda working:
 - start_symtable_with_functions(): chybi preload funkci
 
 What needs to be done:
-- add_undef_id_from_info(...)
-- add_undef_id_from_token(...)
 - get_id_type(...)
 - define_id_from_token(...)
 
