@@ -175,6 +175,8 @@ int getDecValue(Token *token, double *num);
  */
 cstring *getTokenStrValue(Token *token);
 
+Token *copy_token(Token *token);
+
 
 //---------------------------------------------------------
 //             Functions to work with tokens

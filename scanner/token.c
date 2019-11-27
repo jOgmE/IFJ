@@ -148,3 +148,18 @@ void free_token(Token *token){
     }
     free(token);
 }
+
+Token *copy_token(Token *token){
+  Token *new = init_token();
+  if(new == NULL){
+    print_internal_error(INTERNAL_ERROR, ERROR, "Interní chyba alokace paměti pro token.\n");
+    global_error_code = INTERNAL_ERROR;
+  }
+
+  new->dec = token->dec;
+  new->i = token->i;
+  new->type = token->type;
+  cstring *str = init_cstring(get_cstring_string(token->str));
+  add_string(new, str);
+  return new;
+}
