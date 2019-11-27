@@ -222,3 +222,8 @@ void define_id_from_info(cstring *id, st_type type, int param_count)
   new->defined = true;
   append_item(new);
 }
+
+void clean_symtables()
+{
+
+}

@@ -36,11 +36,22 @@ typedef struct {
   STItem **item_array;
 } STable;
 
+//TODO keep here, usable from outside
 void start_symtable_with_functions();
+void clean_symtables();
+void define_id_from_info(cstring *id, st_type type, int param_count);
+void define_id_from_token(Token *token, int param_count);
+void go_in_global();
+void go_in_local();
+void start_symtable_with_functions();
+
 //TODO delete vv from here
 void destroy_symtable(STable **st);
+unsigned hashCode(cstring *key);
+void create_symtable(STable **st, size_t size);
 void append_item(STItem* item);
-void define_id_from_info(cstring *id, st_type type, int param_count);
+STItem* init_st_item();
+bool search_st(STable *st, cstring *key);
 bool search_st(STable *st, cstring *key);
 
 #endif //_SYMTABLE_H_

@@ -7,6 +7,8 @@ extern STable* local_st;
 //#define LOCAL_ST_SIZE 20
 //#define GLOBAL_ST_SIZE 100
 
+FILE *f = NULL; //at scanner nerve
+
 void print_item(STItem *i)
 {
   printf("   I   %d -   %d - %3ld - %d - ", i->type, i->defined, i->first_occur_line, i->number_of_params);
