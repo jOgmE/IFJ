@@ -282,17 +282,19 @@ void define_id_from_token(Token *token, int param_count)
 
 void add_undef_id_from_info(cstring *key)
 {
-
+  //TODO
+  //search, if it is there, okay, if not, add undefined
 }
 
 void add_undef_id_from_token(Token *token)
 {
-
+  //TODO
+  //search, if it is there, okay, if not, add undefined
 }
 
 st_type get_id_type(Token *token)
 {
-
+  //get type of id in token
   return ST_UNDEFINED;
 }
 
