@@ -31,7 +31,7 @@ unsigned hashCode(cstring *key)
 {
   //TODO lepší funkci!!! a případně jak to vyřešit, když se to yoinkne?
   char *str = get_cstring_string(key);
-  unsigned res = strlen(str) * str[0];
+  unsigned res = strlen(str) /** str[0]*/;
   return res;
 
   /*
@@ -41,6 +41,7 @@ unsigned hashCode(cstring *key)
   const unsigned char p;
   for(p=(const unsigned char)str; p!='\0'; p++) h = 65599h + *p;
   return h;*/
+  //akorát nefunguje no :HAhaa:
   //konec převzaté části
 }
 

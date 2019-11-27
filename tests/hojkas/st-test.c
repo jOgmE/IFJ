@@ -38,6 +38,8 @@ int main()
 
   cstring* str = init_cstring("jedna");
   define_id_from_info(str, ST_INT, 0);
+  str = init_cstring("ahoj)");
+  define_id_from_info(str, ST_FLOAT, 0);
 
   print_table(global_st, 10);
   if(search_st(global_st, str)) printf("string that shoud be there is there\n");
