@@ -18,7 +18,7 @@
 #include "../scanner/scanner.h"
 
 typedef enum {
-  ST_INT, ST_FLOAT, ST_STRING, ST_FUNCTION, ST_LABEL, ST_PARAM, ST_UNDEFINED
+  ST_VALUE, ST_FUNCTION, ST_LABEL, ST_UNDEFINED
 } st_type;
 
 typedef struct STItem {
