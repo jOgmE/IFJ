@@ -12,13 +12,7 @@
 
 size_t line_count = 1;
 
-//JUST FOR TESTING!!
-bool scanner_first_token = true; //first token being readed
-unsigned ws = 0; //ws counter
-tIndentStack *stack;
-//JUST FOR TESTING^!
-
-/*static bool scanner_first_token = true; //first token being readed
+static bool scanner_first_token = true; //first token being readed
 //1-white space counter
 //2-if dedent happens here is saved how many
 //(spaces were readed in) - (ws for the first dedent [from the stack])
@@ -28,7 +22,7 @@ static tIndentStack *stack;
 //If the line is in indent, checking takes places at every first state
 //from S that dedent happened or not.
 //static bool indent = false;
-*/
+
 
 Token *getToken(){
     //checking static variable

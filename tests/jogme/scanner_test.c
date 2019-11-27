@@ -123,6 +123,8 @@ int testTokenReading(){
             //edit to print error message
             //fprintf(stderr, "error happened\n");
             print_internal_error(global_error_code, ERROR, "error happened\n");
+            //printing tokens
+            printTokenArr(token_arr, i);
             freeTokenArr(token_arr, sizeOfArr);
             //for other tests reseting error code
             global_error_code = SUCCESS;
@@ -154,29 +156,12 @@ void runTest(const char *test){
     printf(".............................................................\n\n\n");
 }
 
-int main(){
-    //test1
-    /*runTest("test1");
-    //test2
-    runTest("test2");
-    //test3
-    runTest("test3");
-    //test4
-    runTest("test4");
-    //test5
-    runTest("test5");
-    //test6
-    runTest("test6");
-    //test7
-    runTest("dedent");*/
-    //test8
-    runTest("dedent_good");
-    //test9
-    runTest("dedent_good1");
-    //test10
-    runTest("dedent_bad1");
-    //test11
-    runTest("dedent_good2");
+int main(int argc, char *argv[]){
+    if(argc > 2){
+        fprintf(stderr, "Heeey budy, only one file at once\n");
+    }else{
+        runTest(argv[1]);
+    }
 
     return 0;
 }
