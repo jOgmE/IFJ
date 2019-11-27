@@ -24,9 +24,7 @@ What's working:
 - define_id_from_info(...)
 - add_undef_id_from_info(...)
 - add_undef_id_from_token(...)
-
-Kinda working:
-- start_symtable_with_functions(): chybi preload funkci
+- start_symtable_with_functions()
 
 What needs to be done:
 - get_id_type(...)
