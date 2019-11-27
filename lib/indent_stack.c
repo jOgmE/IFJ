@@ -13,8 +13,7 @@ void indentStackPush(tIndentStack *s, unsigned n)
 {
     tIndentStackItem *to_be_added = malloc(sizeof(tIndentStackItem));
     if(to_be_added == NULL) {
-      /*TODO uncomment when error library finished
-      print_internal_error(INTERNAL_ERROR, ERROR, "Interní chyba alokace paměti pro indent_stack scanneru.\n");*/
+      print_internal_error(INTERNAL_ERROR, ERROR, "Interní chyba alokace paměti pro indent_stack scanneru.\n");
       global_error_code = INTERNAL_ERROR;
       return;
     }
@@ -28,8 +27,7 @@ tIndentStack *indentStackInit()
 {
   tIndentStack* stack = malloc(sizeof(tIndentStack));
   if(stack == NULL) {
-    /*TODO uncomment when error library finished
-    print_internal_error(INTERNAL_ERROR, ERROR, "Interní chyba alokace paměti pro indent_stack scanneru.\n");*/
+    print_internal_error(INTERNAL_ERROR, ERROR, "Interní chyba alokace paměti pro indent_stack scanneru.\n");
     global_error_code = INTERNAL_ERROR;
     return NULL;
   }

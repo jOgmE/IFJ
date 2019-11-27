@@ -15,6 +15,27 @@ V místě, kde k nám mohla přijít chyba:
 - chyba 99 - free everything, return z dané fce
 - ostatní chyby - neřešit
 
+**symtable state**
+
+What's working:
+- go_in_global()
+- go_in_local()
+- clean_all_symtables()
+- define_id_from_info(...)
+
+Kinda working:
+- start_symtable_with_functions(): chybi preload funkci
+
+What needs to be done:
+- add_undef_id_from_info(...)
+- add_undef_id_from_token(...)
+- get_id_type(...)
+- define_id_from_token(...)
+
+**BEWARE**
+Lot of //TODOs, mostly error handling, needs to be dealt with.
+But all should be callable.
+
 KA skenneru:
 ![most of](https://cdn.discordapp.com/attachments/578249520551559169/640207678345576449/IMG_20191102_161633.jpg)
 ![operators](https://cdn.discordapp.com/attachments/578249520551559169/640215650945728522/IMG_20191102_164739.jpg)

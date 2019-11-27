@@ -1,69 +1,64 @@
-#include "symbolStack.h"
+#include "PATable.c"
+#include "PATokenStack_lib.c"
+#include "token.h"
 
-#define A 1
-#define B 1
+// TODO file what file?
 
-// asks scanner for the next token
-char getNextToken() 
-{
-	return '0';
-}
+Token *expressionAnalysis ( Token *input1, Token *input2, Token *res ) {
 
+	PAStack *socket;
+	PAInit(&socket);
 
-typedef struct patoken {
-	char value;
-	int isTerm;
-} PAToken;
+	if ( *input2 != NULL ) PAPush(socket, input2);
+	PAPush(socket, input1);	
 
+	PAStack *s;
+	PAInit(&s);
+	PAPushFin(s);
 
-// translates invalid tokens into '$'
-PAToken makePAToken(char token)
-{
-	PAToken out;
-	out.value = token;
-	out.isTerm = 0;			// TODO determine terminal
-}
+	Token *curToken = ( *input2 == NULL ) input1 : input2;
 
-static char PATable[A][B] = {
-	{ '=' }
-};
-
-char getPATableItem(char a, char b);
-{
-	return PATable[0][0];
-}
-
-void main()
-{
-	// PREC, ANALYSIS BEGINS HERE
-
-	SStack *s;
-
-	SSInit(s);
-
-	SSPush(s, '$', 1);
+	int *isFin;
 
 	do {
 
-		char a = SSClosestTerminal(s);
-		PAToken b = makePAToken(getNextToken()); // TODO maybe?
+		switch (getFromTable(PATopTerm(s), curToken)) {
 
-		switch (getPATableItem(SSClosestTerminal(s)), b.value) {
-			case '<': 
-				
-				
+			case '[':
+				PAPushTerm(s, c, curToken);
+				if (PATop(socket) != NULL) {
+					curToken = PATop(socket);
+					PAPop(socket);	
+				} else {
+					getToken(curToken);
+				}
 				break;
 
 			case '=':
-				SSPush(s, b.value, b.isTerm);
-				b = makePAToken(getNextToken());				
+				PAAddBracket(s);
+				PAPushTerm(s, c, curToken);
+				if (PATop(socket) != NULL) {
+					curToken = PATop(socket);
+					PAPop(socket);	
+				} else {
+					getToken(curToken);
+				}
 				break;
 
-			case '>': break;
-			default: break;
+			case ']':
+				PAApplyRule(s, res);	// <- tady je moloch
+				break;
+
+			default:
+				// TODO error
+				break;
+
 		}
 
+	} while ( PATop(s) != FIN || !(*isFin) );
 
-	} while ( SSClosestTerminal(s) != '$' || c != '$' );
+	PAYeet(socket);
+	PAYeet(s);
+
+	return curToken;
 }
-

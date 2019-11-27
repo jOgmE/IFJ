@@ -5,17 +5,26 @@
  *
  * @autor xpocsn00
  * @date 2019-11-92
- * @version 0.1
+ * @version 1.0
  */
 
 #include "scanner.h"
 
 size_t line_count = 1;
+
 static bool scanner_first_token = true; //first token being readed
+//1-white space counter
+//2-if dedent happens here is saved how many
+//(spaces were readed in) - (ws for the first dedent [from the stack])
 static unsigned ws = 0; //ws counter
 static tIndentStack *stack;
+//the variable 'indent' is indicating the the line is indented.
+//If the line is in indent, checking takes places at every first state
+//from S that dedent happened or not.
+//static bool indent = false;
 
-int getToken(FILE *f, Token *token){
+
+Token *getToken(){
     //checking static variable
     if(stack == NULL){
         stack = indentStackInit();
@@ -25,7 +34,9 @@ int getToken(FILE *f, Token *token){
     int present_state = S; //the actual state
     char resolved = -1; //ends the FSM
     int c = 0; //character to be readed
-    bool dedent = false; //true when the last token was dedent
+    //true when the last token was dedent
+    //used in F1 for decision (indent/dedent)
+    bool dedent = false;
     //initialize it where needed
     cstring *our_string;
     //our_string is initialized in the (first from S) states:
@@ -38,6 +49,9 @@ int getToken(FILE *f, Token *token){
     //F15
     //Q9
 
+    //initializing the token
+    Token *token = init_token();
+
     if(ws){ //ws (!= 0) was not cleared => dedent was the last token
         present_state = F1;
         dedent = true;
@@ -46,28 +60,34 @@ int getToken(FILE *f, Token *token){
     //ends while when resolved == 0
     while(resolved){
         if((c = fgetc(f)) == EOF){
+            if(checkDedent(stack, c, token)) return token;
             add_simple_data(token, EOFILE);
             --line_count; //is this okay?
             indentStackDestroy(stack);
             stack = NULL;
-            return 0;
+            return token;
         }
         
         //FSM
         switch(present_state){
             //-------------------------STARTING STATE-------------------------------
             case S:
-                if(c == 13) c = fgetc(f); //fcking windows with \r\n
-                if(c == 10){ present_state = scanner_first_token ? S : F2; break;} //\n
                 if(isSpace(c)){
                     present_state = scanner_first_token ? F1 : S;
-                    if(scanner_first_token) ws++;
+                    if(scanner_first_token) ws++; //incrementing ws
                     break;
-                } //incrementing ws
+                }
+                //from there on the FSM cannot get into indent/dedent state
+                //checking if there is need for dedent
+                if(scanner_first_token){
+                    if(checkDedent(stack, c, token)) return token;
+                }
+                if(c == 13) c = fgetc(f); //fcking windows with \r\n
+                if(c == 10){ present_state = F2; break;} //\n
                 if(isIdNameStart(c)){
                     if((our_string = init_cstring_size(256)) == NULL){
                         global_error_code = INTERNAL_ERROR;
-                        return INTERNAL_ERROR; //wihtout \0
+                        return NULL;
                     }
                     append_char(our_string, c);
                     present_state = F4;
@@ -82,7 +102,7 @@ int getToken(FILE *f, Token *token){
                 if(is19num(c)){
                     if((our_string = init_cstring_size(32)) == NULL){
                         global_error_code = INTERNAL_ERROR;
-                        return INTERNAL_ERROR;
+                        return NULL;
                     }
                     append_char(our_string, c);
                     present_state = F5;
@@ -92,7 +112,7 @@ int getToken(FILE *f, Token *token){
                 if(c == 39){
                     if((our_string = init_cstring_size(256)) == NULL){
                         global_error_code = INTERNAL_ERROR;
-                        return INTERNAL_ERROR;
+                        return NULL;
                     }
                     present_state = Q2;
                     scanner_first_token = false;
@@ -138,21 +158,21 @@ int getToken(FILE *f, Token *token){
                     scanner_first_token = false;
                     if((our_string = init_cstring_size(2)) == NULL){
                         global_error_code = INTERNAL_ERROR;
-                        return INTERNAL_ERROR; //wihtout \0
+                        return NULL; //wihtout \0
                     }
                     append_char(our_string, c);
                     for(int i=0; i<16; i++){
                         if(compare_string(our_string, op_conv[i].str)){
                             add_simple_data(token, op_conv[i].type);
                             free_cstring(our_string);
-                            return 0;
+                            return token;
                         }
                     }
                     //the program cannot get here
                 }
                 //error
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
-                return LEXICAL_ANALYSIS_ERROR;
+                return NULL;
             //--------------------------------STATES--------------------------------
             case Q1:
                 if(c == 43 || c == 45){
@@ -169,7 +189,7 @@ int getToken(FILE *f, Token *token){
                 free_cstring(our_string);
                 indentStackDestroy(stack);
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
-                return LEXICAL_ANALYSIS_ERROR;
+                return NULL;
             case Q2: //raw string processsing - KEEPING ESC CHAR
                 if(c == 92){
                     append_char(our_string, c);
@@ -185,19 +205,19 @@ int getToken(FILE *f, Token *token){
                 free_cstring(our_string);
                 indentStackDestroy(stack);
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
-                return LEXICAL_ANALYSIS_ERROR;
+                return NULL;
             case Q3:
                 if(c == 34){ present_state = Q4; break;} //"
                 //error
                 indentStackDestroy(stack);
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
-                return LEXICAL_ANALYSIS_ERROR;
+                return NULL;
             case Q4:
                 if(c == 34){ present_state = Q5; break;} //"
                 //error
                 indentStackDestroy(stack);
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
-                return LEXICAL_ANALYSIS_ERROR;
+                return NULL;
             case Q5:
                 if(c == 34){ present_state = Q6; break;} //"
                 break;
@@ -224,7 +244,7 @@ int getToken(FILE *f, Token *token){
                 free_cstring(our_string);
                 indentStackDestroy(stack);
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
-                return LEXICAL_ANALYSIS_ERROR;
+                return NULL;
             case Q10:
                 if(is09num(c)){
                     append_char(our_string, c);
@@ -234,7 +254,7 @@ int getToken(FILE *f, Token *token){
                 free_cstring(our_string);
                 indentStackDestroy(stack);
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
-                return LEXICAL_ANALYSIS_ERROR;
+                return NULL;
             case Q11:
                 if(is09num(c)){
                     append_char(our_string, c);
@@ -244,7 +264,7 @@ int getToken(FILE *f, Token *token){
                 free_cstring(our_string);
                 indentStackDestroy(stack);
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
-                return LEXICAL_ANALYSIS_ERROR;
+                return NULL;
             case Q12:
                 if(isPrintChar(c)){
                     append_char(our_string, c);
@@ -254,7 +274,7 @@ int getToken(FILE *f, Token *token){
                 free_cstring(our_string);
                 indentStackDestroy(stack);
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
-                return LEXICAL_ANALYSIS_ERROR;
+                return NULL;
             //-------------------------FINAL STATES----------------------------------
             case F1:
                 //counting the ws
@@ -271,7 +291,7 @@ int getToken(FILE *f, Token *token){
                     add_simple_data(token, INDENT);
                     ws = 0;
                     scanner_first_token = false;
-                    return 0;
+                    return token;
                 }else{
                     int tmp_cmp_stack_top = indentStackTopCompare(stack, ws);
                     //compare stack top
@@ -285,13 +305,13 @@ int getToken(FILE *f, Token *token){
                             //error
                             indentStackDestroy(stack);
                             global_error_code = LEXICAL_ANALYSIS_ERROR;
-                            return LEXICAL_ANALYSIS_ERROR;
+                            return NULL;
                         }
                         indentStackPush(stack, ws);
                         add_simple_data(token, INDENT);
                         ws = 0;
                         scanner_first_token = false;
-                        return 0;
+                        return token;
                     }else if(tmp_cmp_stack_top == -1){
                         indentStackPop(stack);
                         add_simple_data(token, DEDENT);
@@ -306,14 +326,14 @@ int getToken(FILE *f, Token *token){
                                 //error
                                 indentStackDestroy(stack);
                                 global_error_code = LEXICAL_ANALYSIS_ERROR;
-                                return LEXICAL_ANALYSIS_ERROR;
+                                return NULL;
                             }
                             ws = 0;
                             dedent = false;
                             present_state = S;
                             break;
                         }
-                        return 0;
+                        return token;
                         //TODO check for correctness
                     }
                 }
@@ -324,7 +344,7 @@ int getToken(FILE *f, Token *token){
                 scanner_first_token = true;
                 add_simple_data(token, EOL);
                 ++line_count;
-                return 0;
+                return token;
             case F4:
                 //pre -> our_string != NULL
                 if(isIdNameStart(c) || is09num(c)){
@@ -339,10 +359,10 @@ int getToken(FILE *f, Token *token){
                     if(isKeyword(our_string) != 999){ //is keyword
                         add_simple_data(token, isKeyword(our_string));
                         free_cstring(our_string);
-                        return 0;
+                        return token;
                     }
                     add_id(token, our_string);
-                    return 0;
+                    return token;
                 }
                 break;
             case F5:
@@ -363,8 +383,10 @@ int getToken(FILE *f, Token *token){
                 
                 //end of the number
                 ungetc(c, f);
-                cstrToInt(our_string, token); //check return value!!!
-                return 0;
+                if(cstrToInt(our_string, token)){ //checking return value
+                    return NULL;
+                }
+                return token;
             case F6:
                 if(is09num(c)){
                     append_char(our_string, c);
@@ -378,8 +400,10 @@ int getToken(FILE *f, Token *token){
 
                 //end of the decimal number
                 ungetc(c, f);
-                cstrToDec(our_string, token);
-                return 0;
+                if(cstrToDec(our_string, token)){
+                    return NULL;
+                }
+                return token;
             case F7:
                 if(is09num(c)){
                     append_char(our_string, c);
@@ -388,8 +412,10 @@ int getToken(FILE *f, Token *token){
                 
                 //end of the decimal number expressed in exponential notation
                 ungetc(c, f);
-                cstrToDec(our_string, token);
-                return 0;
+                if(cstrToDec(our_string, token)){
+                    return NULL;
+                }
+                return token;
             case F8: //this case NEEDED to be FUCKING TESTED OUT
                 //000000000 -> 0
                 if(c == 48) break; //'0'
@@ -398,17 +424,17 @@ int getToken(FILE *f, Token *token){
                     //error
                     indentStackDestroy(stack);
                     global_error_code = LEXICAL_ANALYSIS_ERROR;
-                    return LEXICAL_ANALYSIS_ERROR;
+                    return NULL;
                 }
 
                 ungetc(c, f);
                 add_int(token, 0);
-                return 0;
+                return token;
             case F9: //end of the string
                 ungetc(c, f);
                 resize_cstring(our_string, our_string->length+1);
                 add_string(token, our_string);
-                return 0;
+                return token;
             case F11: //assignment op
                 if(c == 61){ //=
                     present_state = F12;
@@ -417,11 +443,11 @@ int getToken(FILE *f, Token *token){
 
                 ungetc(c, f);
                 add_simple_data(token, ASS); //:nicoSmug
-                return 0;
+                return token;
             case F12: //equal op
                 ungetc(c, f);
                 add_simple_data(token, EQ);
-                return 0;
+                return token;
             case F13:
                 if(c == 60){ //<
                     present_state = F14;
@@ -430,11 +456,11 @@ int getToken(FILE *f, Token *token){
                 
                 ungetc(c, f);
                 add_simple_data(token, L);
-                return 0;
+                return token;
             case F14:
                 ungetc(c, f);
                 add_simple_data(token, LEQ);
-                return 0;
+                return token;
             case F15:
                 if(c == 62){ //>
                     present_state = F16;
@@ -443,19 +469,19 @@ int getToken(FILE *f, Token *token){
 
                 ungetc(c, f);
                 add_simple_data(token, G);
-                return 0;
+                return token;
             case F16:
                 ungetc(c, f);
                 add_simple_data(token, GEQ);
-                return 0;
+                return token;
             case F17:
                 ungetc(c, f);
                 add_simple_data(token, NEQ);
-                return 0;
+                return token;
             case F19: //case F18 moved to S
                 ungetc(c, f);
                 add_simple_data(token, DOCS);
-                return 0;
+                return token;
             case F22: //cases F20-21 moved to S
                 if(c == 47){ // /
                     present_state = F23;
@@ -464,16 +490,16 @@ int getToken(FILE *f, Token *token){
 
                 ungetc(c, f);
                 add_simple_data(token, SL);
-                return 0;
+                return token;
             case F23:
                 ungetc(c, f);
                 add_simple_data(token, DSL);
-                return 0;
+                return token;
             //cases F24-25 moved to S
         }
     }
     global_error_code = LEXICAL_ANALYSIS_ERROR;
-    return LEXICAL_ANALYSIS_ERROR; //only for compiling NOT SURE for this line tbh
+    return NULL; //only for compiling NOT SURE for this line tbh
 }
 
 int cstrToInt(cstring *our_string, Token *token){
@@ -536,12 +562,12 @@ bool is19num(char c){
 bool isPrintChar(char c){
     return (c >= 32 && c <= 126);
 }
-int checkInDedent(unsigned ws, tIndentStack *stack){
-    if(indentStackEmpty(stack)){
-        indentStackPush(stack, ws);
-    }else if(indentStackTopCompare(stack, ws) == -1){
-        indentStackPush(stack, ws);
-
+bool checkDedent(tIndentStack *stack, char c, Token *token){
+    if(!indentStackEmpty(stack)){
+        ungetc(c, f);
+        add_simple_data(token, DEDENT);
+        indentStackPop(stack);
+        return true;
     }
-    return 0; //for compilation only
+    return false;
 }
