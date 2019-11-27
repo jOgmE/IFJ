@@ -28,10 +28,10 @@ void print_line(STItem *i)
 
 void print_table(STable *st, size_t size)
 {
-  printf("TABLE BEGIN\n");
+  printf("\nTABLE BEGIN\n");
   for(int i = 0; i < size; i++) print_line(st->item_array[i]);
 
-  printf("TABLE END\n");
+  printf("TABLE END\n\n");
 }
 
 int main()
@@ -39,9 +39,10 @@ int main()
   start_symtable_with_functions();
 
   cstring* str = init_cstring("jedna");
-  define_id_from_info(str, ST_INT, 0);
+  //define_id_from_info(str, ST_VALUE, 0);
+  add_undef_id_from_info(str);
   str = init_cstring("ahoj)");
-  define_id_from_info(str, ST_FLOAT, 0);
+  define_id_from_info(str, ST_VALUE, 0);
 
   print_table(global_st, 10);
   if(search_st(global_st, str)) printf("string that shoud be there is there\n");
@@ -54,13 +55,17 @@ int main()
   go_in_local();
 
   str = init_cstring("dva");
-  define_id_from_info(str, ST_INT, 0);
+  define_id_from_info(str, ST_VALUE, 0);
   str = init_cstring("jedna");
-  define_id_from_info(str, ST_INT, 0);
+  //define_id_from_info(str, ST_VALUE, 0);
+  //add_undef_id_from_info(str);
 
   print_table(local_st, 5);
 
   go_in_global();
+
+  define_id_from_info(str, ST_VALUE, 0);
+  print_table(global_st, 10);
 
   clean_all_symtables();
   return 0;

@@ -9,7 +9,6 @@
 //TODO když to najde error, nečistí to key string... asi i jinde
 //prostě přidat, že když to key nezpracuje, ať ho to vymaže
 
-
 #include "symtable.h"
 
 STable* global_st = NULL;
@@ -51,22 +50,23 @@ unsigned hashCode(cstring *key)
 void create_symtable(STable **st, size_t size)
 {
   (*st) = malloc(sizeof(STable));
-  if((*st) == NULL) goto table_alloc_error;
+  if((*st) == NULL) {
+    print_internal_error(INTERNAL_ERROR, ERROR, "Interni chyba alokace paměti pro symtable.c: create_symtable()\n");
+    global_error_code = INTERNAL_ERROR;
+    return;
+  }
   (*st)->item_array = malloc(size * sizeof(STItem*));
-  if((*st)->item_array == NULL) goto item_array_alloc_error;
+  if((*st)->item_array == NULL) {
+    free((*st));
+    print_internal_error(INTERNAL_ERROR, ERROR, "Interni chyba alokace paměti pro symtable.c: create_symtable()\n");
+    global_error_code = INTERNAL_ERROR;
+    return;
+  }
 
   (*st)->size = size;
 
   for(int i = 0; i < size; i++) (*st)->item_array[i] = NULL;
   return;
-
-  item_array_alloc_error:
-    free((*st));
-    //write message TODO
-    //set flag
-  table_alloc_error:
-    //write message
-    return;
 }
 
 void destroy_line(STItem **i)
@@ -94,7 +94,8 @@ STItem* init_st_item()
 {
   STItem *new = malloc(sizeof(STItem));
   if(new == NULL) {
-    //chyba aokace, TODO
+    print_internal_error(INTERNAL_ERROR, ERROR, "Interni chyba alokace paměti pro symtable.c: init_item()\n");
+    global_error_code = INTERNAL_ERROR;
     return NULL;
   }
   new->type = ST_UNDEFINED;
@@ -152,10 +153,7 @@ bool search_st(STable *st, cstring *key)
 void start_symtable_with_functions()
 {
   create_symtable(&global_st, GLOBAL_ST_SIZE);
-  if(global_st == NULL) {
-    //TODO chyba alokace
-    return;
-  }
+  if(global_st == NULL) return; //error vyřešen ve volání create_symtable
 
   //TODO
   //load it with all premade functions
@@ -185,11 +183,6 @@ void go_in_global()
 
 void define_id_from_info(cstring *key, st_type type, int param_count)
 {
-  //something that shouldn't but could go wrong?
-  //search in local and global, if it is not already defined
-  //if not, define it
-  //if yes, error, print it, set stop after analysis, continue
-  printf("am I in global? %d\n", in_global);
   unsigned line;
   STItem *curr;
 
@@ -211,7 +204,7 @@ void define_id_from_info(cstring *key, st_type type, int param_count)
           return;
         }
 
-        //nalezen key ale neni definovana
+        //nalezen key ale neni definovan
         curr->defined = true;
         curr->type = type;
         curr->number_of_params = param_count;
@@ -282,14 +275,23 @@ void define_id_from_token(Token *token, int param_count)
 
 void add_undef_id_from_info(cstring *key)
 {
-  //TODO
-  //search, if it is there, okay, if not, add undefined
+  if(!in_global) {
+    //potrebujeme prohledat i local
+    if(search_st(local_st, key)) return; //už info o nem existuje, okay, end
+  }
+  if(search_st(global_st, key)) return;
+
+  //neni v tabulce ani jedne
+  STItem *new = init_st_item();
+  if(new == NULL) return;
+  new->key = key;
+  new->first_occur_line = line_count;
+  append_item(new);
 }
 
 void add_undef_id_from_token(Token *token)
 {
-  //TODO
-  //search, if it is there, okay, if not, add undefined
+  add_undef_id_from_info(token->str);
 }
 
 st_type get_id_type(Token *token)
