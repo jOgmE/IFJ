@@ -213,19 +213,48 @@ Token *getToken(){
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
                 return NULL;
             case Q4:
-                if(c == 34){ present_state = Q5; break;} //"
+                if(c == 34){
+                    //initializing ourstring for the docstring
+                    if((our_string = init_cstring_size(256)) == NULL){
+                        global_error_code = INTERNAL_ERROR;
+                        return NULL;
+                    }
+                    present_state = Q5;
+                    break;
+                } //"
                 //error
                 indentStackDestroy(stack);
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
                 return NULL;
             case Q5:
+                if(c == EOF){
+                    indentStackDestroy(stack);
+                    free_cstring(our_string);
+                    global_error_code = LEXICAL_ANALYSIS_ERROR;
+                    return NULL;
+                }
+                //center state of docstring
                 if(c == 34){ present_state = Q6; break;} //"
+                //saving the string
+                append_char(our_string, c);
                 break;
             case Q6:
+                if(c == EOF){
+                    indentStackDestroy(stack);
+                    free_cstring(our_string);
+                    global_error_code = LEXICAL_ANALYSIS_ERROR;
+                    return NULL;
+                }
                 if(c == 34){ present_state = Q7; break;} //"
                 present_state = Q5;
                 break;
             case Q7:
+                if(c == EOF){
+                    indentStackDestroy(stack);
+                    free_cstring(our_string);
+                    global_error_code = LEXICAL_ANALYSIS_ERROR;
+                    return NULL;
+                }
                 if(c == 34){ present_state = F19; break;} //"
                 present_state = Q5;
                 break;
@@ -299,6 +328,7 @@ Token *getToken(){
                         //NOT generating INDENT or DEDENT
                         present_state = S;
                         ws = 0;
+                        scanner_first_token = false;
                         break;
                     }else if(tmp_cmp_stack_top == 1){
                         if(dedent){
@@ -480,7 +510,8 @@ Token *getToken(){
                 return token;
             case F19: //case F18 moved to S
                 ungetc(c, f);
-                add_simple_data(token, DOCS);
+                resize_cstring(our_string, our_string->length+1);
+                add_string(token, our_string);
                 return token;
             case F22: //cases F20-21 moved to S
                 if(c == 47){ // /
