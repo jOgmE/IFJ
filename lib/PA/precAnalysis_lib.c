@@ -1,69 +1,36 @@
-#include "symbolStack.h"
+#include "PATable.c"
+#include "PATokenStack_lib.c"
+#include "token.h"
 
-#define A 1
-#define B 1
+// TODO file what file?
 
-// asks scanner for the next token
-char getNextToken() 
-{
-	return '0';
-}
+Token expressionAnalysis ( Token input ) {
 
+	PAStack *s;
+	PAInit(&s);
+	PAPushFin(s);
 
-typedef struct patoken {
-	char value;
-	int isTerm;
-} PAToken;
-
-
-// translates invalid tokens into '$'
-PAToken makePAToken(char token)
-{
-	PAToken out;
-	out.value = token;
-	out.isTerm = 0;			// TODO determine terminal
-}
-
-static char PATable[A][B] = {
-	{ '=' }
-};
-
-char getPATableItem(char a, char b);
-{
-	return PATable[0][0];
-}
-
-void main()
-{
-	// PREC, ANALYSIS BEGINS HERE
-
-	SStack *s;
-
-	SSInit(s);
-
-	SSPush(s, '$', 1);
+	Token curToken = input;
+	int *isFin;
 
 	do {
+		switch (getFromTable(PATop(s), curToken)) {
 
-		char a = SSClosestTerminal(s);
-		PAToken b = makePAToken(getNextToken()); // TODO maybe?
-
-		switch (getPATableItem(SSClosestTerminal(s)), b.value) {
-			case '<': 
-				
-				
-				break;
-
+			case '<':
+				PAPushTerm(s, curToken);
+				getToken(f, curToken);
 			case '=':
-				SSPush(s, b.value, b.isTerm);
-				b = makePAToken(getNextToken());				
-				break;
+				PAAddBracket(s);
+				PAPushTerm(s, curToken);
+				getToken(f, curToken);
+			case '>':
+				PAApplyRule(s);	// <- tady je moloch
+			default:
+				// TODO error
 
-			case '>': break;
-			default: break;
 		}
 
+	} while ( PATop(s) != FIN || !(*isFin) );
 
-	} while ( SSClosestTerminal(s) != '$' || c != '$' );
+	return curToken;
 }
-
