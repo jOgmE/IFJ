@@ -47,6 +47,7 @@ void clean_all_symtables();
 void add_undef_id_from_info(cstring *key);
 void add_undef_id_from_token(Token *token);
 st_type get_id_type(Token *token);
+void sem_check_def();
 
 //TODO delete vv from here
 void no_check_def(cstring *key, st_type type, int param_count);

@@ -337,6 +337,14 @@ st_type get_id_type(Token *token)
   return ST_UNDEFINED;
 }
 
+void sem_check_def()
+{
+  //TODO
+  //provede semantickou kontrolu, aka projde symbol po symbolu
+  //checkne, jestli je definovany, pokud ne, vypise chybu, nastavi
+  //flag, kill_after_analysis, takhle vsechny
+}
+
 void clean_all_symtables()
 {
   if(!in_global) destroy_symtable(&local_st);
