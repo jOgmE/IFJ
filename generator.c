@@ -452,6 +452,12 @@ void check_and_define_while()
 
     while (isACActive() && type != WHILE_END)
     {
+        if (type == WHILE_START)
+        {
+            setACAct();
+            check_and_define_while();
+        }
+
         op1 = readACop1();
         op2 = readACop2();
         res = readACres();
