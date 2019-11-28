@@ -13,9 +13,10 @@
 //******************************************************************************************//
 //******************************************************************************************//
 
-FILE *result_code_file = NULL;
+FILE *out_stream = NULL;
 char *result_code_filename;
 
+cstring *result_code = NULL;
 cstring *result_main_function_code = NULL;
 cstring *result_functions_code = NULL;
 
@@ -36,29 +37,29 @@ size_t tmp_var_counter = 0;
 //******************************************************************************************//
 //******************************************************************************************//
 
-void init_gen(char *filename)
+void init_gen_test(char *filename)
 {
-    if (result_code_file != NULL)
-    {
-        return;
-    }
-
     cstring *file_name = init_cstring(filename);
 
     append_string(file_name, ".ic19");
 
     result_code_filename = file_name->str;
 
-    result_code_file = fopen(result_code_filename, "w");
+    out_stream = fopen(result_code_filename, "w");
 
-    if (result_code_file == NULL)
+    if (out_stream == NULL)
     {
         global_error_code = INTERNAL_ERROR;
         print_internal_error(INTERNAL_ERROR, ERROR, "Chyba vytvoreni vystupniho souboru");
         return;
     }
 
-    fprintf(result_code_file, ".IFJcode19\nJUMP $$main\n\n");
+    init_gen();
+}
+
+void init_gen()
+{
+    result_code = init_cstring(".IFJcode19\nJUMP $$main\n\n");
     result_main_function_code = init_cstring("LABEL $$main\n");
     result_functions_code = init_cstring_size(1);
 
@@ -71,49 +72,35 @@ void init_gen(char *filename)
     init_table(16, TEMP_FRAME);
 }
 
-void remove_gen_file()
-{
-    if (result_code_file == NULL)
-    {
-        return;
-    }
-
-    if (remove(result_code_filename) != 0)
-    {
-        print_internal_error(INTERNAL_ERROR, ERROR, "Chyba odstranění výsledného souboru");
-        global_error_code = INTERNAL_ERROR;
-        return;
-    }
-
-    return;
-}
-
 void print_gen_all()
 {
-    if (result_code_file == NULL || global_error_code != SUCCESS)
+    if (out_stream == NULL || global_error_code != SUCCESS)
     {
         return;
+    }
+
+    if (result_code != NULL)
+    {
+        fprintf(out_stream, "%s", result_code->str);
     }
 
     if (result_functions_code != NULL)
     {
-        fprintf(result_code_file, "%s", result_functions_code->str);
+        fprintf(out_stream, "%s", result_functions_code->str);
     }
 
     if (result_main_function_code != NULL)
     {
-        fprintf(result_code_file, "%s", result_main_function_code->str);
+        fprintf(out_stream, "%s", result_main_function_code->str);
     }
 }
 
 void free_gen()
 {
-    if (result_code_file == NULL)
+    if (out_stream == NULL)
     {
         return;
     }
-
-    fclose(result_code_file);
 
     clear_table(GLOBAL_FRAME);
     clear_table(LOCAL_FRAME);
@@ -991,7 +978,7 @@ void generate_code()
 
 int main(int argc, char const *argv[])
 {
-    init_gen("testout");
+    init_gen_test("testout");
 
     Token *op1 = malloc(sizeof(Token));
     Token *op2 = malloc(sizeof(Token));
@@ -1042,6 +1029,8 @@ int main(int argc, char const *argv[])
     print_gen_all();
 
     free_gen();
+
+    fclose(out_stream);
 
     return 0;
 }

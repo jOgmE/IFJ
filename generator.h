@@ -29,11 +29,6 @@ extern frame_t CURRENT_FRAME;
 void init_gen();
 
 /**
- * V případě chyby uzavře file stream odstraní výsledný soubor
- */
-void remove_gen_file();
-
-/**
  * Vytiskne všechen kód do výstupního souboru
  */
 void print_gen_all();
