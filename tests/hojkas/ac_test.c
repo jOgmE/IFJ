@@ -4,6 +4,8 @@
 extern tAC* first_ac;
 extern tAC* last_ac;
 
+FILE *f = NULL;
+
 void print_ac(tAC* ac) {
   printf("Adress code struct\n    type - %d\n", ac->type);
   printf("    Token op1 - %p\n", (void *) ac->op1);
@@ -77,7 +79,7 @@ int main()
   add_dec(op2, 2.0);
   cstring* str2 = init_cstring("dva");
   add_id(res, str2);
-  appendAC(ADD, op1, op2, res);
+  appendAC(SUB, op1, op2, res);
 
   op1 = init_token();
   op2 = init_token();
@@ -86,11 +88,17 @@ int main()
   add_dec(op2, 3.0);
   cstring* str3 = init_cstring("tri");
   add_id(res, str3);
-  appendAC(ADD, op1, op2, res);
+  appendAC(MUL, op1, op2, res);
 
   //print_all_ac();
   print_all_by_f();
 
+  printf("------\n");
+  setACAct();
+  set_ac_breakpoint();
+  print_ac(readAC());
+  goto_ac_breakpoint();
+  print_ac(readAC());
 
   destroyACList();
 

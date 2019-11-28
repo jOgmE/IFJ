@@ -69,6 +69,8 @@ typedef enum
   DEF_START,
   DEF_END,
   PARAM_START,
+  WHILE_START,
+  WHILE_END,
   UNDEFINED
 } ac_type;
 
@@ -130,5 +132,12 @@ Token *readACop1();
 Token *readACop2();
 //jako readACop1, jen přečte res
 Token *readACres();
+//uloží aktuální pozici do breakpointu
+//byl-li volan nad neaktivnim seznamem, je NULL
+//byl-li breakpoint jiz definovan, je predefinovan timto
+void set_ac_breakpoint();
+//vrátí se zpátky na act ten, kdy se nastavil breakpoint
+//nebyl-li nastaven, neprovede se nic
+void goto_ac_breakpoint();
 
 #endif //_ADRESS_CODE_H_
