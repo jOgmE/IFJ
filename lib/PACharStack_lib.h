@@ -9,9 +9,15 @@
 #ifndef _PA_STACK_H_
 #define _PA_STACK_H_
 
-typedef struct pastackelement PAStackElem;
+typedef struct pastackelement { 
+	char c;
+        Token *content;
+        struct pastackelement *belowPtr;
+} PAStackElem;
 
-typedef struct pastack PAStack;
+typedef struct pastack {
+	PAStackElem *top;	
+} PAStack;
 
 void PAInit ( PAStack **s );
 
@@ -25,7 +31,7 @@ Token *PATop ( PAStack *s );
 
 void PAAddBracket ( PAStack *s );
 
-int PAApplyRyle ( PAStack *s, Token *res );
+int PAApplyRule ( PAStack *s, Token *res );
 
 void PAPop ( PAStack *s );
 
