@@ -17,39 +17,45 @@ void main ()
 	PAStack *s;
 	PAInit(&s);
 	assert(s->top == NULL);
+	PAPushFin(s);	// :$
 
 	testHeader(&i);
 	Token *testToken = init_token();
 	add_int(testToken, 3);
-	PAPush(s, testToken);
+	PAPush(s, testToken);	// :$i
 	assert(s->top->c == 'i'); 
 
 
 	testHeader(&i);
-	PAPushFin(s);
+	PAPushFin(s);	// :$i$
 	assert(s->top->c == '$');
 
 	testHeader(&i);
-	s->top->c = 'E';
+	s->top->c = 'E';	// :$iE
 	assert(PATopTerm(s)->type == INT);
 
-	PAPop(s);
+	PAPop(s);		// :$i
 	
 	testHeader(&i); // 5
-	PAAddBracket(s);
-	printf("Bracket added\n");
-	printf("BRACKET ADDED\n");
-
+	PAAddBracket(s);	// :$i[
+	
 	testHeader(&i);
-	printf("4header\n");
-	PAPush(s, testToken);
+
+	PAPush(s, testToken);	// :$i[i
 
 	Token *resToken = init_token();
 
 	testHeader(&i); // 7
-	printf("Rule about to be applied.\n");
-	PAApplyRule(s, resToken);
-	printf("diditwork.mp3\n");
+
+	PAApplyRule(s, resToken);	// :$i[i
+
+	// from here on this has to be remade
+
+	testHeader(&i);
+	PAPop(s);
+	PAApplyRule(s, resToken);	
+
+	// up until here
 
 	testHeader(&i);
 	PAYeet(s);

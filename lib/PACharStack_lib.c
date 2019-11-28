@@ -26,6 +26,8 @@ void PAInit ( PAStack **s )
 	(*s)->top = NULL;
 }
 
+
+
 // push otazniku do stacku
 void PAPushFin ( PAStack *s )
 {
@@ -36,6 +38,7 @@ void PAPushFin ( PAStack *s )
 	newElem->belowPtr = s->top;
 	s->top = newElem;
 }
+
 
 
 // push noveho terminalu do stacku
@@ -71,6 +74,21 @@ void PAPush ( PAStack *s, Token *content )
 }
 
 
+
+// push E do stacku (pro testovaci ucely)
+void PAPushETest ( PAStack *s, Token *content)
+{
+	PAStackElem *newElem = (PAStackElem *) malloc(sizeof(PAStackElem));
+
+	newElem->c = 'E';
+	newElem->content = content;
+
+	newElem->belowPtr = s->top;
+	s->top = newElem;
+}
+
+
+
 // vrati hodnotu nejvyssiho terminalu na stacku
 Token *PATopTerm ( PAStack *s )
 {
@@ -90,6 +108,7 @@ Token *PATopTerm ( PAStack *s )
 	// DO ERROR HERE
 	return 0;
 }
+
 
 
 // vrati Token na vrcholu zasobniku, nebo NULL
@@ -147,6 +166,29 @@ void PAAddBracket ( PAStack *s )
 	fprintf(stderr, "No terminal to swap in PAAddBracket.\n");
 }
 
+
+
+
+
+// provede zpetnou derivaci E->i
+int PACodeRule1 ( )
+{
+
+}
+
+// provede zpetnou derivaci E->E+E
+int PACodeRule2 ( )
+{
+
+}
+
+// provede zpetnou derivaci E->(E)
+int PACodeRule3 ( )
+{
+
+}
+
+
 // upravi vrchol zasobniku podle pravidel E->i, E->(E), E->E<OP>E
 int PAApplyRule ( PAStack *s, Token *res )
 {
@@ -159,58 +201,70 @@ int PAApplyRule ( PAStack *s, Token *res )
 	while ( i < 4 ) {
 	
 		if ( ptr == NULL ) {
-			//TODO error
+			printf("Error.\n"); //TODO error
 			return 0;
 		}
 
-		tempStack[3-i] = s->top;
+		tempStack[3-i] = ptr;
+		printf("tempStack[%d] = %c\n", 3-i, tempStack[3-i]->c);
+		
+		if ( ptr->c == '$' || ptr->c == '[' ) break;
 
 		ptr = ptr->belowPtr;
 		i++;	
-		if ( ptr->c == '$' ) break;
-
 	}
 
-	if ( i == 2 ) {
-		if ( tempStack[3]->c == 'i' ) {
+	printf("after cycle i = %d\n", i);
+
+	if ( i == 1 ) {
+		if ( tempStack[2]->c == '[' && tempStack[3]->c == 'i' ) {
 				
 			printf("Derivace E->i\n");
-			
+			return 0;
 			// TODO E->i
 
 		} else {
-			//TODO error
+			printf("Error.\n"); //TODO error
+			return 1;
 		}
 
 
 
-	} else if ( i == 4 ) {
+	} else if ( i == 3 ) {
 
-		if ( tempStack[0]->c == '$' ) {
+		if ( tempStack[0]->c == '[' ) {
 
 			if ( tempStack[1]->c == 'E' && tempStack[2]->c == '+' && tempStack[3]->c == 'E' ) {
 
 				printf("Derivace E->E+E\n");
-
+				return 0;
 				// TODO E->E+E
 
 			} else if ( tempStack[1]->c == '(' && tempStack[2]->c == 'E' && tempStack[3]->c == ')' ) {
 
 				printf("Derivace E->(E)\n");
-
+				return 0;
 				// TODO E->(E)
 
 			} else {
-				// TODO error
+				printf("Error.\n"); // TODO error
+				return 1;
 			}
 
 		} else {
-			// TODO error
+			printf("Error.\n"); // TODO error
+			return 1;
 		}
+	} else {
+		printf("Error.\n");
+		return 1;
 	}
 
 }
 
+
+
+// vyhodi vrchni polozku
 void PAPop ( PAStack *s )
 {
 	if ( s->top == NULL ) return;
@@ -223,6 +277,7 @@ void PAPop ( PAStack *s )
 
 
 
+// uvolni cely stack
 void PAYeet ( PAStack *s )
 {
 	while ( s->top != NULL ) {
