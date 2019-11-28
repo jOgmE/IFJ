@@ -442,6 +442,30 @@ char *write_check_and_define(Token *token)
     return token_frame_str;
 }
 
+void check_and_define_while()
+{
+    set_ac_breakpoint();
+
+    ac_type type = readACtype();
+
+    Token *op1 = NULL, *op2 = NULL, *res = NULL;
+
+    while (isACActive() && type != WHILE_END)
+    {
+        op1 = readACop1();
+        op2 = readACop2();
+        res = readACres();
+
+        write_check_and_define(op1);
+        write_check_and_define(op2);
+        write_check_and_define(res);
+
+        type = readACtype();
+    }
+
+    goto_ac_breakpoint();
+}
+
 void write_call(char *label)
 {
     bool label_exists = item_exists_table(label, GLOBAL_FRAME);
@@ -962,6 +986,11 @@ void generate_code()
         case CALL:
             function_call_assign = false;
             break;
+        case WHILE_START:
+            check_and_define_while();
+            break;
+        case WHILE_END:
+            continue;
         default:
             break;
         }
