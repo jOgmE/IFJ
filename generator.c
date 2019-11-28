@@ -505,12 +505,15 @@ void write_convert_type(Token *token, char *frame_str, e_type destType)
     // frame_t prev_frame = CURRENT_FRAME;
     // switch_frame(LOCAL_FRAME);
 
+    char *tmp_var_id = convert_int_to_string((int)tmp_var_counter);
+    char *tmp_if_id = convert_int_to_string((int)tmp_if_counter);
+
     cstring *iflabel_float = init_cstring_size(1);
 
     append_string(iflabel_float, "$if$");
     append_string(iflabel_float, token->str->str);
     append_string(iflabel_float, "$true$float$");
-    append_string(iflabel_float, convert_int_to_string((int)tmp_if_counter));
+    append_string(iflabel_float, tmp_if_id);
     append_string(iflabel_float, " ");
 
     cstring *iflabel_int = init_cstring_size(1);
@@ -518,33 +521,43 @@ void write_convert_type(Token *token, char *frame_str, e_type destType)
     append_string(iflabel_int, "$if$");
     append_string(iflabel_int, token->str->str);
     append_string(iflabel_int, "$true$int$");
-    append_string(iflabel_int, convert_int_to_string((int)tmp_if_counter));
+    append_string(iflabel_int, tmp_if_id);
     append_string(iflabel_int, " ");
 
     append_string(CURRENT_BLOCK, "DEFVAR ");
     write_symbol(token, frame_str, true);
-    append_string(CURRENT_BLOCK, "$type\n");
+    append_string(CURRENT_BLOCK, "$type$s");
+    append_string(CURRENT_BLOCK, tmp_var_id);
+    append_string(CURRENT_BLOCK, "\n");
 
     append_string(CURRENT_BLOCK, "DEFVAR ");
     write_symbol(token, frame_str, true);
-    append_string(CURRENT_BLOCK, "$tmp\n");
+    append_string(CURRENT_BLOCK, "$tmp$");
+    append_string(CURRENT_BLOCK, tmp_var_id);
+    append_string(CURRENT_BLOCK, "\n");
 
     append_string(CURRENT_BLOCK, "TYPE ");
     write_symbol(token, frame_str, true);
-    append_string(CURRENT_BLOCK, "$type ");
+    append_string(CURRENT_BLOCK, "$type$");
+    append_string(CURRENT_BLOCK, tmp_var_id);
+    append_string(CURRENT_BLOCK, " ");
     write_symbol(token, frame_str, true);
     append_string(CURRENT_BLOCK, "\n");
 
     append_string(CURRENT_BLOCK, "JUMPIFEQ ");
     append_cstring(CURRENT_BLOCK, iflabel_int);
     write_symbol(token, frame_str, true);
-    append_string(CURRENT_BLOCK, "$type ");
+    append_string(CURRENT_BLOCK, "$type$");
+    append_string(CURRENT_BLOCK, tmp_var_id);
+    append_string(CURRENT_BLOCK, " ");
     append_string(CURRENT_BLOCK, "string@int\n");
 
     append_string(CURRENT_BLOCK, "JUMPIFEQ ");
     append_cstring(CURRENT_BLOCK, iflabel_float);
     write_symbol(token, frame_str, true);
-    append_string(CURRENT_BLOCK, "$type ");
+    append_string(CURRENT_BLOCK, "$type$");
+    append_string(CURRENT_BLOCK, tmp_var_id);
+    append_string(CURRENT_BLOCK, " ");
     append_string(CURRENT_BLOCK, "string@float\n");
 
     append_string(CURRENT_BLOCK, "EXIT int@4\n");
@@ -554,7 +567,9 @@ void write_convert_type(Token *token, char *frame_str, e_type destType)
         write_label(iflabel_int->str);
         append_string(CURRENT_BLOCK, "INT2FLOAT ");
         write_symbol(token, frame_str, true);
-        append_string(CURRENT_BLOCK, "$tmp ");
+        append_string(CURRENT_BLOCK, "$tmp$");
+        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, " ");
         write_symbol(token, frame_str, true);
         append_string(CURRENT_BLOCK, "\n");
         write_label(iflabel_float->str);
@@ -564,7 +579,9 @@ void write_convert_type(Token *token, char *frame_str, e_type destType)
         write_label(iflabel_float->str);
         append_string(CURRENT_BLOCK, "FLOAT2INT ");
         write_symbol(token, frame_str, true);
-        append_string(CURRENT_BLOCK, "$tmp ");
+        append_string(CURRENT_BLOCK, "$tmp$");
+        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, " ");
         write_symbol(token, frame_str, true);
         append_string(CURRENT_BLOCK, "\n");
         write_label(iflabel_int->str);
@@ -574,6 +591,7 @@ void write_convert_type(Token *token, char *frame_str, e_type destType)
     free_cstring(iflabel_int);
 
     ++tmp_if_counter;
+    ++tmp_var_counter;
 
     // switch_frame(prev_frame);
 }
@@ -627,6 +645,8 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
     bool op1_converted = false;
     bool op2_converted = false;
 
+    char *tmp_var_id = convert_int_to_string((int)tmp_var_counter);
+
     if (op1->type == ID)
     {
         write_convert_type(op1, op1_frame_str, arithmetic_type);
@@ -643,16 +663,22 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
     {
         append_string(CURRENT_BLOCK, "DEFVAR ");
         write_symbol(res, res_frame_str, true);
-        append_string(CURRENT_BLOCK, "$tmpeq\n");
+        append_string(CURRENT_BLOCK, "$tmpeq$");
+        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, "\n");
 
         append_string(CURRENT_BLOCK, "EQ ");
         write_symbol(res, res_frame_str, true);
-        append_string(CURRENT_BLOCK, "$tmpeq ");
+        append_string(CURRENT_BLOCK, "$tmpeq$");
+        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, "\n");
 
         write_symbol(op1, op1_frame_str, true);
         if (op1_converted)
         {
-            append_string(CURRENT_BLOCK, "$tmp ");
+            append_string(CURRENT_BLOCK, "$tmp$");
+            append_string(CURRENT_BLOCK, tmp_var_id);
+            append_string(CURRENT_BLOCK, " ");
         }
         else
         {
@@ -662,7 +688,9 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
         write_symbol(op2, op2_frame_str, true);
         if (op2_converted)
         {
-            append_string(CURRENT_BLOCK, "$tmp\n");
+            append_string(CURRENT_BLOCK, "$tmp$");
+            append_string(CURRENT_BLOCK, tmp_var_id);
+            append_string(CURRENT_BLOCK, "\n");
         }
         else
         {
@@ -675,10 +703,14 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
         if (type == LE)
         {
             append_string(CURRENT_BLOCK, "$tmplt$");
+            append_string(CURRENT_BLOCK, tmp_var_id);
+            append_string(CURRENT_BLOCK, " ");
         }
         else
         {
             append_string(CURRENT_BLOCK, "$tmpgt$");
+            append_string(CURRENT_BLOCK, tmp_var_id);
+            append_string(CURRENT_BLOCK, " ");
         }
 
         append_string(CURRENT_BLOCK, convert_int_to_string((int)tmp_var_counter));
@@ -710,11 +742,15 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
     write_symbol(res, res_frame_str, true);
     if (type == LE)
     {
-        append_string(CURRENT_BLOCK, "$tmplt$ ");
+        append_string(CURRENT_BLOCK, "$tmplt$");
+        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, " ");
     }
     else if (type == GE)
     {
-        append_string(CURRENT_BLOCK, "$tmpgt$ ");
+        append_string(CURRENT_BLOCK, "$tmpgt$");
+        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, " ");
     }
     else
     {
@@ -725,7 +761,9 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
     write_symbol(op1, op1_frame_str, true);
     if (op1_converted)
     {
-        append_string(CURRENT_BLOCK, "$tmp ");
+        append_string(CURRENT_BLOCK, "$tmp$");
+        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, " ");
     }
     else
     {
@@ -736,7 +774,9 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
     write_symbol(op2, op2_frame_str, true);
     if (op2_converted)
     {
-        append_string(CURRENT_BLOCK, "$tmp ");
+        append_string(CURRENT_BLOCK, "$tmp$");
+        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, " ");
     }
     else
     {
@@ -756,18 +796,26 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
     {
         append_string(CURRENT_BLOCK, "OR ");
         write_symbol(res, res_frame_str, true);
-        append_string(CURRENT_BLOCK, "$tmpeq ");
+        append_string(CURRENT_BLOCK, "$tmpeq$");
+        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, " ");
         write_symbol(res, res_frame_str, true);
 
         if (type == LE)
         {
-            append_string(CURRENT_BLOCK, "$tmplt\n");
+            append_string(CURRENT_BLOCK, "$tmplt$");
+            append_string(CURRENT_BLOCK, tmp_var_id);
+            append_string(CURRENT_BLOCK, "\n");
         }
         else
         {
-            append_string(CURRENT_BLOCK, "$tmpgt");
+            append_string(CURRENT_BLOCK, "$tmpgt$");
+            append_string(CURRENT_BLOCK, tmp_var_id);
+            append_string(CURRENT_BLOCK, "\n");
         }
     }
+
+    ++tmp_var_counter;
 }
 
 void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
@@ -777,6 +825,8 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
     char *res_frame_str = write_check_and_define(res);
 
     e_type arithmetic_type = INT;
+
+    char *tmp_var_id = convert_int_to_string((int)tmp_var_counter);
 
     bool op1_converted = false;
     bool op2_converted = false;
@@ -839,7 +889,9 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
     write_symbol(op1, op1_frame_str, true);
     if (op1_converted)
     {
-        append_string(CURRENT_BLOCK, "$tmp ");
+        append_string(CURRENT_BLOCK, "$tmp$");
+        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, " ");
     }
     else
     {
@@ -850,12 +902,16 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
     write_symbol(op2, op2_frame_str, true);
     if (op2_converted)
     {
-        append_string(CURRENT_BLOCK, "$tmp ");
+        append_string(CURRENT_BLOCK, "$tmp$");
+        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, " ");
     }
     else
     {
         append_string(CURRENT_BLOCK, " ");
     }
+
+    ++tmp_var_counter;
 }
 
 //******************************************************************************************//
