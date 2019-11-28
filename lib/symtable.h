@@ -18,7 +18,7 @@
 #include "../scanner/scanner.h"
 
 typedef enum {
-  ST_INT, ST_FLOAT, ST_STRING, ST_FUNCTION, ST_LABEL, ST_PARAM, ST_UNDEFINED
+  ST_VALUE, ST_FUNCTION, ST_LABEL, ST_UNDEFINED
 } st_type;
 
 typedef struct STItem {
@@ -27,7 +27,8 @@ typedef struct STItem {
   cstring *key;             //Identifikátor typu cstring (dynamický string)
   size_t first_occur_line;  //Číslo řádku, na němž se poprvé objevila, pro
                             //případ, že by nastala chyba nedefinování
-  int number_of_params;     //Je-li to funkce, je zde uveden počet parametrů
+  int number_of_params;     //Je-li to funkce, je zde uveden počet parametrů,
+                            //-1 znamená libovolný
   struct STItem *next;      //Ukazatel na další položku
 } STItem;
 
@@ -38,7 +39,7 @@ typedef struct {
 
 //TODO keep here, usable from outside
 void define_id_from_info(cstring *key, st_type type, int param_count);
-void define_id_from_token(Token *token, int param_count);
+void define_id_from_token(Token *token, int param_count); //not yet
 void go_in_global();
 void go_in_local();
 void start_symtable_with_functions();
@@ -48,6 +49,7 @@ void add_undef_id_from_token(Token *token);
 st_type get_id_type(Token *token);
 
 //TODO delete vv from here
+void no_check_def(cstring *key, st_type type, int param_count);
 void destroy_symtable(STable **st);
 unsigned hashCode(cstring *key);
 void create_symtable(STable **st, size_t size);

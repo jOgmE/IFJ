@@ -75,7 +75,7 @@ void printToken(Token *token)
         getDecValue(token, &d);
         printf(", %lf]", d);
     }
-    else if (type == STR || type == ID)
+    else if (type == STR || type == ID || type == DOCS)
     {
         //something
         cstring *s = getTokenStrValue(token);

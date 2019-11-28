@@ -33,8 +33,8 @@ extern bool kill_after_analysis;
 unsigned hashCode(cstring *key)
 {
   //TODO lepší funkci!!! a případně jak to vyřešit, když se to yoinkne?
-  char *str = get_cstring_string(key);
-  unsigned res = strlen(str) /** str[0]*/;
+  const char *str = get_cstring_string(key);
+  unsigned res = 523*strlen(str) + 409*str[0];
   return res;
 
   /*
@@ -51,22 +51,22 @@ unsigned hashCode(cstring *key)
 void create_symtable(STable **st, size_t size)
 {
   (*st) = malloc(sizeof(STable));
-  if((*st) == NULL) goto table_alloc_error;
+  if((*st) == NULL) {
+    print_internal_error(INTERNAL_ERROR, ERROR, "Interni chyba alokace paměti pro symtable.c: create_symtable()\n");
+    global_error_code = INTERNAL_ERROR;
+    return;
+  }
   (*st)->item_array = malloc(size * sizeof(STItem*));
-  if((*st)->item_array == NULL) goto item_array_alloc_error;
+  if((*st)->item_array == NULL) {
+    free((*st));
+    print_internal_error(INTERNAL_ERROR, ERROR, "Interni chyba alokace paměti pro symtable.c: create_symtable()\n");
+    global_error_code = INTERNAL_ERROR;
+    return;
+  }
 
   (*st)->size = size;
 
   for(int i = 0; i < size; i++) (*st)->item_array[i] = NULL;
-  return;
-
-  item_array_alloc_error:
-    free((*st));
-    //write message TODO
-    //set flag
-  table_alloc_error:
-    //write message
-    return;
 }
 
 void destroy_line(STItem **i)
@@ -94,7 +94,8 @@ STItem* init_st_item()
 {
   STItem *new = malloc(sizeof(STItem));
   if(new == NULL) {
-    //chyba aokace, TODO
+    print_internal_error(INTERNAL_ERROR, ERROR, "Interni chyba alokace paměti pro symtable.c: init_item()\n");
+    global_error_code = INTERNAL_ERROR;
     return NULL;
   }
   new->type = ST_UNDEFINED;
@@ -103,6 +104,7 @@ STItem* init_st_item()
   new->first_occur_line = 0;
   new->number_of_params = 0;
   new->next = NULL;
+  return new;
 }
 
 void append_item(STItem* item)
@@ -145,6 +147,18 @@ bool search_st(STable *st, cstring *key)
   return found;
 }
 
+void no_check_def(cstring *key, st_type type, int param_count)
+{
+  STItem *new = init_st_item();
+  if(new == NULL) return;
+  new->key = key;
+  new->type = type;
+  new->first_occur_line = 0;
+  if(type == ST_FUNCTION) new->number_of_params = param_count;
+  new->defined = true;
+  append_item(new);
+}
+
 //**************************
 // PRÁCE SE SYMBOLY ZVNĚJŠÍ
 //*************************
@@ -152,13 +166,23 @@ bool search_st(STable *st, cstring *key)
 void start_symtable_with_functions()
 {
   create_symtable(&global_st, GLOBAL_ST_SIZE);
-  if(global_st == NULL) {
-    //TODO chyba alokace
-    return;
-  }
+  if(global_st == NULL) return; //error vyřešen ve volání create_symtable
 
-  //TODO
-  //load it with all premade functions
+  no_check_def(init_cstring("inputs"), ST_FUNCTION, 0);
+  if(global_error_code == INTERNAL_ERROR) return;
+  no_check_def(init_cstring("inputi"), ST_FUNCTION, 0);
+  if(global_error_code == INTERNAL_ERROR) return;
+  no_check_def(init_cstring("inputf"), ST_FUNCTION, 0);
+  if(global_error_code == INTERNAL_ERROR) return;
+  no_check_def(init_cstring("print"), ST_FUNCTION, -1);
+  if(global_error_code == INTERNAL_ERROR) return;
+  no_check_def(init_cstring("len"), ST_FUNCTION, 1);
+  if(global_error_code == INTERNAL_ERROR) return;
+  no_check_def(init_cstring("substr"), ST_FUNCTION, 3);
+  if(global_error_code == INTERNAL_ERROR) return;
+  no_check_def(init_cstring("ord"), ST_FUNCTION, 2);
+  if(global_error_code == INTERNAL_ERROR) return;
+  no_check_def(init_cstring("chr"), ST_FUNCTION, 1);
 }
 
 void go_in_local()
@@ -205,13 +229,13 @@ void define_id_from_info(cstring *key, st_type type, int param_count)
         //nalezen key
         if(curr->defined == true) {
           //TODO
-          //chyba, symbol jiz definovan
-          //zahlasit semantickou chybu, nastavit kill, global error je-li potreba
+          kill_after_analysis = true;
+          if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
           fprintf(stderr, "placeholder: redefinition of local id with key %s\n", get_cstring_string(key));
           return;
         }
 
-        //nalezen key ale neni definovana
+        //nalezen key ale neni definovan
         curr->defined = true;
         curr->type = type;
         curr->number_of_params = param_count;
@@ -225,7 +249,9 @@ void define_id_from_info(cstring *key, st_type type, int param_count)
     //pokud je toto id v global, je to chyba
     if(search_st(global_st, key)) {
       //pruser, id v global je (:
-      //TODO
+      //TODO placeholder
+      kill_after_analysis = true;
+      if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
       fprintf(stderr, "placeholder: redefinition of global id with key %s\n", get_cstring_string(key));
       return;
     }
@@ -245,8 +271,11 @@ void define_id_from_info(cstring *key, st_type type, int param_count)
         if(curr->defined == true) {
           //TODO
           //chyba, symbol jiz definovan
-          //zahlasit semantickou chybu, nastavit kill, global error je-li potreba            return;
+          //zahlasit semantickou chybu, nastavit kill, global error je-li potreba
+          kill_after_analysis = true;
+          if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
           fprintf(stderr, "placeholder: redefinition of global id with key %s\n", get_cstring_string(key));
+          return;
         }
 
         //nalezen key ale neni definovana
@@ -282,17 +311,29 @@ void define_id_from_token(Token *token, int param_count)
 
 void add_undef_id_from_info(cstring *key)
 {
+  if(!in_global) {
+    //potrebujeme prohledat i local
+    if(search_st(local_st, key)) return; //už info o nem existuje, okay, end
+  }
+  if(search_st(global_st, key)) return;
 
+  //neni v tabulce ani jedne
+  STItem *new = init_st_item();
+  if(new == NULL) return;
+  new->key = key;
+  new->first_occur_line = line_count;
+  append_item(new);
 }
 
 void add_undef_id_from_token(Token *token)
 {
-
+  add_undef_id_from_info(token->str);
 }
 
 st_type get_id_type(Token *token)
 {
-
+  //TODO
+  //get type of id in token
   return ST_UNDEFINED;
 }
 
