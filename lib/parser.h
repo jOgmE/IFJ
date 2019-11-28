@@ -15,10 +15,12 @@
 #include "dynamic_string.h"
 #include "errors.h"
 #include "adress_code.h"
+#include <stdbool.h>
 //#include "" flippz something
 
-//extern bool kill_after_analysis;
-//extern bool global_error_code;
+extern bool kill_after_analysis;
+extern error_type global_error_code;
+extern size_t line_count;
 
 void parser_do_magic();
 
