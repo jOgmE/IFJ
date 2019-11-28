@@ -11,6 +11,7 @@
 tAC *first_ac = NULL;
 tAC *last_ac = NULL;
 tAC *curr_ac = NULL;
+tAC *breakpoint_ac = NULL;
 
 tAC *initAC()
 {
@@ -84,6 +85,20 @@ bool isACActive()
   if (curr_ac == NULL)
     return false;
   return true;
+}
+
+void set_ac_breakpoint()
+{
+  //TODO odmazat, nemelo by k tomu nikdy dojít:
+  if(breakpoint_ac != NULL) fprintf(stderr, "Breakpoint byl jiz nastaven, puvodni hodnota zahozena\n");
+  if(curr_ac == NULL) fprintf(stderr, "Volani nad neaktualnim seznamem, nic se neprovede\n");
+  breakpoint_ac = curr_ac;
+}
+
+void goto_ac_breakpoint()
+{
+  if(breakpoint_ac == NULL) fprintf(stderr, "Breakpoint nebyl nastaven, nedelam nic\n");
+  else curr_ac = breakpoint_ac;
 }
 
 tAC *readAC()
