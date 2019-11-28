@@ -511,7 +511,8 @@ Token *getToken(){
             case F19: //case F18 moved to S
                 ungetc(c, f);
                 resize_cstring(our_string, our_string->length+1);
-                add_string(token, our_string);
+                //adding STRING!!
+                add_docs(token, our_string);
                 return token;
             case F22: //cases F20-21 moved to S
                 if(c == 47){ // /

@@ -70,6 +70,11 @@ void add_id(Token *token, cstring *str){
     token->str = str;
 }
 
+void add_docs(Token *token, cstring *str){
+    add_simple_data(token, DOCS);
+    token->str = str;
+}
+
 e_type getTokenType(Token *token){
     return token->type;
 }
