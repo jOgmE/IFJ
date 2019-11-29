@@ -370,7 +370,7 @@ void write_label(char *label)
     }
     else
     {
-        append_string(CURRENT_BLOCK, "EXIT 52");
+        append_string(CURRENT_BLOCK, "EXIT 3");
         return;
     }
 
@@ -555,7 +555,7 @@ void write_call(char *label)
         }
         else
         {
-            append_string(CURRENT_BLOCK, "EXIT 4");
+            append_string(CURRENT_BLOCK, "EXIT 3");
 
             cstring *error_string = init_cstring("Funkce ");
 
@@ -1049,12 +1049,16 @@ void generate_code()
             break;
         case CALL:
             function_call_assign = false;
+            write_call(res->str->str);
             break;
         case WHILE_START:
             check_and_define_while();
             break;
         case WHILE_END:
             continue;
+        case PARAM:
+            write_param(res);
+            break;
         default:
             break;
         }
