@@ -7,7 +7,7 @@
 
 #include "ifj19.h"
 
-FILE *source_file;
+FILE *source_file = NULL;
 
 int main(int argc, char const *argv[])
 {
