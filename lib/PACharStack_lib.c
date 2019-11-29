@@ -171,8 +171,11 @@ void PAAddBracket ( PAStack *s )
 
 
 // provede zpetnou derivaci E->i
-int PACodeRule1 ( )
+int PACodeRule1 ( Token *i )
 {
+
+	out = initToken();
+	
 
 }
 
@@ -201,7 +204,7 @@ int PAApplyRule ( PAStack *s, Token *res )
 	while ( i < 4 ) {
 	
 		if ( ptr == NULL ) {
-			printf("Error.\n"); //TODO error
+			printf("Error.\n"); //TODO vnitrni error
 			return 0;
 		}
 
