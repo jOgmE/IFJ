@@ -11,6 +11,7 @@
 #define _TOKEN_
 
 #include "dynamic_string.h"
+#include "errors.h"
 #include <stdlib.h>
 #include <malloc.h>
 
@@ -51,51 +52,21 @@
  * return
  * while
  */
-typedef enum
-{
-    INDENT = 1,
-    DEDENT,
-    EOL,
-    DEC,
-    INT,
-    ID,
-    STR,
-    L,
-    LEQ,
-    G,
-    GEQ,
-    EQ,
-    ASS,
-    NEQ,
-    PLUS,
-    MINUS,
-    AST,
-    SL,
-    DSL,
-    COL,
-    LPA,
-    RPA,
-    EOFILE,
-    COM,
-    DEF,
-    ELSE,
-    IF,
-    NONE,
-    PASS,
-    RETURN,
-    WHILE,
-    DOCS,
-    TEMP_ID
+typedef enum{
+    INDENT=1, DEDENT, EOL, DEC, INT, ID, STR,
+    L, LEQ, G, GEQ, EQ, ASS, NEQ, PLUS, MINUS,
+    AST, SL, DSL, COL, LPA, RPA, EOFILE, COM,
+    DEF, ELSE, IF, NONE, PASS, RETURN, WHILE,
+    DOCS, TEMP_ID
 } e_type;
 
 /* Structure for converting string literals
  * to enum e_type
  */
-typedef const struct
-{
+typedef const struct {
     e_type type;
     const char *str;
-} convert;
+}convert;
 
 //struct converting keywords
 extern convert keyword_conv[];
@@ -110,8 +81,7 @@ extern convert op_conv[];
  * when type id, str is being used to
  * store the pointer to the variable
  */
-typedef struct Token
-{
+typedef struct Token{
     double dec;
     int i;
     e_type type;
@@ -231,6 +201,7 @@ cstring *getTokenStrValue(Token *token);
  * @return Copy of the param token
  */
 Token *copy_token(Token *token);
+
 
 //---------------------------------------------------------
 //             Functions to work with tokens
