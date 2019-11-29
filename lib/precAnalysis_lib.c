@@ -1,6 +1,6 @@
-#include "PATable.c"
-#include "PATokenStack_lib.c"
-#include "token.h"
+#include "lib/PATable.h"
+#include "lib/PACharStack_lib.h"
+#include "scanner/token.h"
 
 // TODO file what file?
 

@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "PACharStack_lib.h"
+#include "../../lib/PACharStack_lib.h"
 #include "../../scanner/token.h"
 
 void testHeader(int *i)
