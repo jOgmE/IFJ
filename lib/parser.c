@@ -11,6 +11,8 @@
  * IMPORTANT: není stav, že PBWD může začínat EOL... hodit do tabulky před to
  * MEOL a sem přihodit stavy podle tabulky
  * bacha na print funkci
+ * IMPORTANT: na konci souboru nemusí být EOL EOF, ale jen EOF, ale
+ * já asi počítám s EOL EOF
  *
  * NOTE: zbytečne vícemásobné hlášení, souvisí s ne moc nice hlášeními
  * actually not that bad, vypise to postupne jak to vybublava, sice vickrat,
@@ -81,7 +83,7 @@ bool flush_until(e_type token_type)
 
 void stderr_print_token_info();
 
-//-----ROZKLADY-------------------      // 7  / 15
+//-----ROZKLADY-------------------      // 9  / 19
 bool prog();                            //done
 bool non_empty_prog_body();             //done
 bool prog_body();                       //done
@@ -94,10 +96,13 @@ bool not_sure3(); //
 bool param_list();                      //done
 bool more_params(); //started
 bool op(); //
-bool item(); //started
+bool item();                            //done
+bool param_item();                      //done
 bool terminal(e_type type);             //done
 bool terminal_expr(); //
-bool work_out_id(); //started
+bool work_out_fce_id(bool defined); //started
+bool work_out_val_id(bool defined); //started
+bool work_out_label_id(bool defined); //started
 
 
 bool prog() //---PROG---
@@ -157,7 +162,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     heavy_check(PBWD_r2e1); //co kdyby selhala alokace...
 
     //id
-    can_continue = work_out_id();
+    can_continue = work_out_fce_id(true); //will also define
     heavy_check(PBWD_r2e1);
     if(!kill_after_analysis) {
       //generate label of fce
@@ -407,10 +412,10 @@ bool param_list() //---PARAM_LIST----
   //param_list -> epsilon
   bool can_continue = true;
 
-  if(Tis_item) {
+  if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID)) {
     //param_list -> item more_params
     //item
-    can_continue = item();
+    can_continue = param_item();
     heavy_check(PL_r1e1);
 
     can_continue = more_params();
@@ -481,23 +486,75 @@ bool more_EOL() //---MORE_EOL---
 
 
 //funguje pro: ID
-bool work_out_id()
+bool work_out_fce_id(bool define)
 {
   bool can_continue = true;
+  //
+  return can_continue;
+}
+
+
+bool work_out_val_id(bool define)
+{
+  bool can_continue = true;
+  //check definition, define
+  //or just check type
   return can_continue;
 }
 
 
 
-bool item()
+bool work_out_label_id(bool define)
 {
   bool can_continue = true;
-  if(Tis(INT)) {
-    //placeholder!!! kvůli testům
-    free_token(curr_token);
-    curr_token = fake_token();
-  }
+  //
   return can_continue;
+}
+
+
+bool item()
+{
+  if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID) || Tis(NONE)) {
+    if(Tis(ID)) {
+      work_out_val_id(false);
+    }
+    if(!kill_after_analysis) {
+      appendAC(PARAM, NULL, NULL, curr_token);
+    }
+    else {
+      free_token(curr_token);
+    }
+    curr_token = fake_token();
+    return true;
+  }
+  else {
+    fprintf(stderr, "[hojkas] parser.c: param_item(): skoncilo v zakazanem stavu\n");
+    return false;
+  }
+}
+
+
+
+
+bool param_item()
+{
+  if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID)) {
+    if(Tis(ID)) {
+      work_out_val_id(false);
+    }
+    if(!kill_after_analysis) {
+      appendAC(PARAM, NULL, NULL, curr_token);
+    }
+    else {
+      free_token(curr_token);
+    }
+    curr_token = fake_token();
+    return true;
+  }
+  else {
+    fprintf(stderr, "[hojkas] parser.c: param_item(): skoncilo v zakazanem stavu\n");
+    return false;
+  }
 }
 
 

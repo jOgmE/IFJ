@@ -35,7 +35,7 @@ void print_type(ac_type type)
     case LE: printf("LE"); break;
     case DEF_START: printf("DEF_START"); break;
     case DEF_END: printf("DEF_END"); break;
-    case PARAM_START: printf("PARAM_START"); break;
+    case PARAM: printf("PARAM"); break;
     case WHILE_START: printf("WHILE_START"); break;
     case WHILE_END: printf("WHILE_END"); break;
     case UNDEFINED: printf("UNDEFINED"); break;
