@@ -10,7 +10,7 @@
 #ifndef _TOKEN_
 #define _TOKEN_
 
-#include "../lib/dynamic_string.h"
+#include "dynamic_string.h"
 #include <stdlib.h>
 #include <malloc.h>
 
@@ -231,7 +231,6 @@ cstring *getTokenStrValue(Token *token);
  * @return Copy of the param token
  */
 Token *copy_token(Token *token);
-
 
 //---------------------------------------------------------
 //             Functions to work with tokens

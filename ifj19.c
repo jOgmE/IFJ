@@ -30,7 +30,6 @@ int main(int argc, char const *argv[])
 
     if (global_error_code == INTERNAL_ERROR)
     {
-        remove_gen_file();
         return INTERNAL_ERROR;
     }
 

@@ -14,9 +14,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "token.h"
-#include "../lib/indent_stack.h"
-#include "../lib/dynamic_string.h"
-#include "../lib/errors.h"
+#include "indent_stack.h"
+#include "dynamic_string.h"
+#include "errors.h"
 
 //starting state
 #define S 1
