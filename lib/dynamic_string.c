@@ -1,9 +1,7 @@
 /** @file dynamic_string.c
- *  Implementation of library for dynamically allocated string
+ *  Implementace knihovny pro dynamicky alokovaný řetězec
  *  
- *  Created as a part of IFJcode19 interpreter for IFJ course at BUT FIT
- * 
- *  @author Jaroslav Hort
+ *  @author Jaroslav Hort (xhortj04)
  *  @date 2019
  */
 
@@ -21,7 +19,7 @@ cstring *init_cstring_size(size_t size)
         return NULL;
     }
 
-    cstr->str = (char *)malloc(size+1); //include '\0' at the end
+    cstr->str = (char *)malloc(size + 1); //include '\0' at the end
 
     // Check if string was allocated succesfully
     if (cstr->str == NULL)
@@ -32,14 +30,14 @@ cstring *init_cstring_size(size_t size)
 
     cstr->str[0] = '\0';
     cstr->length = 0;
-    cstr->allocated_size = size+1;
+    cstr->allocated_size = size + 1;
 
     return cstr;
 }
 
 cstring *init_cstring(const char *str)
 {
-    size_t size = sizeof(str);
+    size_t size = strlen(str);
 
     cstring *cstr = init_cstring_size(size);
 
@@ -61,7 +59,7 @@ void resize_cstring(cstring *cstr, size_t new_size)
         return;
     }
 
-    cstr->str = (char *)realloc(cstr->str, new_size+1); //ending '\0'
+    cstr->str = (char *)realloc(cstr->str, new_size + 1); //ending '\0'
 
     // Check if string was reallocated succesfully
     if (cstr->str == NULL)
@@ -138,9 +136,11 @@ bool compare_cstring(cstring *cstr1, cstring *cstr2)
     return equal;
 }
 
-const char *get_cstring_string(cstring *cstr){
+const char *get_cstring_string(cstring *cstr)
+{
     //return pointer to str or NULL if cstr is not initialized
-    if(cstr){
+    if (cstr)
+    {
         const char *tmp = cstr->str;
         return tmp;
     }

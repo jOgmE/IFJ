@@ -1,115 +1,101 @@
 /** @file dynamic_string.h
- *  Library for dynamically allocated string
+ *  Knihovna pro řetězec s dynamickou délkou
  *  
- *  Created as a part of IFJcode19 interpreter for IFJ course at BUT FIT
- * 
- *  @author Jaroslav Hort
+ *  @author Jaroslav Hort (xhortj04)
  *  @date 2019
  */
 
-#ifndef DYNAMIC_STRING_H
-#define DYNAMIC_STRING_H
+#ifndef _DYNAMIC_STRING_H
+#define _DYNAMIC_STRING_H
 
 #include <stdlib.h>  //malloc, realloc, free
 #include <string.h>  //strlen, strcmp. memcpy
 #include <stdbool.h> //bool type
 #include "errors.h"
 
-//size of the allocation chunk
+// Velikost alokačního bloku
 #define DYN_CHUNK_SIZE 256
 
-/**
- * cstring structure
- */
 typedef struct cstring_struct
 {
-    char *str;             // Pointer to allocated string of cstring struct
-    size_t length;         // Length of string of cstring struct
-    size_t allocated_size; // Allocated size of string of cstring struct
+    char *str;             // Ukazatel na alokovaný řetězec
+    size_t length;         // Délka řetězce
+    size_t allocated_size; // Alokovaná velikost pro řetězec
 } cstring;
 
 /**
- * Initializes new instance of cstring
+ * Inicializuje novou instanci struktury cstring
  * 
- * @param str Pointer, or string to data to initialize cstring to
- * @returns Pointer to allocated cstring
+ * @param str Ukazatel na řetězec, nebo řetez znaku pro inicializaci
+ * @returns Ukazatel na alokovanou strukturu
  */
 cstring *init_cstring(const char *str);
 
 /**
- * Initializes new instance of cstring  with string of specified size
- * The size is without '\0' at the end.
+ * Inicializuje novou instanci struktury cstring na velikost size
  * 
- * @param size Size of string in cstring
- * @returns Pointer to allocated cstring
+ * @param size Velikost struktury
+ * @returns Ukazatel na alokovanou strukturu
  */
 cstring *init_cstring_size(size_t size);
 
 /**
- * Resizes string to new size
+ * Změní velikost struktury
  * 
- * @param str Pointer to previously allocated cstring
+ * @param str Ukazatel na strukturu
+ * @param new_size Nová velikost sturktury
  */
 void resize_cstring(cstring *cstr, size_t new_size);
 
 /**
- * Appends new character to the end of cstring
+ * Vloží znak na konec řetězce, připadné rozšiří řetězec
  * 
- * @param cstr Pointer to previously allocated cstring
- * @param c Character to append
+ * @param cstr Ukazatel na strukturu
+ * @param c Znak pro vložení
  */
 void append_char(cstring *cstr, char c);
 
 /**
- * Appends new character to the end of cstring
+ * Vloží řetězec na konec řetězce, připadné rozšiří řetězec
  * 
- * @param cstr Pointer to previously allocated cstring
- * @param str Pointer to previously allocated string to be appended
+ * @param cstr Ukazatel na strukturu
+ * @param str Ukazatel na řetězec pro vložení
  */
 void append_string(cstring *cstr, char *str);
 
 /**
- * Appends cstring to the end of first cstring
+ * Vloží rětězec ze struktury src za řetězec struktury dest
  * 
- * @param str Pointer to previously allocated cstring to append to
- * @param str Pointer to previously allocated cstring to be append
+ * @param dest Ukazatel na cílovou strukturu
+ * @param src Ukazatel na zdrojovou strukturu
  */
 void append_cstring(cstring *dest, cstring *src);
 
 /**
- * Compares string of cstring with specified string
+ * Porovná rětězce
  * 
- * @param cstr Pointer to previouslly allocated cstring to compare
- * @param str Pointer to previouslly allocated string to compare
- * @returns True if cstring string is equal to str
+ * @param cstr Ukazatel na strukturu na porovnání
+ * @param str Ukazatel na řetězec pro porovnání
+ * @returns TRUE pokud jsou stejné, jinak FALSE
  */
 bool compare_string(cstring *cstr, const char *str);
 
 /**
- * Compares two instances of cstring
+ * Vrátí ukazatel na rětězec uvnitř struktury
  * 
- * @param cstr1 Pointer to first previouslly allocated cstring to compare
- * @param cstr2 Pointer to second previouslly allocated cstring to compare
- * @returns True if instances of cstring are equal
- */
-bool compare_cstring(cstring *cstr1, cstring *cstr2);
-
-/* Returns the string value of the cstr
+ * FUNKCE POUZE PRO ČTENÍ
+ * NEUVOLŇUJTE VRÁCENÝ UKAZATEL
  *
- * THIS FUNCTION IS READ ONLY!
- * DO NOT FREE THE RETURNED POINTER!
- * IT SHOULD BE FREED BY THE FUNCTION free_cstring!!!!
- *
- * @param cstr Pointer to the type cstring
- * @returns The pointer to the string stored in cstring or NULL when cstring not initialized.
+ * @param cstr Ukazatel na strukturu
+ * @returns Ukazatel na řetězec struktury, nebo NULL, pokud není alokován
  */
 const char *get_cstring_string(cstring *cstr);
 
 /**
- * Frees previously allocated cstring
+ * Uvolní strukturu
  * 
- * @param str Pointer to previously allocated cstring
+ * @param cstr Ukazatel na strukturu
  */
 void free_cstring(cstring *cstr);
 
-#endif // DYNAMIC_STRING_H
+#endif // _DYNAMIC_STRING_H

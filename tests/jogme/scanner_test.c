@@ -44,82 +44,102 @@ convert types[] = {
     {PASS, "pass"},
     {RETURN, "return"},
     {WHILE, "while"},
-    {DOCS, "DOCS"}
-};
+    {DOCS, "DOCS"}};
 
-const char *getTokenTypeStr(e_type type){
-    for(int i=0; i<32; i++){
-        if(types[i].type == type) return types[i].str;
+const char *getTokenTypeStr(e_type type)
+{
+    for (int i = 0; i < 32; i++)
+    {
+        if (types[i].type == type)
+            return types[i].str;
     }
 
     return "NaN";
 }
 
-void printToken(Token *token){
+void printToken(Token *token)
+{
     //printf("-------Token-------\n");
     e_type type = getTokenType(token);
     printf("[%s", getTokenTypeStr(type));
 
-    if(type == INT){
+    if (type == INT)
+    {
         int i;
         getIntValue(token, &i);
         printf(", %i]", i);
     }
-    else if(type == DEC){
+    else if (type == DEC)
+    {
         double d;
         getDecValue(token, &d);
         printf(", %lf]", d);
     }
-    else if(type == STR || type == ID || type == DOCS){
+    else if (type == STR || type == ID || type == DOCS)
+    {
         //something
         cstring *s = getTokenStrValue(token);
         printf(", %s]", get_cstring_string(s));
     }
-    else{
+    else
+    {
         printf("]");
     }
 }
 
-void printTokenArr(Token **token_arr, size_t size){
-    if(token_arr){
+void printTokenArr(Token **token_arr, size_t size)
+{
+    if (token_arr)
+    {
         printf("\n--------------------Tokens--------------------\n");
         printf(">Number of tokens: %ld\n\n", size);
-        for(size_t i=0; i<size; i++){
+        for (size_t i = 0; i < size; i++)
+        {
             printToken(token_arr[i]);
-            if(getTokenType(token_arr[i]) != EOFILE) printf(", ");
-            else printf("\n");
-            if(getTokenType(token_arr[i]) == EOL) printf("\n"); //10 on one line
+            if (getTokenType(token_arr[i]) != EOFILE)
+                printf(", ");
+            else
+                printf("\n");
+            if (getTokenType(token_arr[i]) == EOL)
+                printf("\n"); //10 on one line
         }
         printf("----------------------------------------------\n\n");
     }
 }
 
-void printSeparator(const char *sep){
+void printSeparator(const char *sep)
+{
     printf("**************\n");
     printf("   %s\n", sep);
     printf("**************\n");
 }
 
-void printFile(FILE *f){
+void printFile(FILE *f)
+{
     char s[256];
     printSeparator("Input file:");
-    while(fgets(s, sizeof(s), f) != NULL){
+    while (fgets(s, sizeof(s), f) != NULL)
+    {
         printf("%s", s);
     }
     printf("\n");
 }
 
-int testTokenReading(){
+int testTokenReading()
+{
     size_t sizeOfArr = 124;
     Token **token_arr = initTokenArr(sizeOfArr);
-    if(token_arr == NULL){
+    if (token_arr == NULL)
+    {
         return -1;
     }
     size_t i = 0;
-    do{
+    do
+    {
         token_arr[i++] = getToken();
         //for other tests reseting error code
-        if(global_error_code != SUCCESS){
+        if (global_error_code != SUCCESS)
+        {
             //edit to print error message
             //fprintf(stderr, "error happened\n");
             print_internal_error(global_error_code, ERROR, "error happened\n");
@@ -130,23 +150,26 @@ int testTokenReading(){
             global_error_code = SUCCESS;
             return -1; //error
         }
-        if(i == sizeOfArr){
+        if (i == sizeOfArr)
+        {
             //realloc token_arr
-            if((reallocTokenArr(token_arr, sizeOfArr, sizeOfArr*2))){
+            if ((reallocTokenArr(token_arr, sizeOfArr, sizeOfArr * 2)))
+            {
                 //error happened
                 return -1;
             }
             sizeOfArr *= 2;
         }
-    }while(getTokenType(token_arr[i-1]) != EOFILE);
+    } while (getTokenType(token_arr[i - 1]) != EOFILE);
 
     printTokenArr(token_arr, i);
     freeTokenArr(token_arr, sizeOfArr);
     return 0;
 }
 
-void runTest(const char *test){
-    f = fopen(test,"r");
+void runTest(const char *test)
+{
+    f = fopen(test, "r");
     printFile(f);
     fclose(f);
     f = fopen(test, "r");
@@ -156,10 +179,14 @@ void runTest(const char *test){
     printf(".............................................................\n\n\n");
 }
 
-int main(int argc, char *argv[]){
-    if(argc > 2){
+int main(int argc, char *argv[])
+{
+    if (argc > 2)
+    {
         fprintf(stderr, "Heeey budy, only one file at once\n");
-    }else{
+    }
+    else
+    {
         runTest(argv[1]);
     }
 
