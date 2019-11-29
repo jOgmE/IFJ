@@ -7,10 +7,10 @@
 #ifndef _GENERATOR_H
 #define _GENERATOR_H
 
-#include "lib/dynamic_string.h"
-#include "lib/errors.h"
-#include "lib/adress_code.h"
-#include "lib/gen_frame_tables.h"
+#include "dynamic_string.h"
+#include "errors.h"
+#include "adress_code.h"
+#include "gen_frame_tables.h"
 
 #define INPUTS_FUNC
 #define INPUTI_FUNC
