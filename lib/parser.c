@@ -6,6 +6,9 @@
  * @date 27.11.2019
  *
  * IMPORTANT: z nejakeho duvodu se stringy vypisuji v synt erroru jen par znaku, proverit TODO
+ * IMPORTANT: Vypisy s "neocekavana skladba" by to chtělo asi přepsat
+ * IMPORTANT: není stav, že PBWD může začínat EOL... hodit do tabulky před to
+ * MEOL a sem přihodit stavy podle tabulky
  */
 
 #include "parser.h"
@@ -24,9 +27,6 @@ Token *fake_token()
   static int time = 0;
   Token *new = init_token();
   /*fprintf(stderr, "Loading state %d\n", time);*/
-  //state 0 - def
-  //state 1 - c eol meol ...
-  int state = 1;
   switch(time)
   {
     case 0:
@@ -51,13 +51,20 @@ Token *fake_token()
       add_simple_data(new, INDENT);
       break;
     case 7:
-      add_simple_data(new, DEDENT);
-      break;/*
+      add_simple_data(new, PASS);
+      break;
     case 8:
-
+      add_simple_data(new, EOL);
       break;
     case 9:
-      break;*/s
+      add_simple_data(new, DEDENT);
+      break;
+    case 10:
+      add_simple_data(new, PASS);
+      break;
+    case 11:
+      add_simple_data(new, EOL);
+      break;
     default:
       add_simple_data(new, EOFILE);
       break;
@@ -98,8 +105,8 @@ void stderr_print_token_info();
 
 //-----ROZKLADY-------------------
 bool prog();                            //done
-bool non_empty_prog_body(); //started
-bool prog_body(); //
+bool non_empty_prog_body();             //okay?
+bool prog_body(); //started
 bool prog_body_with_def();              //done
 bool more_EOL(); //started
 bool command(); //started
@@ -240,10 +247,10 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     //ERROR
     PBWD_r2e1:
       syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"def id ( parametrs ) : EOL\".\n");
-      flush_until(EOL);
+      if(flush_until(EOL) == false) return false;
       goto PBWD_r2rp1;
     PBWD_r2e2:
-      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"indent program_body_without_definition dedent\".\n");
+      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"indent program_body_with_definition dedent\".\n");
       can_continue = flush_until(DEDENT);
       return can_continue;
   }
@@ -259,7 +266,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     heavy_check(PBWD_r3e1);
     free_token(curr_token);
     curr_token = fake_token();
-    heavy_check(PBWD_r3e1);
+    heavy_check(PBWD_r3e1); //jen pro kontrolu inner erroru, takze navesti je jedno
 
     //more_EOL
     can_continue = more_EOL();
@@ -274,10 +281,10 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     //ERROR
     PBWD_r3e1:
       syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"command EOL\".\n");
-      flush_until(EOL);
+      if(flush_until(EOL) == false) return false; //neuspesny flush dojel na konec souboru
       goto PBWD_r3rp1;
     PBWD_r3e2:
-      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"EOL more_EOL program_body_without_definitions\".\n");
+      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"EOL more_EOL program_body_with_definitions\".\n");
       return false;
   }
   else {
@@ -289,7 +296,58 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
 
 
 
-bool non_empty_prog_body()
+bool non_empty_prog_body() //---NON EMPTA PROGRAM BODY---
+{
+  //non_empty_prog_body -> more_EOL command EOL more_EOL PB
+  bool can_continue = true;
+
+  if(Tis(EOL) || Tis(ID) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
+    //non_empty_prog_body -> more_EOL command EOL more_EOL PB
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(NEPB_r1e1);
+
+    //command
+    can_continue = command();
+    heavy_check(NEPB_r1e1);
+
+    NEPB_r1rp1:
+    //EOL
+    can_continue = terminal(EOL);
+    heavy_check(NEPB_r1e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(NEPB_r1e1);
+
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(NEPB_r1e2);
+
+    //program_body
+    can_continue = prog_body();
+    heavy_check(NEPB_r1e2);
+
+    return true;
+
+    //ERROR
+    NEPB_r1e1:
+      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"more_EOL command EOL more_EOL program_body\".\n");
+      if(flush_until(EOL) == false) return false;
+      goto NEPB_r1rp1;
+    NEPB_r1e2:
+      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"more_EOL command EOL more_EOL program_body\".\n");
+      return false;
+  }
+  else {
+    //sem by se to nemělo při dobré implementaci dostat
+    fprintf(stderr, "[hojkas] parser.c: non_empty_prog_body(): skoncilo v zakazanem stavu\n");
+    return false;
+  }
+}
+
+
+
+bool prog_body() //---PROG_BODY---
 {
   bool can_continue = true;
   return can_continue;
@@ -300,6 +358,11 @@ bool non_empty_prog_body()
 bool command() //---COMMAND---
 {
   bool can_continue = true;
+  if(Tis(PASS)) {
+    //placeholder!!! kvůli testům
+    free_token(curr_token);
+    curr_token = fake_token();
+  }
   return can_continue;
 }
 
