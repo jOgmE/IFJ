@@ -71,10 +71,8 @@ int decode(e_type token)
 // vrati znak pro vyhodnoceni PA
 char getFromTable(e_type tokenS, e_type tokenI, int *isFin)
 {
-	if (decode(tokenI) == 17)
-		*isFin = 1;
-	else
-		*isFin = 0;
+	if (decode(tokenI) == 17) *isFin = 1;
+	else *isFin = 0;
 
 	return PATable[decode(tokenS)][decode(tokenI)];
 }
