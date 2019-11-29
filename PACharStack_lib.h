@@ -32,6 +32,8 @@ void PAPush(PAStack *s, Token *content);
 
 Token *PATopTerm(PAStack *s);
 
+int PAEndAtTop(PAStack *s);
+
 Token *PATop(PAStack *s);
 
 void PAAddBracket(PAStack *s);
