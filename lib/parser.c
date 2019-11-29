@@ -9,6 +9,7 @@
  * IMPORTANT: Vypisy s "neocekavana skladba" by to chtělo asi přepsat
  * IMPORTANT: není stav, že PBWD může začínat EOL... hodit do tabulky před to
  * MEOL a sem přihodit stavy podle tabulky
+ * NOTE: zbytečne vícemásobné hlášení, souvisí s ne moc nice hlášeními
  */
 
 #include "parser.h"
@@ -63,6 +64,12 @@ Token *fake_token()
       add_simple_data(new, PASS);
       break;
     case 11:
+      add_simple_data(new, PASS);
+      break;
+    case 12:
+      add_simple_data(new, PASS);
+      break;
+    case 13:
       add_simple_data(new, EOL);
       break;
     default:
@@ -105,8 +112,8 @@ void stderr_print_token_info();
 
 //-----ROZKLADY-------------------
 bool prog();                            //done
-bool non_empty_prog_body();             //okay?
-bool prog_body(); //started
+bool non_empty_prog_body();             //done
+bool prog_body();                       //done
 bool prog_body_with_def();              //done
 bool more_EOL(); //started
 bool command(); //started
@@ -349,8 +356,53 @@ bool non_empty_prog_body() //---NON EMPTA PROGRAM BODY---
 
 bool prog_body() //---PROG_BODY---
 {
+  //prog_body -> epsilon
+  //prog_body -> command EOL more_EOL prog_body
   bool can_continue = true;
-  return can_continue;
+
+  if(Tis(ID) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
+    //prog_body -> command EOL more_EOL prog_body
+    //command
+    can_continue = command();
+    heavy_check(PB_r1e1);
+
+    PB_r1rp1:
+    //EOL
+    can_continue = terminal(EOL);
+    heavy_check(PB_r1e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(PB_r1e1);
+
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(PB_r1e2);
+
+    //program_body
+    can_continue = prog_body();
+    heavy_check(PB_r1e2);
+
+    return true;
+
+    //ERROR
+    PB_r1e1:
+      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"command EOL more_EOL program_body\".\n");
+      if(flush_until(EOL) == false) return false;
+      goto PB_r1rp1;
+    PB_r1e2:
+      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"command EOL more_EOL program_body\".\n");
+      return false;
+  }
+  else if(Tis(DEDENT)) {
+    //prog_body -> epsilon
+    //proste jen skonci uspesne
+    return true;
+  }
+  else {
+    //sem by se to nemělo při dobré implementaci dostat
+    fprintf(stderr, "[hojkas] parser.c: prog_body(): skoncilo v zakazanem stavu\n");
+    return false;
+  }
 }
 
 
@@ -445,6 +497,8 @@ void parser_do_magic()
    printf("Analysis without error?");
    if(!kill_after_analysis) printf(" YES\n");
    else printf(" ERROR n. %d\n", global_error_code);
+   printf("\n______________________________________\n");
+
 
    //TODO
    //prohledat tabulku, jestli v ni nezbylo neco nedef -> fce v symtable
