@@ -23,28 +23,41 @@ Token *fake_token()
 {
   static int time = 0;
   Token *new = init_token();
+  /*fprintf(stderr, "Loading state %d\n", time);*/
+  //state 0 - def
+  //state 1 - c eol meol ...
+  int state = 1;
   switch(time)
   {
-    /*case 0:
+    case 0:
+      add_simple_data(new, DEF);
       break;
     case 1:
+      add_id(new, init_cstring("fce"));
       break;
     case 2:
+      add_simple_data(new, LPA);
       break;
     case 3:
+      add_simple_data(new, RPA);
       break;
     case 4:
+      add_simple_data(new, COL);
       break;
     case 5:
+      add_simple_data(new, EOL);
       break;
     case 6:
+      add_simple_data(new, INDENT);
       break;
     case 7:
-      break;
+      add_simple_data(new, DEDENT);
+      break;/*
     case 8:
+
       break;
     case 9:
-      break;*/
+      break;*/s
     default:
       add_simple_data(new, EOFILE);
       break;
@@ -57,7 +70,7 @@ Token *fake_token()
 //vypíše chybové hlášení a nastaví global_error_code na error pokud už není
 #define syntax_err(str, str2) fprintf(stderr, "Syntax error l. %4ld: %s ", line_count, str);\
 stderr_print_token_info();\
-fprintf(stderr, " %s\n", str2);\
+fprintf(stderr, " %s", str2);\
 kill_after_analysis = true;\
 if(global_error_code == SUCCESS) global_error_code = SYNTAX_ANALYSIS_ERROR
 
@@ -84,21 +97,21 @@ bool flush_until(e_type token_type)
 void stderr_print_token_info();
 
 //-----ROZKLADY-------------------
-bool prog();
-bool non_empty_prog_body();
-bool prog_body();
-bool prog_body_with_def();
-bool more_EOL();
-bool command();
-bool not_sure1();
-bool not_sure2();
-bool not_sure3();
-bool param_list();
-bool op();
-bool item();
-bool terminal(e_type type);
-bool terminal_expr();
-
+bool prog();                            //done
+bool non_empty_prog_body(); //started
+bool prog_body(); //
+bool prog_body_with_def();              //done
+bool more_EOL(); //started
+bool command(); //started
+bool not_sure1(); //
+bool not_sure2(); //
+bool not_sure3(); //
+bool param_list(); //started
+bool op(); //
+bool item(); //
+bool terminal(e_type type);             //done
+bool terminal_expr(); //
+bool work_out_id(); //started
 
 
 bool prog() //---PROG---
@@ -137,47 +150,191 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
   //                      non_empty_prog_body dedent prog_body_with_def
   bool can_continue = true;
 
-  if(Tis(EOF)) {
+  if(Tis(EOFILE)) {
     //prog_body_with_def -> epsilon
-
+    //proste skonci uspesne
     return true;
-    //ERROR
-    PBWD_rule1:
-
-    return can_continue;
   }
   else if(Tis(DEF)) {
     //prog_body_with_def -> def id ( param_list ) : EOL indent
     //                      non_empty_prog_body dedent prog_body_with_def
-    return true;
-    //ERROR
-    PBWD_rule2:
 
-    return can_continue;
+    //def
+    can_continue = terminal(DEF);
+    heavy_check(PBWD_r2e1);
+    if(!kill_after_analysis) {
+      //generate AC def start
+      appendAC(DEF_START, NULL, NULL, NULL);
+    }
+    free_token(curr_token); //nepouzila jsem ho
+    curr_token = fake_token();
+    heavy_check(PBWD_r2e1); //co kdyby selhala alokace...
+
+    //id
+    can_continue = work_out_id();
+    heavy_check(PBWD_r2e1);
+    if(!kill_after_analysis) {
+      //generate label of fce
+      appendAC(LABEL, NULL, NULL, curr_token);
+    }
+    curr_token = fake_token(); //nepotrebuji free, token recyklovan do AC
+    heavy_check(PBWD_r2e1);
+
+    //(
+    can_continue = terminal(LPA);
+    heavy_check(PBWD_r2e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(PBWD_r2e1);
+
+    //param_list
+    can_continue = param_list();
+    heavy_check(PBWD_r2e1);
+
+    //)
+    can_continue = terminal(RPA);
+    heavy_check(PBWD_r2e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(PBWD_r2e1);
+
+    //:
+    can_continue = terminal(COL);
+    heavy_check(PBWD_r2e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(PBWD_r2e1);
+
+    PBWD_r2rp1: //restore point 1
+    //EOL
+    can_continue = terminal(EOL);
+    heavy_check(PBWD_r2e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(PBWD_r2e1);
+
+    //indent
+    can_continue = terminal(INDENT);
+    heavy_check(PBWD_r2e2);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(PBWD_r2e2);
+
+    //NEPB
+    can_continue = non_empty_prog_body();
+    heavy_check(PBWD_r2e2);
+
+    //dedent
+    can_continue = terminal(DEDENT);
+    heavy_check(PBWD_r2e2);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(PBWD_r2e2);
+
+    //PBWD
+    can_continue = prog_body_with_def();
+    heavy_check(PBWD_r2e2);
+
+    return true;
+
+    //ERROR
+    PBWD_r2e1:
+      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"def id ( parametrs ) : EOL\".\n");
+      flush_until(EOL);
+      goto PBWD_r2rp1;
+    PBWD_r2e2:
+      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"indent program_body_without_definition dedent\".\n");
+      can_continue = flush_until(DEDENT);
+      return can_continue;
   }
-  else if(Tis(ID) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(FLOAT)) {
+  else if(Tis(ID) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
     //prog_body_with_def -> command EOL more_EOL prog_body_with_def
+    //command
+    can_continue = command();
+    heavy_check(PBWD_r3e1);
+
+    PBWD_r3rp1:
+    //EOL
+    can_continue = terminal(EOL);
+    heavy_check(PBWD_r3e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(PBWD_r3e1);
+
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(PBWD_r3e2);
+
+    //prog_body_with_def
+    can_continue = prog_body_with_def();
+    heavy_check(PBWD_r3e2);
 
     return true;
-    //ERROR
-    PBWD_rule3:
 
-    return can_continue;
+    //ERROR
+    PBWD_r3e1:
+      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"command EOL\".\n");
+      flush_until(EOL);
+      goto PBWD_r3rp1;
+    PBWD_r3e2:
+      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"EOL more_EOL program_body_without_definitions\".\n");
+      return false;
   }
   else {
     //sem by se to nemělo při dobré implementaci dostat
-    fprintf(stderr, "[hojkas] parser.c: prog_body_with_def(): skoncilo v zakazanem stavu\n", );
+    fprintf(stderr, "[hojkas] parser.c: prog_body_with_def(): skoncilo v zakazanem stavu\n");
     return false;
   }
 }
 
 
 
+bool non_empty_prog_body()
+{
+  bool can_continue = true;
+  return can_continue;
+}
+
+
+
+bool command() //---COMMAND---
+{
+  bool can_continue = true;
+  return can_continue;
+}
+
+
+
+bool param_list() //---PARAM----
+{
+  bool can_continue = true;
+  return can_continue;
+}
+
+
+
+bool more_EOL() //---MORE_EOL---
+{
+  bool can_continue = true;
+  return can_continue;
+}
+
+
+//funguje pro: ID
+bool work_out_id()
+{
+  bool can_continue = true;
+  return can_continue;
+}
+
+
+
+//funguje pro: INDENT DEDENT EOFILE EOL DEF ( ) : , IF ELSE PASS RETURN WHILE =
 bool terminal(e_type type)
 {
   //zkontroluje jestli je tu terminal dobreho typu
   bool can_continue = true;
-  if(type == getTokenType(curr_token)) curr_token = fake_token();
+  if(type == getTokenType(curr_token));
   else {
     //neni to terminal, ktery v tomto momente musime pro spravnou syntaxi dostat
     syntax_err("Token ", " je v dane konstrukci chybny (nebo je chyba v tom, co mu predchazelo).");
@@ -216,9 +373,15 @@ void parser_do_magic()
    curr_token = fake_token();
 
    //prog <- pocatecni nonterminal, cely program
-   printf("Is all okay? %d\n", prog());
-
-
+   //TODO delete this (but keep prog() calling)
+   bool overall = prog();
+   printf("\n_______________________________________\n");
+   printf("Analysis complete?      ");
+   if(overall) printf("YES\n");
+   else printf("NO\n");
+   printf("Analysis without error?");
+   if(!kill_after_analysis) printf(" YES\n");
+   else printf(" ERROR n. %d\n", global_error_code);
 
    //TODO
    //prohledat tabulku, jestli v ni nezbylo neco nedef -> fce v symtable
