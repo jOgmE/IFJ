@@ -34,6 +34,7 @@ void PAPushFin ( PAStack *s )
 	PAStackElem *newElem = (PAStackElem *) malloc(sizeof(PAStackElem));
 
 	newElem->c = '$';
+	newElem->content = NULL;
 
 	newElem->belowPtr = s->top;
 	s->top = newElem;
@@ -75,8 +76,8 @@ void PAPush ( PAStack *s, Token *content )
 
 
 
-// push E do stacku (pro testovaci ucely)
-void PAPushETest ( PAStack *s, Token *content)
+// push E do stacku (pro pravidla)
+void PAPushE ( PAStack *s, Token *content)
 {
 	PAStackElem *newElem = (PAStackElem *) malloc(sizeof(PAStackElem));
 
@@ -171,18 +172,69 @@ void PAAddBracket ( PAStack *s )
 
 
 // provede zpetnou derivaci E->i
-int PACodeRule1 ( Token *i )
+int PACodeRule1 ( PAStack *s )
 {
+	switch (s->top->content->type) {
 
-	out = initToken();
-	
+		case ID:
+			add_undef_id_from_token(s->top->content);
+			switch (get_id_type(i)) {
+				case ST_VALUE:
+				case ST_UNDEFINED:
+					Token *tmp = copy_token(s->top->content);
+				
+					SAPop(s);	// popne 'i'
+					SAPop(s);	// popne '['
 
+					SAPushE(s, tmp);		
+
+					return 0;
+					break;
+				case ST_LABEL:
+				case ST_FUNCTION:
+					// TODO sem error
+				default:
+					break; // projde na return 1;
+				
+			}
+			break;
+		case INT:
+		case STR:
+		case DEC:
+			Token *tmp = copy_token(s->top->content);
+				
+			SAPop(s);	// popne 'i'
+			SAPop(s);	// popne '['
+
+			SAPushE(s, tmp);		
+
+			return 0;
+			break;
+		default:
+			break; // projde na return 1
+		}
+	}
+
+	// TODO internal error
+	return 1;
 }
 
 // provede zpetnou derivaci E->E+E
-int PACodeRule2 ( )
+int PACodeRule2 ( Token *E1, Token *op, Token *E2 )
 {
-
+	switch (op->type) {
+		case L:
+		case LEQ:
+		case G:
+		case GEQ:
+		case EQ:
+		case NEQ:
+		case PLUS:
+		case MINUS:
+		case AST:
+		case SL:
+		case DSL:
+	{
 }
 
 // provede zpetnou derivaci E->(E)
@@ -193,7 +245,7 @@ int PACodeRule3 ( )
 
 
 // upravi vrchol zasobniku podle pravidel E->i, E->(E), E->E<OP>E
-int PAApplyRule ( PAStack *s, Token *res )
+int PAApplyRule ( PAStack *s )
 {
 	PAStackElem* tempStack[4];
 	int i = 0;
@@ -222,7 +274,8 @@ int PAApplyRule ( PAStack *s, Token *res )
 	if ( i == 1 ) {
 		if ( tempStack[2]->c == '[' && tempStack[3]->c == 'i' ) {
 				
-			printf("Derivace E->i\n");
+			printf("PA: Derivace E->i\n");
+			PACodeRule1(s);
 			return 0;
 			// TODO E->i
 
@@ -272,6 +325,7 @@ void PAPop ( PAStack *s )
 {
 	if ( s->top == NULL ) return;
 
+	if ( s->top->content != NULL ) free_token(s->top->content);
 	PAStackElem *tmp = s->top;
 	s->top = s->top->belowPtr;
 	free(tmp);

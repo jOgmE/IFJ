@@ -2,8 +2,6 @@
 #include "lib/PACharStack_lib.h"
 #include "scanner/token.h"
 
-// TODO file what file?
-
 Token *expressionAnalysis ( Token *input1, Token *input2, Token *res ) {
 
 	PAStack *socket;
@@ -21,6 +19,7 @@ Token *expressionAnalysis ( Token *input1, Token *input2, Token *res ) {
 	int *isFin;
 
 	do {
+
 
 		switch (getFromTable(PATopTerm(s), curToken)) {
 
@@ -46,7 +45,7 @@ Token *expressionAnalysis ( Token *input1, Token *input2, Token *res ) {
 				break;
 
 			case ']':
-				PAApplyRule(s, res);	// <- tady je moloch
+				PAApplyRule(s);	// <- tady je moloch
 				break;
 
 			default:
