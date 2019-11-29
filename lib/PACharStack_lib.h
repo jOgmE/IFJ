@@ -3,8 +3,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../scanner/token.h"
-#include "../lib/PATable.h"
+#include "token.h"
+#include "symtable.h"
+#include "errors.h"
+#include "address_code.h"
+#include "PATable.h"
 
 #ifndef _PA_STACK_H_
 #define _PA_STACK_H_
