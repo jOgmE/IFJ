@@ -12,11 +12,51 @@
 #include "adress_code.h"
 #include "gen_frame_tables.h"
 
-#define INPUTS_FUNC
-#define INPUTI_FUNC
-#define INPUTF_FUNC
-#define PRINT_FUNC
-#define LEN_FUNC
+#define INPUTS_FUNC                     \
+    "LABEL $inputs\n"                   \
+    "PUSHFRAME\n"                       \
+    "DEFVAR LF@%retval\n"               \
+    "MOVE LF@%retval nil@nil\n"         \
+    "DEFVAR LF@%input\n"                \
+    "READ LF@%inputstring string\n"     \
+    "MOVE LF@%retval LF@%inputstring\n" \
+    "POPFRAME\n"                        \
+    "RETURN\n"
+
+#define INPUTI_FUNC                  \
+    "LABEL $inputi\n"                \
+    "PUSHFRAME\n"                    \
+    "DEFVAR LF@%retval\n"            \
+    "MOVE LF@%retval nil@nil\n"      \
+    "DEFVAR LF@%input\n"             \
+    "READ LF@%inputint int\n"        \
+    "MOVE LF@%retval LF@%inputint\n" \
+    "POPFRAME\n"                     \
+    "RETURN\n"
+
+#define INPUTF_FUNC                    \
+    "LABEL $inputf\n"                  \
+    "PUSHFRAME\n"                      \
+    "DEFVAR LF@%retval\n"              \
+    "MOVE LF@%retval nil@nil\n"        \
+    "DEFVAR LF@%input\n"               \
+    "READ LF@%inputfloat float\n"      \
+    "MOVE LF@%retval LF@%inputfloat\n" \
+    "POPFRAME\n"                       \
+    "RETURN\n"
+
+#define LEN_FUNC                  \
+    "LABEL $len\n"                \
+    "PUSHFRAME\n"                 \
+    "DEFVAR LF@%retval\n"         \
+    "MOVE LF@%retval nil@nil\n"   \
+    "DEFVAR LF@%param1\n"         \
+    "MOVE LF@%param1 LF@%1\n"     \
+    "STRLEN LF@%len LF@%param1\n" \
+    "MOVE LF@%retval LF@%len\n"   \
+    "POPFRAME\n"                  \
+    "RETURN\n"
+
 #define SUBSTR_FUNC
 #define ORD_FUNC
 #define CHR_FUNC
