@@ -29,8 +29,15 @@ typedef struct cstring_struct
  * @param str Ukazatel na řetězec, nebo řetez znaku pro inicializaci
  * @returns Ukazatel na alokovanou strukturu
  */
-
 cstring *init_cstring(const char *str);
+
+/**
+ * Inicializuje novou instanci struktury cstring na velikost size
+ * 
+ * @param size Velikost struktury
+ * @returns Ukazatel na alokovanou strukturu
+ */
+cstring *init_cstring_size(size_t size);
 
 /**
  * Změní velikost struktury
