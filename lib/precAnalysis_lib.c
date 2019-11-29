@@ -1,6 +1,6 @@
-#include "lib/PATable.h"
-#include "lib/PACharStack_lib.h"
-#include "scanner/token.h"
+#include "PATable.h"
+#include "PACharStack_lib.h"
+#include "token.h"
 
 Token *expressionAnalysis ( Token *input1, Token *input2, Token *res ) {
 
