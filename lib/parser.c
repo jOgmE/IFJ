@@ -13,6 +13,7 @@
  * bacha na print funkci
  * IMPORTANT: na konci souboru nemusí být EOL EOF, ale jen EOF, ale
  * já asi počítám s EOL EOF
+ * jsou ty stavy zakázané? ...
  *
  * NOTE: zbytečne vícemásobné hlášení, souvisí s ne moc nice hlášeními
  * actually not that bad, vypise to postupne jak to vybublava, sice vickrat,
@@ -295,8 +296,9 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
       return false;
   }
   else {
-    //sem by se to nemělo při dobré implementaci dostat
-    fprintf(stderr, "[hojkas] parser.c: prog_body_with_def(): skoncilo v zakazanem stavu\n");
+    //sem by se to nemělo při dobré implementaci dostat možná jo, jen jsem stupid
+    /*fprintf(stderr, "[hojkas] parser.c: prog_body_with_def(): skoncilo v zakazanem stavu\n");*/
+    syntax_err("Placeholder: Token ", " nebyl okay.\n");
     return false;
   }
 }
@@ -347,7 +349,9 @@ bool non_empty_prog_body() //---NON EMPTY PROGRAM BODY---
   }
   else {
     //sem by se to nemělo při dobré implementaci dostat
-    fprintf(stderr, "[hojkas] parser.c: non_empty_prog_body(): skoncilo v zakazanem stavu\n");
+    /*fprintf(stderr, "[hojkas] parser.c: non_empty_prog_body(): skoncilo v zakazanem stavu\n");
+    */
+    syntax_err("Placeholder: Token ", " nebyl okay.\n");
     return false;
   }
 }
@@ -400,7 +404,8 @@ bool prog_body() //---PROG_BODY---
   }
   else {
     //sem by se to nemělo při dobré implementaci dostat
-    fprintf(stderr, "[hojkas] parser.c: prog_body(): skoncilo v zakazanem stavu\n");
+    /*fprintf(stderr, "[hojkas] parser.c: prog_body(): skoncilo v zakazanem stavu\n");*/
+    syntax_err("Placeholder: prog_body: Token ", " nebyl okay.\n");
     return false;
   }
 }
@@ -447,8 +452,51 @@ bool command() //---COMMAND---
   }
   else if(Tis(WHILE)) {
     //c-> while sure_expresion : EOL indent NEPB dedent
+    //while
+    can_continue = terminal(WHILE);
+    heavy_check(C_r3e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r3e1);
+
+    //TODO 3AC vytvorit label
+
+    //expression == cond, znegovat
+
+
+    //:
+
+    C_r3rp1:
+    //EOL
+
+    //indent
+    can_continue = terminal(INDENT);
+    heavy_check(C_r3e2);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r3e2);
+
+    //non_empty_prog_body
+    can_continue = non_empty_prog_body();
+
+
+    C_r3rp2:
+    //dedent
+    can_continue = terminal(DEDENT);
+    heavy_check(C_r3e2);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r3e2);
 
     return true;
+
+    //error
+    C_r3e1:
+
+      goto C_r3rp1;
+    C_r3e2:
+
+      goto C_r3rp2;
   }
   else if(Tis(IF)) {
 
@@ -461,7 +509,8 @@ bool command() //---COMMAND---
   }
   else {
     //sem by se to nemělo při dobré implementaci dostat
-    fprintf(stderr, "[hojkas] parser.c: command(): skoncilo v zakazanem stavu\n");
+    /*fprintf(stderr, "[hojkas] parser.c: command(): skoncilo v zakazanem stavu\n");*/
+    syntax_err("Placeholder: command: Token ", " nebyl okay.\n");
     return false;
   }
 }
@@ -498,7 +547,8 @@ bool param_list() //---PARAM_LIST----
   }
   else {
     //sem by se to nemělo při dobré implementaci dostat
-    fprintf(stderr, "[hojkas] parser.c: param_list(): skoncilo v zakazanem stavu\n");
+    /*fprintf(stderr, "[hojkas] parser.c: param_list(): skoncilo v zakazanem stavu\n");*/
+    syntax_err("Placeholder: param_list: Token ", " nebyl okay.\n");
     return false;
   }
 }
@@ -541,7 +591,8 @@ bool more_params() //---MORE_PARAMS---
   }
   else {
     //sem by se to nemělo při dobré implementaci dostat
-    fprintf(stderr, "[hojkas] parser.c: more_params(): skoncilo v zakazanem stavu\n");
+    /*fprintf(stderr, "[hojkas] parser.c: more_params(): skoncilo v zakazanem stavu\n");*/
+    syntax_err("Placeholder: more_params: Token ", " nebyl okay.\n");
     return false;
   }
 }
@@ -577,7 +628,8 @@ bool more_EOL() //---MORE_EOL---
   }
   else {
     //sem by se to nemělo při dobré implementaci dostat
-    fprintf(stderr, "[hojkas] parser.c: more_EOL(): skoncilo v zakazanem stavu\n");
+    /*fprintf(stderr, "[hojkas] parser.c: more_EOL(): skoncilo v zakazanem stavu\n");*/
+    syntax_err("Placeholder: more_eol: Token ", " nebyl okay.\n");
     return false;
   }
 }
@@ -636,7 +688,8 @@ bool item()
     return true;
   }
   else {
-    fprintf(stderr, "[hojkas] parser.c: param_item(): skoncilo v zakazanem stavu\n");
+    /*fprintf(stderr, "[hojkas] parser.c: param_item(): skoncilo v zakazanem stavu\n");*/
+    syntax_err("Placeholder: item: Token ", " nebyl okay.\n");
     return false;
   }
 }
@@ -660,7 +713,8 @@ bool param_item()
     return true;
   }
   else {
-    fprintf(stderr, "[hojkas] parser.c: param_item(): skoncilo v zakazanem stavu\n");
+    /*fprintf(stderr, "[hojkas] parser.c: param_item(): skoncilo v zakazanem stavu\n");*/
+    syntax_err("Placeholder: param_item: Token ", " nebyl okay.\n");
     return false;
   }
 }
