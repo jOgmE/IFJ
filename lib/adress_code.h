@@ -68,7 +68,7 @@ typedef enum
   LE,
   DEF_START,
   DEF_END,
-  PARAM_START,
+  PARAM,
   WHILE_START,
   WHILE_END,
   UNDEFINED
