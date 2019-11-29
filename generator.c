@@ -183,46 +183,18 @@ char *get_table_key_from_token(Token *token)
     }
 }
 
-Token *get_table_token(Token *token)
-{
-    char *token_key = token->str->str;
-
-    if (item_exists_table(token_key, GLOBAL_FRAME))
-    {
-        return get_table_item_token(token_key, GLOBAL_FRAME);
-    }
-    else
-    {
-        return get_table_item_token(token_key, CURRENT_FRAME);
-    }
-}
-
-e_type get_token_type(Token *token)
-{
-    char *token_key = token->str->str;
-
-    if (item_exists_table(token_key, GLOBAL_FRAME))
-    {
-        return get_table_item_type(token_key, GLOBAL_FRAME);
-    }
-    else
-    {
-        return get_table_item_type(token_key, CURRENT_FRAME);
-    }
-}
-
 void change_token_types(Token *token, e_type arithmetic_type)
 {
     if (token->type != arithmetic_type)
     {
         if (token->type == INT)
         {
-            token->type == DEC;
+            token->type = DEC;
             token->dec = (double)token->i;
         }
         else if (token->type == DEC)
         {
-            token->type == INT;
+            token->type = INT;
             token->i = (int)token->dec;
         }
     }
@@ -445,8 +417,20 @@ char *write_check_and_define(Token *token)
     return token_frame_str;
 }
 
+void write_create_frame()
+{
+    append_string(CURRENT_BLOCK, "CREATE FRAME\n");
+    switch_frame(TEMP_FRAME);
+}
+
 void write_param(Token *res)
 {
+    if (param_counter == 0)
+    {
+        function_call_assign = true;
+        write_create_frame();
+    }
+
     ++param_counter;
 
     char *param_counter_str = convert_int_to_string((int)param_counter);
@@ -535,15 +519,17 @@ void write_call(char *label)
 
         switch_frame(LOCAL_FRAME);
         CURRENT_BLOCK = result_main_function_code;
+
+        param_counter = 0;
     }
     else
     {
-        append_string(CURRENT_BLOCK, "EXIT 52");
+        append_string(CURRENT_BLOCK, "EXIT 4");
 
         cstring *error_string = init_cstring("Funkce ");
 
-        append_cstring(error_string, label);
-        append_cstring(error_string, " nebyla definovana.");
+        append_string(error_string, label);
+        append_string(error_string, " nebyla definovana.");
 
         global_error_code = 4;
         print_compile_error(4, ERROR, 0, result_code_filename, error_string->str);
@@ -552,10 +538,13 @@ void write_call(char *label)
     }
 }
 
-void write_crate_frame()
+void write_print(Token *res)
 {
-    append_string(CURRENT_BLOCK, "CREATE FRAME\n");
-    switch_frame(TEMP_FRAME);
+    char *res_frame_str = write_check_and_define(res);
+
+    append_string(CURRENT_BLOCK, "WRITE ");
+    write_symbol(res, res_frame_str, true);
+    append_string(CURRENT_BLOCK, "\n");
 }
 
 //******************************************************************************************//
@@ -670,10 +659,6 @@ void write_assign(Token *op1, Token *res)
     char *res_frame_str = write_check_and_define(res);
 
     char *op1_frame_str = write_check_and_define(op1);
-
-    frame_t frame = item_exists_table(res->str->str, GLOBAL_FRAME) ? GLOBAL_FRAME : CURRENT_FRAME;
-
-    update_table_item_token(res->str->str, op1, frame);
 
     write_move(op1, op1_frame_str, res, res_frame_str);
 }
@@ -1030,10 +1015,6 @@ void generate_code()
         case DEF_END:
             definition_end();
             break;
-        case PARAM_START:
-            function_call_assign = true;
-            write_crate_frame();
-            break;
         case CALL:
             function_call_assign = false;
             break;
@@ -1064,7 +1045,7 @@ int main(int argc, char const *argv[])
     Token *op2 = malloc(sizeof(Token));
     Token *res = malloc(sizeof(Token));
 
-    cstring *op1_str = init_cstring("operatorOne");
+    //cstring *op1_str = init_cstring("operatorOne");
     cstring *op2_str = init_cstring("operatorTwo");
     cstring *res_str = init_cstring("result");
 
