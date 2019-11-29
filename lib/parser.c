@@ -25,8 +25,7 @@ Token *fake_token()
   Token *new = init_token();
   switch(time)
   {
-    case 0:
-      add_simple_data(new, ELSE);
+    /*case 0:
       break;
     case 1:
       break;
@@ -36,10 +35,20 @@ Token *fake_token()
       break;
     case 4:
       break;
+    case 5:
+      break;
+    case 6:
+      break;
+    case 7:
+      break;
+    case 8:
+      break;
+    case 9:
+      break;*/
     default:
+      add_simple_data(new, EOFILE);
       break;
   }
-
   time++;
   return new;
 }
@@ -49,10 +58,16 @@ Token *fake_token()
 #define syntax_err(str, str2) fprintf(stderr, "Syntax error l. %4ld: %s ", line_count, str);\
 stderr_print_token_info();\
 fprintf(stderr, " %s\n", str2);\
+kill_after_analysis = true;\
 if(global_error_code == SUCCESS) global_error_code = SYNTAX_ANALYSIS_ERROR
 
 /*overi, jestli curr_token je typu type*/
 #define Tis(type) getTokenType(curr_token) == type
+
+//zkontroluje pritomnost fatalni chyby a pokud predchozi stav failnul,
+//skoci na zotaveni
+#define heavy_check(label) if(global_error_code == INTERNAL_ERROR) return false;\
+if(can_continue != true) goto label
 
 //----------POMOCNE FCE---------------
 bool flush_until(e_type token_type)
@@ -84,45 +99,84 @@ bool item();
 bool terminal(e_type type);
 bool terminal_expr();
 
-bool prog()
+
+
+bool prog() //---PROG---
 {
   //prog -> prog_body_with_def EOF
-  bool okay = true;
+  bool can_continue = true;
 
   if(Tis(EOFILE) || Tis(DEF) || Tis(ID) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
     //prog -> prog_body_with_def EOF
-    okay = prog_body_with_def();
-    //insert heavy thing check
-    okay = terminal(EOFILE);
+    can_continue = prog_body_with_def();
+    heavy_check(prog_error);
+    can_continue = terminal(EOFILE);
+    heavy_check(prog_error);
+    return true;
+    //zotaveni se z chyby
+    prog_error:
+      flush_until(EOFILE); //tady mi to je jedno, ale jinde bych vracela toto
+      return true; //true, ze vyssi muze pokracovat v checku
   }
   else {
     //chyba, prisel spatny token
     syntax_err("Nevhodny token (", ") v danem kontextu. Timto nemuze zacinat zdrojovy soubor.\n");
     flush_until(EOFILE);
     //obvykle bych resila navratovou hodnotu, ale tady je eof, je to jedno, syntax done
-    okay = false;
+    return false;
   }
-
-  return okay;
 }
 
-bool prog_body_with_def()
+
+
+bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
 {
   //prog_body_with_def -> epsilon
   //prog_body_with_def -> command EOL more_EOL prog_body_with_def
   //prog_body_with_def -> def id ( param_list ) : EOL indent
   //                      non_empty_prog_body dedent prog_body_with_def
-  bool okay = true;
+  bool can_continue = true;
 
-  //if()
+  if(Tis(EOF)) {
+    //prog_body_with_def -> epsilon
 
-  return okay;
+    return true;
+    //ERROR
+    PBWD_rule1:
+
+    return can_continue;
+  }
+  else if(Tis(DEF)) {
+    //prog_body_with_def -> def id ( param_list ) : EOL indent
+    //                      non_empty_prog_body dedent prog_body_with_def
+    return true;
+    //ERROR
+    PBWD_rule2:
+
+    return can_continue;
+  }
+  else if(Tis(ID) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(FLOAT)) {
+    //prog_body_with_def -> command EOL more_EOL prog_body_with_def
+
+    return true;
+    //ERROR
+    PBWD_rule3:
+
+    return can_continue;
+  }
+  else {
+    //sem by se to nemělo při dobré implementaci dostat
+    fprintf(stderr, "[hojkas] parser.c: prog_body_with_def(): skoncilo v zakazanem stavu\n", );
+    return false;
+  }
 }
+
+
 
 bool terminal(e_type type)
 {
   //zkontroluje jestli je tu terminal dobreho typu
-  bool okay = true;
+  bool can_continue = true;
   if(type == getTokenType(curr_token)) curr_token = fake_token();
   else {
     //neni to terminal, ktery v tomto momente musime pro spravnou syntaxi dostat
@@ -144,10 +198,12 @@ bool terminal(e_type type)
     else if(type == WHILE) fprintf(stderr, "WHILE.\n");
     else if(type == ASS) fprintf(stderr, "=.\n");
     else fprintf(stderr, "[hojkas] parser.c: terminal(): tato funkce zavolana na neco, co nema v chybe\n");
-    okay = false;
+    can_continue = false;
   }
-  return okay;
+  return can_continue;
 }
+
+
 
 //------------------------------------------------------------------------------
 //MAIN PARSERU
