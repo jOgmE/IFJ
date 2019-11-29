@@ -1,6 +1,4 @@
-#include "PATable.h"
-#include "PACharStack_lib.h"
-#include "token.h"
+#include "precAnalysis.h"
 
 Token *expressionAnalysis ( Token *input1, Token *input2, Token *res ) {
 
@@ -53,7 +51,7 @@ Token *expressionAnalysis ( Token *input1, Token *input2, Token *res ) {
 				// TODO error
 				break;
 
-		}
+		
 
 	} while ( PAEndAtTop(s) || !(*isFin) );
 

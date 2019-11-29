@@ -123,7 +123,7 @@ Token *PATop ( PAStack *s )
 
 
 // vrati 1 pokud je na vrcholu '$', jinak 0
-int PAEndATTop ( PAStack *s )
+int PAEndAtTop ( PAStack *s )
 {
 	if (s->top == NULL ) return 0;
 
