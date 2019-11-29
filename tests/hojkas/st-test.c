@@ -40,7 +40,7 @@ int main()
 
   cstring* str = init_cstring("jedna");
   //define_id_from_info(str, ST_VALUE, 0);
-  add_undef_id_from_info(str);
+  //add_undef_id_from_info(str);
   str = init_cstring("ahoj)");
   define_id_from_info(str, ST_VALUE, 0);
 
@@ -54,18 +54,26 @@ int main()
 
   go_in_local();
 
+  //str = init_cstring("dva");
+  //define_id_from_info(str, ST_VALUE, 0);
+
+  Token* res = init_token();
   str = init_cstring("dva");
-  define_id_from_info(str, ST_VALUE, 0);
+  add_id(res, str);
+  define_id_from_token(res, ST_VALUE, 0);
+
   str = init_cstring("jedna");
   //define_id_from_info(str, ST_VALUE, 0);
-  //add_undef_id_from_info(str);
+  add_undef_id_from_info(str);
 
   print_table(local_st, 5);
 
   go_in_global();
 
-  define_id_from_info(str, ST_VALUE, 0);
+  //define_id_from_info(str, ST_VALUE, 0);
   print_table(global_st, 10);
+
+  global_check_def();
 
   clean_all_symtables();
   return 0;

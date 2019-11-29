@@ -8,6 +8,8 @@
 
 //TODO když to najde error, nečistí to key string... asi i jinde
 //prostě přidat, že když to key nezpracuje, ať ho to vymaže
+//TODO
+//pridat check, kdyz to v non_define najde konfliktni typ?
 
 
 #include "symtable.h"
@@ -15,6 +17,8 @@
 STable* global_st = NULL;
 STable* local_st = NULL;
 bool in_global = true;
+STItem* act_item = NULL;
+
 
 extern size_t line_count;
 extern bool kill_after_analysis;
@@ -159,6 +163,52 @@ void no_check_def(cstring *key, st_type type, int param_count)
   append_item(new);
 }
 
+bool st_is_active()
+{
+  if(act_item == NULL) return false;
+  else return true;
+}
+
+void set_st_act(STable *st)
+{
+  size_t size = st->size;
+  for(int i = 0; i < size; i++) {
+    if(st->item_array[i] != NULL) {
+      act_item = st->item_array[i];
+      return;
+    }
+  }
+}
+
+void st_next(STable *st)
+{
+  if(act_item == NULL) return;
+  if(act_item->next != NULL) {
+    act_item = act_item->next;
+    return;
+  }
+  unsigned line = hashCode(act_item->key) % st->size;
+  line++;
+  for(; line < st->size; line ++) {
+    if(st->item_array[line] != NULL) {
+      act_item = st->item_array[line];
+      return;
+    }
+  }
+  act_item = NULL;
+}
+
+bool is_act_defined()
+{
+  if(act_item->defined) return true;
+  return false;
+}
+
+void deact_st()
+{
+  act_item = NULL;
+}
+
 //**************************
 // PRÁCE SE SYMBOLY ZVNĚJŠÍ
 //*************************
@@ -204,6 +254,7 @@ void go_in_global()
     return;
   }
   in_global = true;
+  local_check_def();
   destroy_symtable(&local_st);
 }
 
@@ -298,15 +349,18 @@ void define_id_from_info(cstring *key, st_type type, int param_count)
   append_item(new);
 }
 
-void define_id_from_token(Token *token, int param_count)
+void define_id_from_token(Token *token, st_type type, int param_count)
 {
   //TODO
   if(token == NULL) {
     fprintf(stderr, "[hojkas] symtable.c: define_id_from_token(): dostal empty token\n");
     return;
   }
-  //TODO
-  //butcher token, then call define_id_from_info
+
+  cstring *key = init_cstring(get_cstring_string(token->str)); //kopie token str
+  add_undef_id_from_info(key);
+
+  define_id_from_info(key, type, param_count);
 }
 
 void add_undef_id_from_info(cstring *key)
@@ -327,7 +381,8 @@ void add_undef_id_from_info(cstring *key)
 
 void add_undef_id_from_token(Token *token)
 {
-  add_undef_id_from_info(token->str);
+  cstring *key = init_cstring(get_cstring_string(token->str)); //kopie token str
+  add_undef_id_from_info(key);
 }
 
 st_type get_id_type(Token *token)
@@ -335,6 +390,32 @@ st_type get_id_type(Token *token)
   //TODO
   //get type of id in token
   return ST_UNDEFINED;
+}
+
+void uni_check_def(STable *st)
+{
+  //TODO
+  //provede semantickou kontrolu, aka projde symbol po symbolu
+  //checkne, jestli je definovany, pokud ne, vypise chybu, nastavi
+  //flag, kill_after_analysis, takhle vsechny
+
+  set_st_act(st);
+  while(st_is_active()) {
+    if(!is_act_defined()) {
+      printf("Polozka neni definovana\n");
+    }
+    st_next(st);
+  }
+}
+
+void global_check_def()
+{
+  uni_check_def(global_st);
+}
+
+void local_check_def()
+{
+  uni_check_def(local_st);
 }
 
 void clean_all_symtables()
