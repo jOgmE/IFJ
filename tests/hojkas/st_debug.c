@@ -1,6 +1,6 @@
-#include "../../lib/dynamic_string.h"
-#include "../../lib/symtable.h"
-#include "../../lib/adress_code.h"
+#include "../../dynamic_string.h"
+#include "../../symtable.h"
+#include "../../adress_code.h"
 
 extern STable* global_st;
 extern STable* local_st;
