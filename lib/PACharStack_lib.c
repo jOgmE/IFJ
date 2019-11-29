@@ -178,7 +178,7 @@ int PACodeRule1 ( PAStack *s )
 
 		case ID:
 			add_undef_id_from_token(s->top->content);
-			switch (get_id_type(i)) {
+			switch (get_id_type(s->top->content)) {
 				case ST_VALUE:
 				case ST_UNDEFINED:
 					Token *tmp = copy_token(s->top->content);
@@ -219,27 +219,88 @@ int PACodeRule1 ( PAStack *s )
 	return 1;
 }
 
+ac_type getACOP ( e_type op )
+{
+	switch ( e_type op ) {
+		case L: return LESS;
+		case LEQ: return LE;
+		case G: return GREATER;
+		case GEQ: return GE;
+		case EQ: return EQUAL;
+		case NEQ: return NOT_EQUAL;
+		case PLUS: return ADD;
+		case MINUS: return SUB;
+		case AST: return MUL;
+		case SL: return DIV;
+		case DSL: return DIVINT;
+	}
+}
+
 // provede zpetnou derivaci E->E+E
 int PACodeRule2 ( Token *E1, Token *op, Token *E2 )
 {
-	switch (op->type) {
-		case L:
-		case LEQ:
-		case G:
-		case GEQ:
-		case EQ:
-		case NEQ:
-		case PLUS:
-		case MINUS:
-		case AST:
-		case SL:
-		case DSL:
-	{
+	Token *result = init_token();
+
+	appendAC(getACOP(op->type), E1, E2, copy_token(result));
+
+	PAPop(s);
+	PAPop(s);
+	PAPop(s);
+	PAPop(s); // popne "[E+E"
+
+	PAPushE(s, result);
 }
 
 // provede zpetnou derivaci E->(E)
-int PACodeRule3 ( )
+int PACodeRule3 ( PAStack *s )
 {
+	SAPop(s); // popne ')'
+
+	switch (s->top->content->type) {
+
+		case ID:
+			add_undef_id_from_token(s->top->content);
+			switch (get_id_type(s->top->content)) {
+				case ST_VALUE:
+				case ST_UNDEFINED:
+					Token *tmp = copy_token(s->top->content);
+				
+					SAPop(s);	// popne 'E'
+					SAPop(s);	// popne '('
+					SAPop(s);	// popne '['
+
+					SAPushE(s, tmp);		
+
+					return 0;
+					break;
+				case ST_LABEL:
+				case ST_FUNCTION:
+					// TODO sem error
+				default:
+					break; // projde na return 1;
+				
+			}
+			break;
+		case INT:
+		case STR:
+		case DEC:
+			Token *tmp = copy_token(s->top->content);
+				
+			SAPop(s);	// popne 'E'
+			SAPop(s);	// popne '('
+			SAPop(s);	// popne '['
+
+			SAPushE(s, tmp);		
+
+			return 0;
+			break;
+		default:
+			break; // projde na return 1
+		}
+	}
+
+	// TODO internal error
+	return 1;
 
 }
 
