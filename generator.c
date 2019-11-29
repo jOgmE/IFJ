@@ -1024,6 +1024,7 @@ void generate_code()
         case MUL:
         case DIVINT:
             write_arithmetic(type, op1, op2, res);
+            break;
         case EQUAL:
         case NOT_EQUAL:
         case GREATER:

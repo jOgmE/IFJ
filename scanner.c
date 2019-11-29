@@ -77,6 +77,8 @@ Token *getToken(){
                     if(scanner_first_token) ws++; //incrementing ws
                     break;
                 }
+                //one line comment does not generate dedent
+                if(c == 35){ present_state = Q8; break;} // # number sign (hash)
                 //from there on the FSM cannot get into indent/dedent state
                 //checking if there is need for dedent
                 if(scanner_first_token){
@@ -119,7 +121,6 @@ Token *getToken(){
                     break;
                 } // ' simpole apostrophe
                 if(c == 34){ present_state = Q3; break;} // \" double apostrophe
-                if(c == 35){ present_state = Q8; break;} // # number sign (hash)
                 //-----------operators-----------
                 if(c == 47){
                     present_state = F22;
@@ -512,7 +513,7 @@ Token *getToken(){
                 ungetc(c, f);
                 resize_cstring(our_string, our_string->length+1);
                 //adding STRING!!
-                add_docs(token, our_string);
+                add_string(token, our_string);
                 return token;
             case F22: //cases F20-21 moved to S
                 if(c == 47){ // /
