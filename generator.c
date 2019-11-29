@@ -367,7 +367,7 @@ void write_move(Token *op1, char *op1_frame, Token *res, char *res_frame)
 
 void write_defvar(Token *res)
 {
-    insert_table_item(get_table_key_from_token(res), NONE, CURRENT_FRAME);
+    insert_table_item(get_table_key_from_token(res), CURRENT_FRAME);
 
     append_string(CURRENT_BLOCK, "DEFVAR ");
 
@@ -384,7 +384,7 @@ void write_label(char *label)
     if (!label_exists)
     {
         // TODO : token probably shouldn't be null
-        insert_table_item(label, NULL, GLOBAL_FRAME);
+        insert_table_item(label, GLOBAL_FRAME);
     }
     else
     {
