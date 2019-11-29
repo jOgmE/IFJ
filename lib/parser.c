@@ -242,6 +242,10 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     //dedent
     can_continue = terminal(DEDENT);
     heavy_check(PBWD_r2e2);
+    if(!kill_after_analysis) {
+      //generate AC def end
+      appendAC(DEF_END, NULL, NULL, NULL);
+    }
     free_token(curr_token);
     curr_token = fake_token();
     heavy_check(PBWD_r2e2);
