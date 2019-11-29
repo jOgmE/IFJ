@@ -9,8 +9,8 @@
  #ifndef _PARSER_H_
  #define _PARSER_H_
 
-#include "../scanner/scanner.h"
-#include "../scanner/token.h"
+#include "scanner.h"
+#include "token.h"
 #include "symtable.h"
 #include "dynamic_string.h"
 #include "errors.h"
