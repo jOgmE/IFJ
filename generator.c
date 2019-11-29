@@ -30,6 +30,7 @@ bool function_definition = false;
 
 size_t tmp_if_counter = 0;
 size_t tmp_var_counter = 0;
+size_t param_counter = 0;
 
 //******************************************************************************************//
 //******************************************************************************************//
@@ -398,7 +399,9 @@ void write_label(char *label)
 
     if (function_definition)
     {
-        append_string(CURRENT_BLOCK, "PUSHFRAME");
+        append_string(CURRENT_BLOCK, "PUSHFRAME\n");
+        append_string(CURRENT_BLOCK, "DEFVAR LF@%retval\n");
+        append_string(CURRENT_BLOCK, "MOVE LF@%retval nil@nil\n");
     }
 }
 
@@ -440,6 +443,55 @@ char *write_check_and_define(Token *token)
     }
 
     return token_frame_str;
+}
+
+void write_param(Token *res)
+{
+    ++param_counter;
+
+    char *param_counter_str = convert_int_to_string((int)param_counter);
+
+    char *res_frame_str = write_check_and_define(res);
+
+    if (function_call_assign)
+    {
+
+        // if (CURRENT_FRAME != TEMP_FRAME)
+        // {
+        //     switch_frame(TEMP_FRAME);
+        // }
+
+        append_string(CURRENT_BLOCK, "DEFVAR TF@%");
+        append_string(CURRENT_BLOCK, param_counter_str);
+        append_string(CURRENT_BLOCK, "\n");
+
+        append_string(CURRENT_BLOCK, "MOVE TF@%");
+        append_string(CURRENT_BLOCK, param_counter_str);
+        write_symbol(res, res_frame_str, true);
+        append_string(CURRENT_BLOCK, "\n");
+    }
+    else
+    {
+        append_string(CURRENT_BLOCK, "DEFVAR ");
+        append_string(CURRENT_BLOCK, res_frame_str);
+        append_string(CURRENT_BLOCK, "\n");
+
+        append_string(CURRENT_BLOCK, "MOVE ");
+        write_symbol(res, res_frame_str, false);
+        append_string(CURRENT_BLOCK, " LF@%\n");
+        append_string(CURRENT_BLOCK, param_counter_str);
+    }
+}
+
+void write_return(Token *res)
+{
+    append_string(CURRENT_BLOCK, "MOVE LF@%retval ");
+
+    char *res_frame_str = write_check_and_define(res);
+
+    write_symbol(res, res_frame_str, false);
+
+    append_string(CURRENT_BLOCK, "\n");
 }
 
 void check_and_define_while()
@@ -616,21 +668,14 @@ void write_convert_type(Token *token, char *frame_str, e_type destType)
 void write_assign(Token *op1, Token *res)
 {
     char *res_frame_str = write_check_and_define(res);
-    if (!function_call_assign)
-    {
-        char *op1_frame_str = write_check_and_define(op1);
 
-        frame_t frame = item_exists_table(res->str->str, GLOBAL_FRAME) ? GLOBAL_FRAME : CURRENT_FRAME;
+    char *op1_frame_str = write_check_and_define(op1);
 
-        update_table_item_token(res->str->str, op1, frame);
+    frame_t frame = item_exists_table(res->str->str, GLOBAL_FRAME) ? GLOBAL_FRAME : CURRENT_FRAME;
 
-        write_move(op1, op1_frame_str, res, res_frame_str);
-    }
-    else
-    {
-        write_assign(op1, res);
-        write_move(op1, CURRENT_FRAME_STRING, res, res_frame_str);
-    }
+    update_table_item_token(res->str->str, op1, frame);
+
+    write_move(op1, op1_frame_str, res, res_frame_str);
 }
 
 void write_jump(Token *res)
