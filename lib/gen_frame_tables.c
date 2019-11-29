@@ -1,3 +1,10 @@
+/** @file gen_frame_tables.c
+ *  Implementace hash tabulek pro rámce pro generátor
+ * 
+ *  @author Jaroslav Hort (xhortj04)
+ *  @date 2019
+ */
+
 #include "gen_frame_tables.h"
 
 // Nastavení výchozích hodnot

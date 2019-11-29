@@ -1,9 +1,7 @@
 /** @file dynamic_string.c
- *  Implementation of library for dynamically allocated string
+ *  Implementace knihovny pro dynamicky alokovaný řetězec
  *  
- *  Created as a part of IFJcode19 interpreter for IFJ course at BUT FIT
- * 
- *  @author Jaroslav Hort
+ *  @author Jaroslav Hort (xhortj04)
  *  @date 2019
  */
 

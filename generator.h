@@ -1,7 +1,7 @@
 /** @file generator.h
  *  Generátor výsledného kódu
  * 
- *  @author Jaroslav Hort
+ *  @author Jaroslav Hort (xhortj04)
  *  @date 2019
  */
 #ifndef _GENERATOR_H

@@ -1,3 +1,10 @@
+/** @file ifj19.c
+ *  Hlavní rozhraní programu
+ * 
+ *  @author Jaroslav Hort (xhortj04)
+ *  @date 2019
+ */
+
 #include "ifj19.h"
 
 FILE *source_file;

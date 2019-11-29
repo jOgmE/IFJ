@@ -1,7 +1,7 @@
 /** @file gen_frame_tables.h
  *  Hash tabulky pro zapomatování proměnných v paměťových rámcích při generování kódu IFJCode19
  * 
- *  @author Jaroslav Hort
+ *  @author Jaroslav Hort (xhortj04)
  *  @date 2019
  */
 
