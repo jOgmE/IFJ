@@ -2,8 +2,7 @@ CC=gcc
 FLAGS=-std=c99 -Wall -Wextra -Werror -g
 APP=test_scanner
 LIB=../../lib/
-SCAN=../../scanner/
-DEPENDENCIES=$(LIB)dynamic_string.* $(LIB)errors.* $(LIB)indent_stack.* $(SCAN)scanner.* $(SCAN)token.*
+DEPENDENCIES=$(LIB)dynamic_string.* $(LIB)errors.* $(LIB)indent_stack.* $(LIB)scanner.* $(LIB)token.*
 
 all: $(APP)
 
@@ -11,4 +10,4 @@ test_scanner: $(DEPENDENCIES) scanner_test.c
 	$(CC) $(FLAGS) $^ -o test_scanner
 
 clean:
-	rm -f *.gch $(LIB)*.gch $(SCAN)*.gch *.o test_scanner
+	rm -f *.gch $(LIB)*.gch $(LIB)*.gch *.o test_scanner

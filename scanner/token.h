@@ -51,21 +51,51 @@
  * return
  * while
  */
-typedef enum{
-    INDENT=1, DEDENT, EOL, DEC, INT, ID, STR,
-    L, LEQ, G, GEQ, EQ, ASS, NEQ, PLUS, MINUS,
-    AST, SL, DSL, COL, LPA, RPA, EOFILE, COM,
-    DEF, ELSE, IF, NONE, PASS, RETURN, WHILE,
-    DOCS, TEMP_ID
+typedef enum
+{
+    INDENT = 1,
+    DEDENT,
+    EOL,
+    DEC,
+    INT,
+    ID,
+    STR,
+    L,
+    LEQ,
+    G,
+    GEQ,
+    EQ,
+    ASS,
+    NEQ,
+    PLUS,
+    MINUS,
+    AST,
+    SL,
+    DSL,
+    COL,
+    LPA,
+    RPA,
+    EOFILE,
+    COM,
+    DEF,
+    ELSE,
+    IF,
+    NONE,
+    PASS,
+    RETURN,
+    WHILE,
+    DOCS,
+    TEMP_ID
 } e_type;
 
 /* Structure for converting string literals
  * to enum e_type
  */
-typedef const struct {
+typedef const struct
+{
     e_type type;
     const char *str;
-}convert;
+} convert;
 
 //struct converting keywords
 extern convert keyword_conv[];
@@ -80,7 +110,8 @@ extern convert op_conv[];
  * when type id, str is being used to
  * store the pointer to the variable
  */
-typedef struct Token{
+typedef struct Token
+{
     double dec;
     int i;
     e_type type;
@@ -91,16 +122,17 @@ typedef struct Token{
 //             Functions to write a token
 //---------------------------------------------------------
 
-/* initializing the token
- * @param token to be initialized
+/* initializing a token
  * @return pointer to token no errors happened, otherwise NULL
  */
 Token *init_token();
+
 /* Freeing initialized token
  *
  * @param token Token to be freed.
  */
 void free_token(Token *token);
+
 /* Adding type to the token.
  *
  * This function is adding the token an e_type.
@@ -112,6 +144,7 @@ void free_token(Token *token);
  * @param e_type type of the token
  */
 void add_simple_data(Token *token, e_type type);
+
 /* Set token data (for int)
  *
  * Makes an INT type token with data.
@@ -120,6 +153,7 @@ void add_simple_data(Token *token, e_type type);
  * @param num data to be set
  */
 void add_int(Token *token, int num);
+
 /* Set token data (for decimal)
  *
  * Makes a DEC type token with data.
@@ -128,6 +162,7 @@ void add_int(Token *token, int num);
  * @param num data to be set
  */
 void add_dec(Token *token, double num);
+
 /* Set token data (for string)
  *
  * Makes a STR type token with data.
@@ -147,6 +182,15 @@ void add_string(Token *token, cstring *str);
  */
 void add_id(Token *token, cstring *str);
 
+/* Set token data (for docstring)
+ *
+ * Makes a DOCS type token with data.
+ *
+ * @param token to set
+ * @param str data to be set
+ */
+void add_docs(Token *token, cstring *str);
+
 //---------------------------------------------------------
 //                Functions to read a token
 //---------------------------------------------------------
@@ -154,6 +198,7 @@ void add_id(Token *token, cstring *str);
 /* Returns the type of the token.
  */
 e_type getTokenType(Token *token);
+
 /* Returns the data for INT token.
  *
  * @param token reading from
@@ -161,6 +206,7 @@ e_type getTokenType(Token *token);
  * @returns !0 if the token type != INT otherwise 0
  */
 int getIntValue(Token *token, int *num);
+
 /* Returns the data for DEC token.
  *
  * @param token reading from
@@ -168,6 +214,7 @@ int getIntValue(Token *token, int *num);
  * @returns !0 if the token type != DEC otherwise 0
  */
 int getDecValue(Token *token, double *num);
+
 /* Returns the data for STR token.
  *
  * @param token reading from
@@ -175,6 +222,14 @@ int getDecValue(Token *token, double *num);
  */
 cstring *getTokenStrValue(Token *token);
 
+/* Makes a copy of a token.
+ *
+ * The function INITIALIZES a new token and copying the
+ * data to the new one.
+ *
+ * @param token Token to be copied
+ * @return Copy of the param token
+ */
 Token *copy_token(Token *token);
 
 
