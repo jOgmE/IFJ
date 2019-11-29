@@ -6,8 +6,8 @@
 
 #include "../../lib/dynamic_string.h"
 #include "../../lib/errors.h"
-#include "../../lib/token.h"
-#include "../../lib/scanner.h"
+#include "../../scanner/token.h"
+#include "../../scanner/scanner.h"
 
 //global variable for file
 FILE *f;
