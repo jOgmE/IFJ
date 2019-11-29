@@ -28,6 +28,11 @@ char *CURRENT_FRAME_STRING;
 bool function_call_assign = false;
 bool function_definition = false;
 
+bool inputi_appended = false;
+bool inputf_appended = false;
+bool inputs_appended = false;
+bool len_appended = false;
+
 size_t tmp_if_counter = 0;
 size_t tmp_var_counter = 0;
 size_t param_counter = 0;
@@ -524,17 +529,40 @@ void write_call(char *label)
     }
     else
     {
-        append_string(CURRENT_BLOCK, "EXIT 4");
+        if (strcmp(label, "inputi") == 0 && !inputi_appended)
+        {
+            append_string(result_main_function_code, INPUTI_FUNC);
+            inputi_appended = true;
+        }
+        else if (strcmp(label, "inputs") == 0 && !inputs_appended)
+        {
+            append_string(result_main_function_code, INPUTS_FUNC);
+            inputs_appended = true;
+        }
+        else if (strcmp(label, "inputf") == 0 && !inputf_appended)
+        {
+            append_string(result_main_function_code, INPUTF_FUNC);
+            inputf_appended = true;
+        }
+        else if (strcmp(label, "len") == 0 && !len_appended)
+        {
+            append_string(result_main_function_code, LEN_FUNC);
+            len_appended = true;
+        }
+        else
+        {
+            append_string(CURRENT_BLOCK, "EXIT 4");
 
-        cstring *error_string = init_cstring("Funkce ");
+            cstring *error_string = init_cstring("Funkce ");
 
-        append_string(error_string, label);
-        append_string(error_string, " nebyla definovana.");
+            append_string(error_string, label);
+            append_string(error_string, " nebyla definovana.");
 
-        global_error_code = 4;
-        print_compile_error(4, ERROR, 0, result_code_filename, error_string->str);
+            global_error_code = 4;
+            print_compile_error(4, ERROR, 0, result_code_filename, error_string->str);
 
-        free_cstring(error_string);
+            free_cstring(error_string);
+        }
     }
 }
 
