@@ -10,7 +10,7 @@
 #define _SYMTABLE_H_
 
 #include "errors.h"
-#include "../scanner/token.h"
+#include "token.h"
 #include "dynamic_string.h"
 #include <stdbool.h>
 #include <stdint.h> //potřeba pro hash funkci

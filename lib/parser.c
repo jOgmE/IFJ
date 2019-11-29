@@ -31,22 +31,36 @@ Token *last_token = NULL;
 //TODO delete
 
 e_type faking[100] = {
-  DEF, ID, LPA, INT, RPA, COL, EOL, INDENT,
-  PASS, EOL, DEDENT, PASS, EOL,
+  DEF, ID, LPA, INT, COM, ID, RPA, COL, EOL, INDENT,
+  PASS, EOL, DEDENT, PASS, EOL, RETURN, INT, PLUS, INT, EOL,
   EOFILE
 };
 
-int fake_num = 14;
+//int fake_num = 16;
 
 Token *fake_token()
 {
   static int time = 0;
   Token *new = init_token();
   /*fprintf(stderr, "Loading state %d\n", time);*/
-  if(time > fake_num) add_simple_data(new, EOFILE);
-  else add_simple_data(new, faking[time]);
-  time++;
+  add_simple_data(new, faking[time]);
+  if(faking[time] != EOFILE) time++;
   return new;
+}
+
+#define Tis(type) getTokenType(curr_token) == type
+//vlozi soustavu podminek, ktera vraci true, je-li curr_token typu item
+#define Tis_item (Tis(ID) || Tis(NONE) || Tis(INT) || Tis(DEC) || Tis(STR))
+#define Tis_op (Tis(L) || Tis(LEQ) || Tis(G) || Tis(GEQ) || Tis(EQ) || Tis(NEQ) || Tis(PLUS) || Tis(MINUS) || Tis(AST) || Tis(SL) || Tis(DSL))
+
+
+Token *fake_analysis(Token *op1, Token *op2, Token *res)
+{
+  while(Tis_item || Tis_op) {
+      free_token(curr_token);
+      curr_token = fake_token();
+  }
+  return curr_token;
 }
 
 //------MAKRA---------------------
@@ -58,11 +72,11 @@ kill_after_analysis = true;\
 if(global_error_code == SUCCESS) global_error_code = SYNTAX_ANALYSIS_ERROR
 
 /*overi, jestli curr_token je typu type*/
-#define Tis(type) getTokenType(curr_token) == type
+//#define Tis(type) getTokenType(curr_token) == type
 
 //vlozi soustavu podminek, ktera vraci true, je-li curr_token typu item
-#define Tis_item (Tis(ID) || Tis(NONE) || Tis(INT) || Tis(DEC) || Tis(STR))
-#define Tis_op (Tis(L) || Tis(LEQ) || Tis(G) || Tis(GEQ) || Tis(EQ) || Tis(NEQ) || Tis(PLUS) || Tis(MINUS) || Tis(AST) || Tis(SL) || Tis(DSL))
+//#define Tis_item (Tis(ID) || Tis(NONE) || Tis(INT) || Tis(DEC) || Tis(STR))
+//#define Tis_op (Tis(L) || Tis(LEQ) || Tis(G) || Tis(GEQ) || Tis(EQ) || Tis(NEQ) || Tis(PLUS) || Tis(MINUS) || Tis(AST) || Tis(SL) || Tis(DSL))
 
 //zkontroluje pritomnost fatalni chyby a pokud predchozi stav failnul,
 //skoci na zotaveni
@@ -94,7 +108,7 @@ bool not_sure1(); //
 bool not_sure2(); //
 bool not_sure3(); //
 bool param_list();                      //done
-bool more_params(); //started
+bool more_params();                     //done
 bool op(); //
 bool item();                            //done
 bool param_item();                      //done
@@ -110,7 +124,7 @@ bool prog() //---PROG---
   //prog -> prog_body_with_def EOF
   bool can_continue = true;
 
-  if(Tis(EOFILE) || Tis(DEF) || Tis(ID) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
+  if(Tis(EOFILE) || Tis(DEF) || Tis(STR) || Tis(ID) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
     //prog -> prog_body_with_def EOF
     can_continue = prog_body_with_def();
     heavy_check(prog_error);
@@ -247,7 +261,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
       can_continue = flush_until(DEDENT);
       return can_continue;
   }
-  else if(Tis(ID) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
+  else if(Tis(ID) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(STR) || Tis(INT) || Tis(DEC)) {
     //prog_body_with_def -> command EOL more_EOL prog_body_with_def
     //command
     can_continue = command();
@@ -294,7 +308,7 @@ bool non_empty_prog_body() //---NON EMPTY PROGRAM BODY---
   //non_empty_prog_body -> more_EOL command EOL more_EOL PB
   bool can_continue = true;
 
-  if(Tis(EOL) || Tis(ID) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
+  if(Tis(EOL) || Tis(ID) || Tis(STR) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
     //non_empty_prog_body -> more_EOL command EOL more_EOL PB
     //more_EOL
     can_continue = more_EOL();
@@ -346,7 +360,7 @@ bool prog_body() //---PROG_BODY---
   //prog_body -> command EOL more_EOL prog_body
   bool can_continue = true;
 
-  if(Tis(ID) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
+  if(Tis(ID) || Tis(STR) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
     //prog_body -> command EOL more_EOL prog_body
     //command
     can_continue = command();
@@ -397,12 +411,61 @@ bool command() //---COMMAND---
 {
   bool can_continue = true;
   if(Tis(PASS)) {
-    //placeholder!!! kvůli testům
-    free_token(curr_token);
+    //c -> pass
+    //nemusím kontrolovat pass, jinak by to sem nedoslo
+    free(curr_token);
     curr_token = fake_token();
+
+    return true;
   }
-  return can_continue;
+  else if(Tis(RETURN)) {
+    //c -> return sure_expresion
+    //nemusím kontrolovat return, jinak by to sem nedoslo
+    free(curr_token);
+    curr_token = fake_token();
+
+    //sure_expresion
+    Token *ret_id = init_token();
+    add_string(ret_id, init_cstring("ret_id"));
+    ret_id->type = TEMP_ID;
+    Token *copy_ret_id = copy_token(ret_id);
+    heavy_check(C_r2e1);
+
+    //zavola analyzu vyrazu
+    curr_token = fake_analysis(curr_token, NULL, copy_ret_id);
+
+    //vygenerovat ret_id navratovou hodnotu
+    if(!kill_after_analysis) {
+      appendAC(RET, NULL, NULL, ret_id);
+      heavy_check(C_r2e1); //alok check, asi to nespadne na error label
+    }
+
+    return true;
+    C_r2e1:
+      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"return expr\".\n");
+      return false;
+  }
+  else if(Tis(WHILE)) {
+    //c-> while sure_expresion : EOL indent NEPB dedent
+
+    return true;
+  }
+  else if(Tis(IF)) {
+
+  }
+  else if(Tis(INT) || Tis(STR) || Tis(DEC) || Tis(LPA)) {
+
+  }
+  else if(Tis(ID)) {
+
+  }
+  else {
+    //sem by se to nemělo při dobré implementaci dostat
+    fprintf(stderr, "[hojkas] parser.c: command(): skoncilo v zakazanem stavu\n");
+    return false;
+  }
 }
+
 
 
 
@@ -445,7 +508,42 @@ bool param_list() //---PARAM_LIST----
 bool more_params() //---MORE_PARAMS---
 {
   bool can_continue = true;
-  return can_continue;
+  //more_params -> epsilon
+  //more_params -> , param_item more_params
+
+  if(Tis(COM)) {
+    //more_params -> , param_item more_params
+    //,
+    //neni treba overovat COM, jinak bychom sem nedosli
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(MP_r1e1);
+
+    //item
+    can_continue = param_item();
+    heavy_check(MP_r1e1);
+
+    //more_params
+    can_continue = more_params();
+    heavy_check(MP_r1e1);
+
+    return true;
+
+    //ERROR
+    MP_r1e1:
+      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \", item more_params\".\n");
+      return false;
+  }
+  else if(Tis(RPA)) {
+    //param_list -> epsilon
+    //proste jen skonci uspesne
+    return true;
+  }
+  else {
+    //sem by se to nemělo při dobré implementaci dostat
+    fprintf(stderr, "[hojkas] parser.c: more_params(): skoncilo v zakazanem stavu\n");
+    return false;
+  }
 }
 
 
@@ -473,7 +571,7 @@ bool more_EOL() //---MORE_EOL---
       syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba [nedosazitelne]\n");
       return false;
   }
-  else if(Tis(EOFILE) || Tis(DEF) || Tis(ID) || Tis(LPA) || Tis(DEDENT) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
+  else if(Tis(EOFILE) || Tis(DEF) || Tis(STR) || Tis(ID) || Tis(LPA) || Tis(DEDENT) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
     //more_eol -> epsilon
     return true;
   }
@@ -483,6 +581,16 @@ bool more_EOL() //---MORE_EOL---
     return false;
   }
 }
+
+
+
+
+bool op()
+{
+  //co vic tu potrebuji? TODO
+  return (Tis_op);
+}
+
 
 
 //funguje pro: ID

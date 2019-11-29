@@ -9,7 +9,7 @@
 #ifndef _ADRESS_CODE_H_
 #define _ADRESS_CODE_H_
 
-#include "../scanner/token.h"
+#include "token.h"
 #include "errors.h"
 #include <stdbool.h>
 
