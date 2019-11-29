@@ -23,7 +23,7 @@
 #include "parser.h"
 
 //TODO delete, just for debug
-#include "../tests/hojkas/st_debug.c"
+#include "tests/hojkas/st_debug.c"
 
 Token *curr_token = NULL;
 Token *last_token = NULL;
@@ -462,12 +462,24 @@ bool command() //---COMMAND---
     //TODO 3AC vytvorit label
 
     //expression == cond, znegovat
+    curr_token = fake_analysis(curr_token, NULL, NULL);
 
+    //TODO 3AC tu vůbec zatím není řešen! jen syntax...
 
     //:
+    can_continue = terminal(COL);
+    heavy_check(C_r3e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r3e1);
 
     C_r3rp1:
     //EOL
+    can_continue = terminal(EOL);
+    heavy_check(C_r3e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r3e1);
 
     //indent
     can_continue = terminal(INDENT);
@@ -478,7 +490,7 @@ bool command() //---COMMAND---
 
     //non_empty_prog_body
     can_continue = non_empty_prog_body();
-
+    heavy_check(C_r3e2);
 
     C_r3rp2:
     //dedent
@@ -492,13 +504,13 @@ bool command() //---COMMAND---
 
     //error
     C_r3e1:
-
+      if(flush_until(EOL) == false) return false;
       goto C_r3rp1;
     C_r3e2:
-
+      if(flush_until(DEDENT) == false) return false;
       goto C_r3rp2;
   }
-  else if(Tis(IF)) {
+  /*else if(Tis(IF)) {
 
   }
   else if(Tis(INT) || Tis(STR) || Tis(DEC) || Tis(LPA)) {
@@ -506,13 +518,14 @@ bool command() //---COMMAND---
   }
   else if(Tis(ID)) {
 
-  }
+  }*/
   else {
     //sem by se to nemělo při dobré implementaci dostat
     /*fprintf(stderr, "[hojkas] parser.c: command(): skoncilo v zakazanem stavu\n");*/
     syntax_err("Placeholder: command: Token ", " nebyl okay.\n");
     return false;
   }
+
 }
 
 

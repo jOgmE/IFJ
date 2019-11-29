@@ -142,7 +142,7 @@ bool search_st(STable *st, cstring *key)
   STItem *curr = st->item_array[line];
   bool found = false;
   while(curr != NULL) {
-    if(compare_cstring(key, curr->key)) {
+    if(compare_string(key, (char *) get_cstring_string(curr->key))) {
       found = true;
       break;
     }
@@ -276,7 +276,7 @@ void define_id_from_info(cstring *key, st_type type, int param_count)
     curr = local_st->item_array[line];
 
     while(curr != NULL) {
-      if(compare_cstring(key, curr->key)) {
+      if(compare_string(key, (char*) get_cstring_string(curr->key))) {
         //nalezen key
         if(curr->defined == true) {
           //TODO
@@ -317,7 +317,7 @@ void define_id_from_info(cstring *key, st_type type, int param_count)
     curr = global_st->item_array[line];
 
     while(curr != NULL) {
-      if(compare_cstring(key, curr->key)) {
+      if(compare_string(key, (char*) get_cstring_string(curr->key))) {
         //nalezen key
         if(curr->defined == true) {
           //TODO
