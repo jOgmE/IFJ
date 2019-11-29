@@ -10,6 +10,7 @@
  * IMPORTANT: není stav, že PBWD může začínat EOL... hodit do tabulky před to
  * MEOL a sem přihodit stavy podle tabulky
  * NOTE: zbytečne vícemásobné hlášení, souvisí s ne moc nice hlášeními
+ * actually not that bad, vypise to postupne jak to vybublava, sice vickrat, ale vice infa...
  */
 
 #include "parser.h"
@@ -64,10 +65,10 @@ Token *fake_token()
       add_simple_data(new, PASS);
       break;
     case 11:
-      add_simple_data(new, PASS);
+      add_simple_data(new, EOL);
       break;
     case 12:
-      add_simple_data(new, PASS);
+      add_simple_data(new, EOL);
       break;
     case 13:
       add_simple_data(new, EOL);
@@ -110,12 +111,12 @@ bool flush_until(e_type token_type)
 
 void stderr_print_token_info();
 
-//-----ROZKLADY-------------------
+//-----ROZKLADY-------------------      // 6  / 14
 bool prog();                            //done
 bool non_empty_prog_body();             //done
 bool prog_body();                       //done
 bool prog_body_with_def();              //done
-bool more_EOL(); //started
+bool more_EOL();                        //done
 bool command(); //started
 bool not_sure1(); //
 bool not_sure2(); //
@@ -430,8 +431,37 @@ bool param_list() //---PARAM----
 
 bool more_EOL() //---MORE_EOL---
 {
+  //more_EOL -> epsilon
+  //more_EOL -> EOL more_EOL
   bool can_continue = true;
-  return can_continue;
+
+  if(Tis(EOL)) {
+    //more_EOL -> EOL more_EOL
+    //EOL
+    //neni treba overovat, ze mame EOL, jinak bychom sem nedosli
+    free_token(curr_token);
+    curr_token = fake_token();
+
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(MEOL_r1e1);
+
+    return true;
+
+    //error
+    MEOL_r1e1:
+      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba [nedosazitelne]\n");
+      return false;
+  }
+  else if(Tis(EOFILE) || Tis(DEF) || Tis(ID) || Tis(LPA) || Tis(DEDENT) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
+    //more_eol -> epsilon
+    return true;
+  }
+  else {
+    //sem by se to nemělo při dobré implementaci dostat
+    fprintf(stderr, "[hojkas] parser.c: more_EOL(): skoncilo v zakazanem stavu\n");
+    return false;
+  }
 }
 
 
