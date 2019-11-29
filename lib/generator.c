@@ -111,6 +111,10 @@ void free_gen()
     clear_table(GLOBAL_FRAME);
     clear_table(LOCAL_FRAME);
     clear_table(TEMP_FRAME);
+
+    free_cstring(result_code);
+    free_cstring(result_functions_code);
+    free_cstring(result_main_function_code);
 }
 
 void switch_frame(frame_t frame)
