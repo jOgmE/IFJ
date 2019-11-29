@@ -545,8 +545,8 @@ void write_call(char *label)
         append_cstring(error_string, label);
         append_cstring(error_string, " nebyla definovana.");
 
-        global_error_code = 52;
-        print_compile_error(52, ERROR, 0, result_code_filename, error_string->str);
+        global_error_code = 4;
+        print_compile_error(4, ERROR, 0, result_code_filename, error_string->str);
 
         free_cstring(error_string);
     }
