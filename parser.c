@@ -34,6 +34,8 @@ Token *last_token = NULL;
 e_type faking[100] = {
   DEF, ID, LPA, INT, COM, ID, RPA, COL, EOL, INDENT,
   PASS, EOL, DEDENT, PASS, EOL, RETURN, INT, PLUS, INT, EOL,
+  WHILE, INT, COL, EOL, INDENT, PASS, EOL, DEDENT, EOL,
+  IF, INT, COL, EOL, INDENT, PASS, EOL, DEDENT, EOL,
   EOFILE
 };
 
@@ -510,14 +512,71 @@ bool command() //---COMMAND---
       if(flush_until(DEDENT) == false) return false;
       goto C_r3rp2;
   }
-  /*else if(Tis(IF)) {
+  else if(Tis(IF)) {
+    //c -> if se : eol indent nepb dedent
+    //TODO uplne chybi 3ac veci
+    //if don't need to check
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r4e1);
 
+    //sure expression
+    //TODO placeholder
+    curr_token = fake_analysis(curr_token, NULL, NULL);
+
+    //:
+    can_continue = terminal(COL);
+    heavy_check(C_r4e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r4e1);
+
+    C_r4rp1:
+    //EOL
+    can_continue = terminal(EOL);
+    heavy_check(C_r4e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r4e1);
+
+    //indent
+    can_continue = terminal(INDENT);
+    heavy_check(C_r4e2);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r4e2);
+
+    //non_empty_prog_body
+    can_continue = non_empty_prog_body();
+    heavy_check(C_r4e2);
+
+    C_r4rp2:
+    //dedent
+    can_continue = terminal(DEDENT);
+    heavy_check(C_r4e2);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r4e2);
+
+    return true;
+
+    //error
+    C_r4e1:
+      if(flush_until(EOL) == false) return false;
+      goto C_r4rp1;
+    C_r4e2:
+      if(flush_until(DEDENT) == false) return false;
+      goto C_r4rp2;
   }
   else if(Tis(INT) || Tis(STR) || Tis(DEC) || Tis(LPA)) {
-
-  }
+    //curr tokoen je int, str, dec, lpa, vse indikuje, ze je treba vyraz
+    //poslat analzye
+    //TODO chybi vse kolem
+    curr_token = fake_analysis(curr_token, NULL, NULL);
+    return true;
+  }/*
   else if(Tis(ID)) {
-
+    //TODO, 3AC
   }*/
   else {
     //sem by se to nemělo při dobré implementaci dostat
