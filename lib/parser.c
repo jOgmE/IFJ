@@ -5,12 +5,16 @@
  * @version 1.0
  * @date 27.11.2019
  *
- * IMPORTANT: z nejakeho duvodu se stringy vypisuji v synt erroru jen par znaku, proverit TODO
+ * IMPORTANT: z nejakeho duvodu se stringy vypisuji v synt erroru jen par znaku,
+ * proverit TODO
  * IMPORTANT: Vypisy s "neocekavana skladba" by to chtělo asi přepsat
  * IMPORTANT: není stav, že PBWD může začínat EOL... hodit do tabulky před to
  * MEOL a sem přihodit stavy podle tabulky
+ * bacha na print funkci
+ *
  * NOTE: zbytečne vícemásobné hlášení, souvisí s ne moc nice hlášeními
- * actually not that bad, vypise to postupne jak to vybublava, sice vickrat, ale vice infa...
+ * actually not that bad, vypise to postupne jak to vybublava, sice vickrat,
+ * ale vice infa...
  */
 
 #include "parser.h"
@@ -24,59 +28,21 @@ Token *last_token = NULL;
 //-------SIMULACNI FUNKCE, VYMAZAT-----------
 //TODO delete
 
+e_type faking[100] = {
+  DEF, ID, LPA, INT, RPA, COL, EOL, INDENT,
+  PASS, EOL, DEDENT, PASS, EOL,
+  EOFILE
+};
+
+int fake_num = 14;
+
 Token *fake_token()
 {
   static int time = 0;
   Token *new = init_token();
   /*fprintf(stderr, "Loading state %d\n", time);*/
-  switch(time)
-  {
-    case 0:
-      add_simple_data(new, DEF);
-      break;
-    case 1:
-      add_id(new, init_cstring("fce"));
-      break;
-    case 2:
-      add_simple_data(new, LPA);
-      break;
-    case 3:
-      add_simple_data(new, RPA);
-      break;
-    case 4:
-      add_simple_data(new, COL);
-      break;
-    case 5:
-      add_simple_data(new, EOL);
-      break;
-    case 6:
-      add_simple_data(new, INDENT);
-      break;
-    case 7:
-      add_simple_data(new, PASS);
-      break;
-    case 8:
-      add_simple_data(new, EOL);
-      break;
-    case 9:
-      add_simple_data(new, DEDENT);
-      break;
-    case 10:
-      add_simple_data(new, PASS);
-      break;
-    case 11:
-      add_simple_data(new, EOL);
-      break;
-    case 12:
-      add_simple_data(new, EOL);
-      break;
-    case 13:
-      add_simple_data(new, EOL);
-      break;
-    default:
-      add_simple_data(new, EOFILE);
-      break;
-  }
+  if(time > fake_num) add_simple_data(new, EOFILE);
+  else add_simple_data(new, faking[time]);
   time++;
   return new;
 }
@@ -91,6 +57,10 @@ if(global_error_code == SUCCESS) global_error_code = SYNTAX_ANALYSIS_ERROR
 
 /*overi, jestli curr_token je typu type*/
 #define Tis(type) getTokenType(curr_token) == type
+
+//vlozi soustavu podminek, ktera vraci true, je-li curr_token typu item
+#define Tis_item (Tis(ID) || Tis(NONE) || Tis(INT) || Tis(DEC) || Tis(STR))
+#define Tis_op (Tis(L) || Tis(LEQ) || Tis(G) || Tis(GEQ) || Tis(EQ) || Tis(NEQ) || Tis(PLUS) || Tis(MINUS) || Tis(AST) || Tis(SL) || Tis(DSL))
 
 //zkontroluje pritomnost fatalni chyby a pokud predchozi stav failnul,
 //skoci na zotaveni
@@ -111,7 +81,7 @@ bool flush_until(e_type token_type)
 
 void stderr_print_token_info();
 
-//-----ROZKLADY-------------------      // 6  / 14
+//-----ROZKLADY-------------------      // 7  / 15
 bool prog();                            //done
 bool non_empty_prog_body();             //done
 bool prog_body();                       //done
@@ -121,9 +91,10 @@ bool command(); //started
 bool not_sure1(); //
 bool not_sure2(); //
 bool not_sure3(); //
-bool param_list(); //started
+bool param_list();                      //done
+bool more_params(); //started
 bool op(); //
-bool item(); //
+bool item(); //started
 bool terminal(e_type type);             //done
 bool terminal_expr(); //
 bool work_out_id(); //started
@@ -204,8 +175,9 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
 
     //param_list
     can_continue = param_list();
-    heavy_check(PBWD_r2e1);
+    heavy_check(PBWD_r2e1_1);
 
+    PBWD_r2rp1:
     //)
     can_continue = terminal(RPA);
     heavy_check(PBWD_r2e1);
@@ -220,7 +192,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     curr_token = fake_token();
     heavy_check(PBWD_r2e1);
 
-    PBWD_r2rp1: //restore point 1
+    PBWD_r2rp2: //restore point 2
     //EOL
     can_continue = terminal(EOL);
     heavy_check(PBWD_r2e1);
@@ -257,10 +229,14 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     return true;
 
     //ERROR
+    PBWD_r2e1_1:
+      //chyba v parametrech
+      if(flush_until(RPA) == false) return false;
+      goto PBWD_r2rp1;
     PBWD_r2e1:
       syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"def id ( parametrs ) : EOL\".\n");
       if(flush_until(EOL) == false) return false;
-      goto PBWD_r2rp1;
+      goto PBWD_r2rp2;
     PBWD_r2e2:
       syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"indent program_body_with_definition dedent\".\n");
       can_continue = flush_until(DEDENT);
@@ -308,7 +284,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
 
 
 
-bool non_empty_prog_body() //---NON EMPTA PROGRAM BODY---
+bool non_empty_prog_body() //---NON EMPTY PROGRAM BODY---
 {
   //non_empty_prog_body -> more_EOL command EOL more_EOL PB
   bool can_continue = true;
@@ -425,12 +401,47 @@ bool command() //---COMMAND---
 
 
 
-bool param_list() //---PARAM----
+bool param_list() //---PARAM_LIST----
+{
+  //param_list -> item more_params
+  //param_list -> epsilon
+  bool can_continue = true;
+
+  if(Tis_item) {
+    //param_list -> item more_params
+    //item
+    can_continue = item();
+    heavy_check(PL_r1e1);
+
+    can_continue = more_params();
+    heavy_check(PL_r1e1);
+
+    return true;
+
+    //ERROR
+    PL_r1e1:
+      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"item more_params\".\n");
+      return false;
+  }
+  else if(Tis(RPA)) {
+    //param_list -> epsilon
+    //proste jen skonci uspesne
+    return true;
+  }
+  else {
+    //sem by se to nemělo při dobré implementaci dostat
+    fprintf(stderr, "[hojkas] parser.c: param_list(): skoncilo v zakazanem stavu\n");
+    return false;
+  }
+}
+
+
+
+bool more_params() //---MORE_PARAMS---
 {
   bool can_continue = true;
   return can_continue;
 }
-
 
 
 bool more_EOL() //---MORE_EOL---
@@ -473,6 +484,19 @@ bool more_EOL() //---MORE_EOL---
 bool work_out_id()
 {
   bool can_continue = true;
+  return can_continue;
+}
+
+
+
+bool item()
+{
+  bool can_continue = true;
+  if(Tis(INT)) {
+    //placeholder!!! kvůli testům
+    free_token(curr_token);
+    curr_token = fake_token();
+  }
   return can_continue;
 }
 
@@ -532,7 +556,7 @@ void parser_do_magic()
    if(!kill_after_analysis) printf(" YES\n");
    else printf(" ERROR n. %d\n", global_error_code);
    printf("\n______________________________________\n");
-
+   print_all_ac_by_f(true);
 
    //TODO
    //prohledat tabulku, jestli v ni nezbylo neco nedef -> fce v symtable

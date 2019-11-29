@@ -39,7 +39,7 @@ typedef struct {
 
 //TODO keep here, usable from outside
 void define_id_from_info(cstring *key, st_type type, int param_count);
-void define_id_from_token(Token *token, int param_count); //not yet
+void define_id_from_token(Token *token, st_type type, int param_count); //not yet
 void go_in_global();
 void go_in_local();
 void start_symtable_with_functions();
@@ -47,6 +47,7 @@ void clean_all_symtables();
 void add_undef_id_from_info(cstring *key);
 void add_undef_id_from_token(Token *token);
 st_type get_id_type(Token *token);
+
 void global_check_def();
 void local_check_def();
 
