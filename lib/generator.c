@@ -80,24 +80,24 @@ void init_gen()
 
 void print_gen_all()
 {
-    if (out_stream == NULL || global_error_code != SUCCESS)
+    if (global_error_code != SUCCESS)
     {
         return;
     }
 
     if (result_code != NULL)
     {
-        fprintf(out_stream, "%s", result_code->str);
+        fprintf(stdout, "%s", result_code->str);
     }
 
     if (result_functions_code != NULL)
     {
-        fprintf(out_stream, "%s", result_functions_code->str);
+        fprintf(stdout, "%s", result_functions_code->str);
     }
 
     if (result_main_function_code != NULL)
     {
-        fprintf(out_stream, "%s", result_main_function_code->str);
+        fprintf(stdout, "%s", result_main_function_code->str);
     }
 }
 
@@ -1065,6 +1065,7 @@ void generate_code()
 //******************************************************************************************//
 //******************************************************************************************//
 
+/*
 int main(int argc, char const *argv[])
 {
     init_gen_test("testout");
@@ -1123,3 +1124,4 @@ int main(int argc, char const *argv[])
 
     return 0;
 }
+*/
