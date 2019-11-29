@@ -54,8 +54,14 @@ int main()
 
   go_in_local();
 
+  //str = init_cstring("dva");
+  //define_id_from_info(str, ST_VALUE, 0);
+
+  Token* res = init_token();
   str = init_cstring("dva");
-  define_id_from_info(str, ST_VALUE, 0);
+  add_id(res, str);
+  define_id_from_token(res, ST_VALUE, 0);
+
   str = init_cstring("jedna");
   //define_id_from_info(str, ST_VALUE, 0);
   add_undef_id_from_info(str);
