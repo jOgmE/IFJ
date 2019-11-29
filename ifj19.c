@@ -24,16 +24,25 @@ int main(int argc, char const *argv[])
         return 1;
     }
 
-    //insert scanner/parser call here
+    parser_do_magic();
+
+    if (global_error_code == INTERNAL_ERROR)
+    {
+        fclose(source_file);
+        return INTERNAL_ERROR;
+    }
 
     init_gen();
 
     if (global_error_code == INTERNAL_ERROR)
     {
+        fclose(source_file);
         return INTERNAL_ERROR;
     }
 
     free_gen();
+
+    fclose(source_file);
 
     return 0;
 }
