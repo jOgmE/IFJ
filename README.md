@@ -1,4 +1,7 @@
 # IFJ
+
+![build status](https://github.com/jOgmE/IFJ/workflows/build/badge.svg)
+
 IFJ hopefully 
 ![RNGesus](https://cdn.discordapp.com/emojis/616333658579533835.png)
 
