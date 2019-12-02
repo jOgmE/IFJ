@@ -4,7 +4,8 @@
 #include "symtable.h"
 #include "dynamic_string.h"
 
-FILE *f = NULL; //scaner to jeste nema
+FILE *source_file = NULL; //scaner to jeste nema
+
 
 int main()
 {

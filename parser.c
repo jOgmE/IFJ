@@ -66,13 +66,6 @@ Token *fake_analysis(Token *op1, Token *op2, Token *res)
   return curr_token;
 }
 
-void add_label(Token *token, cstring *label)
-{
-  if(token == NULL) return;
-  add_simple_data(token, LAB);
-  token->str = label;
-}
-
 //------MAKRA---------------------
 //vypíše chybové hlášení a nastaví global_error_code na error pokud už není
 #define syntax_err(str, str2) fprintf(stderr, "Syntax error l. %4ld: %s ", line_count, str);\
