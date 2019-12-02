@@ -41,6 +41,7 @@
  * COM - comma ','
  * ENDOFFILE - EOF
  * DOCS - docstring
+ * LAB - label
  * ---------------
  * Keywords
  * ---------------
@@ -57,7 +58,7 @@ typedef enum{
     L, LEQ, G, GEQ, EQ, ASS, NEQ, PLUS, MINUS,
     AST, SL, DSL, COL, LPA, RPA, EOFILE, COM,
     DEF, ELSE, IF, NONE, PASS, RETURN, WHILE,
-    DOCS, TEMP_ID
+    DOCS, TEMP_ID, LAB
 } e_type;
 
 /* Structure for converting string literals
@@ -160,6 +161,17 @@ void add_id(Token *token, cstring *str);
  * @param str data to be set
  */
 void add_docs(Token *token, cstring *str);
+
+/* Set token data (for label)
+ *
+ * Makes LAB type token with data
+ *
+ * @param token to set
+ * @param str of label to be set
+ */
+void add_label(Token *token, cstring *str);
+
+
 
 //---------------------------------------------------------
 //                Functions to read a token
