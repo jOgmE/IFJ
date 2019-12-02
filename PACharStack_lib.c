@@ -122,6 +122,17 @@ Token *PATop ( PAStack *s )
 
 
 
+// vrati 1 pokud je na vrcholu '$', jinak 0
+int PAEndAtTop ( PAStack *s )
+{
+	if (s->top == NULL ) return 0;
+
+	if (s->top->c == '$' ) return 1;
+	else return 0;
+}
+
+
+
 // zameni nejvyssi terminal "<term>" za "<term>["
 void PAAddBracket ( PAStack *s )
 {
@@ -172,8 +183,10 @@ void PAAddBracket ( PAStack *s )
 
 
 // provede zpetnou derivaci E->i
-int PACodeRule1 ( PAStack *s )
+int PACodeRule1 ( PAStack *s , Token *res )
 {
+	Token *tmp = copy_token(s->top->content);
+
 	switch (s->top->content->type) {
 
 		case ID:
@@ -181,13 +194,13 @@ int PACodeRule1 ( PAStack *s )
 			switch (get_id_type(s->top->content)) {
 				case ST_VALUE:
 				case ST_UNDEFINED:
-					Token *tmp = copy_token(s->top->content);
+								
+					PAPop(s);	// popne 'i'
+					PAPop(s);	// popne '['
+
+					PAPushE(s, tmp);		
+					res = tmp;
 				
-					SAPop(s);	// popne 'i'
-					SAPop(s);	// popne '['
-
-					SAPushE(s, tmp);		
-
 					return 0;
 					break;
 				case ST_LABEL:
@@ -201,27 +214,27 @@ int PACodeRule1 ( PAStack *s )
 		case INT:
 		case STR:
 		case DEC:
-			Token *tmp = copy_token(s->top->content);
-				
-			SAPop(s);	// popne 'i'
-			SAPop(s);	// popne '['
+			
+			PAPop(s);	// popne 'i'
+			PAPop(s);	// popne '['
 
-			SAPushE(s, tmp);		
+			PAPushE(s, tmp);
+			res = tmp;		
 
 			return 0;
 			break;
 		default:
 			break; // projde na return 1
-		}
 	}
-
+	
+	free_token(tmp);
 	// TODO internal error
 	return 1;
 }
 
 ac_type getACOP ( e_type op )
 {
-	switch ( e_type op ) {
+	switch ( op ) {
 		case L: return LESS;
 		case LEQ: return LE;
 		case G: return GREATER;
@@ -233,11 +246,12 @@ ac_type getACOP ( e_type op )
 		case AST: return MUL;
 		case SL: return DIV;
 		case DSL: return DIVINT;
+		default: return 0;
 	}
 }
 
 // provede zpetnou derivaci E->E+E
-int PACodeRule2 ( Token *E1, Token *op, Token *E2 )
+int PACodeRule2 ( PAStack *s, Token *E1, Token *op, Token *E2, Token *res )
 {
 	Token *result = init_token();
 
@@ -249,12 +263,17 @@ int PACodeRule2 ( Token *E1, Token *op, Token *E2 )
 	PAPop(s); // popne "[E+E"
 
 	PAPushE(s, result);
+	res = result;
+
+	return 0;	
 }
 
 // provede zpetnou derivaci E->(E)
-int PACodeRule3 ( PAStack *s )
+int PACodeRule3 ( PAStack *s, Token *res )
 {
-	SAPop(s); // popne ')'
+	PAPop(s); // popne ')'
+
+	Token *tmp = copy_token(s->top->content);
 
 	switch (s->top->content->type) {
 
@@ -263,13 +282,13 @@ int PACodeRule3 ( PAStack *s )
 			switch (get_id_type(s->top->content)) {
 				case ST_VALUE:
 				case ST_UNDEFINED:
-					Token *tmp = copy_token(s->top->content);
-				
-					SAPop(s);	// popne 'E'
-					SAPop(s);	// popne '('
-					SAPop(s);	// popne '['
+									
+					PAPop(s);	// popne 'E'
+					PAPop(s);	// popne '('
+					PAPop(s);	// popne '['
 
-					SAPushE(s, tmp);		
+					PAPushE(s, tmp);		
+					res = tmp;
 
 					return 0;
 					break;
@@ -284,21 +303,21 @@ int PACodeRule3 ( PAStack *s )
 		case INT:
 		case STR:
 		case DEC:
-			Token *tmp = copy_token(s->top->content);
 				
-			SAPop(s);	// popne 'E'
-			SAPop(s);	// popne '('
-			SAPop(s);	// popne '['
+			PAPop(s);	// popne 'E'
+			PAPop(s);	// popne '('
+			PAPop(s);	// popne '['
 
-			SAPushE(s, tmp);		
+			PAPushE(s, tmp);	
+			res = tmp;	
 
 			return 0;
 			break;
 		default:
 			break; // projde na return 1
-		}
 	}
 
+	free_token(tmp);
 	// TODO internal error
 	return 1;
 
@@ -306,7 +325,7 @@ int PACodeRule3 ( PAStack *s )
 
 
 // upravi vrchol zasobniku podle pravidel E->i, E->(E), E->E<OP>E
-int PAApplyRule ( PAStack *s )
+int PAApplyRule ( PAStack *s, Token *res )
 {
 	PAStackElem* tempStack[4];
 	int i = 0;
@@ -336,7 +355,7 @@ int PAApplyRule ( PAStack *s )
 		if ( tempStack[2]->c == '[' && tempStack[3]->c == 'i' ) {
 				
 			printf("PA: Derivace E->i\n");
-			PACodeRule1(s);
+			PACodeRule1(s, res);
 			return 0;
 			// TODO E->i
 
@@ -354,12 +373,14 @@ int PAApplyRule ( PAStack *s )
 			if ( tempStack[1]->c == 'E' && tempStack[2]->c == '+' && tempStack[3]->c == 'E' ) {
 
 				printf("Derivace E->E+E\n");
+				PACodeRule2(s, tempStack[1]->content, tempStack[2]->content, tempStack[3]->content, res);
 				return 0;
 				// TODO E->E+E
 
 			} else if ( tempStack[1]->c == '(' && tempStack[2]->c == 'E' && tempStack[3]->c == ')' ) {
 
 				printf("Derivace E->(E)\n");
+				PACodeRule3(s, res);
 				return 0;
 				// TODO E->(E)
 

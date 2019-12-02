@@ -17,6 +17,7 @@
 #include "indent_stack.h"
 #include "dynamic_string.h"
 #include "errors.h"
+#include "ifj19.h"
 
 //starting state
 #define S 1

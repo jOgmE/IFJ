@@ -8,5 +8,6 @@
 #include <stdio.h>
 #include "generator.h"
 #include "scanner.h"
+#include "parser.h"
 
 extern FILE *source_file;
