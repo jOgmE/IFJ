@@ -14,6 +14,7 @@
  * IMPORTANT: na konci souboru nemusí být EOL EOF, ale jen EOF, ale
  * já asi počítám s EOL EOF
  * jsou ty stavy zakázané? ...
+ * if SEGFAULT - dobra sance, ze flippz nekopiruje token
  *
  * NOTE: zbytečne vícemásobné hlášení, souvisí s ne moc nice hlášeními
  * actually not that bad, vypise to postupne jak to vybublava, sice vickrat,
@@ -35,11 +36,10 @@ e_type faking[100] = {
   DEF, ID, LPA, INT, COM, ID, RPA, COL, EOL, INDENT,
   PASS, EOL, DEDENT, PASS, EOL, RETURN, INT, PLUS, INT, EOL,
   WHILE, INT, COL, EOL, INDENT, PASS, EOL, DEDENT, EOL,
+  WHILE, INT, COL, EOL, INDENT, PASS, EOL, DEDENT, EOL,
   IF, INT, COL, EOL, INDENT, PASS, EOL, DEDENT, EOL,
   EOFILE
 };
-
-//int fake_num = 16;
 
 Token *fake_token()
 {
@@ -60,10 +60,17 @@ Token *fake_token()
 Token *fake_analysis(Token *op1, Token *op2, Token *res)
 {
   while(Tis_item || Tis_op) {
-      free_token(curr_token);
+      //free_token(curr_token);
       curr_token = fake_token();
   }
   return curr_token;
+}
+
+void add_label(Token *token, cstring *label)
+{
+  if(token == NULL) return;
+  add_simple_data(token, LAB);
+  token->str = label;
 }
 
 //------MAKRA---------------------
@@ -96,6 +103,57 @@ bool flush_until(e_type token_type)
     if(Tis(EOFILE)) return false;
   }
   return false;
+}
+
+typedef enum {
+  L_WHILE_START, L_WHILE_LABEL, L_WHILE_END, L_IF_START, L_IF_ELSE, L_IF_END, L_WHILE_ADD, L_IF_ADD
+} label_enum;
+
+//vytvori label pro while nebo if, iteruje cislo, aby byl label unikatni
+cstring* create_label(label_enum type)
+{
+  static unsigned while_count = 0;
+  static unsigned if_count = 0;
+  cstring* str = NULL;
+  char num[30];
+
+  switch (type)
+  {
+    case L_WHILE_LABEL:
+      sprintf(num, "l_wl_%d", while_count);
+      str = init_cstring(num);
+      break;
+    case L_WHILE_START:
+      sprintf(num, "l_ws_%d", while_count);
+      str = init_cstring(num);
+      break;
+    case L_WHILE_END:
+      sprintf(num, "l_we_%d", while_count);
+      str = init_cstring(num);
+      break;
+    case L_IF_START:
+      sprintf(num, "l_is_%d", if_count);
+      str = init_cstring(num);
+      break;
+    case L_IF_ELSE:
+      sprintf(num, "l_ie_%d", if_count);
+      str = init_cstring(num);
+      break;
+    case L_IF_END:
+      sprintf(num, "l_in_%d", if_count);
+      str = init_cstring(num);
+      break;
+    case L_WHILE_ADD:
+      while_count++;
+      break;
+    case L_IF_ADD:
+      if_count++;
+      break;
+    default:
+      fprintf(stderr, "[hojkas] vytvareni labelu pro neexistujici hodnotu, bad hojkas\n");
+      break;
+  }
+  return str;
 }
 
 void stderr_print_token_info();
@@ -461,12 +519,51 @@ bool command() //---COMMAND---
     curr_token = fake_token();
     heavy_check(C_r3e1);
 
-    //TODO 3AC vytvorit label
+    //L_WHILE_LABEL label
+    //zpracovat cond
+    //cond jump na L_WHILE_START
+    //jump na L_WHILE_END
+    //L_WHILE_START label
+    //vlastni program
+    //JUMP na WHILE_LABEL
+    //L_WHILE_END label
+    //while_count pridat
 
-    //expression == cond, znegovat
-    curr_token = fake_analysis(curr_token, NULL, NULL);
+    //vytvori label while_label
+    Token *label;
+    if(!kill_after_analysis) {
+      label = init_token();
+      add_label(label, create_label(L_WHILE_LABEL));
+      appendAC(LABEL, NULL, NULL, label);
+    }
 
-    //TODO 3AC tu vůbec zatím není řešen! jen syntax...
+    Token *cond = init_token();
+    add_simple_data(cond, TEMP_ID);
+
+    Token *check = curr_token;
+    curr_token = fake_analysis(curr_token, NULL, cond);
+    if(curr_token == check) {
+      syntax_err("Pred tokenem ", " nebyl expression ale byt mel.\n");
+      goto C_r3e1;
+    }
+    //kill_after_analysis = true;
+    //vytvori cond_jump na zaklade cond
+    if(!kill_after_analysis) {
+      label = init_token();
+      add_label(label, create_label(L_WHILE_START));
+      appendAC(COND_JUMP, cond, NULL, label);
+      //jump na WHILE_END, sem se to dostane ve vysledem kodu, pokud
+      //podminka cyklu jiz neplati
+      label = init_token();
+      add_label(label, create_label(L_WHILE_END));
+      appendAC(JUMP, NULL, NULL, label);
+      //vytvori label while starts, kam se skace po uspesne podmince
+      label = init_token();
+      add_label(label, create_label(L_WHILE_START));
+      appendAC(LABEL, NULL, NULL, label);
+
+      heavy_check(C_r3e1);
+    }
 
     //:
     can_continue = terminal(COL);
@@ -502,6 +599,20 @@ bool command() //---COMMAND---
     curr_token = fake_token();
     heavy_check(C_r3e2);
 
+    if(!kill_after_analysis) {
+      //vytvori jump na while_label
+      label = init_token();
+      add_label(label, create_label(L_WHILE_LABEL));
+      appendAC(JUMP, NULL, NULL, label);
+      //vytvori jump na while_end
+      label = init_token();
+      add_label(label, create_label(L_WHILE_END));
+      appendAC(LABEL, NULL, NULL, label);
+      //pripocita while label pro pristi cyklus
+      create_label(L_WHILE_ADD);
+      heavy_check(C_r3e2); //tohle nikdy neskoci, jen pro alloc check
+    }
+
     return true;
 
     //error
@@ -520,7 +631,18 @@ bool command() //---COMMAND---
     curr_token = fake_token();
     heavy_check(C_r4e1);
 
-    //sure expression
+    //shrnuti:
+    //vypocet cond
+    //COND_JUMP na L_IF_START
+    //JUMP na L_IF_ELSE
+    //label L_IF_START
+    //vlastni kod if casti
+    //JUMP na L_IF_END
+    //label L_IF_ELSE
+    //vlastni kod else casti
+    //label L_IF_END
+
+    //sure expression, nezapomenout na check, ze neni prazdny
     //TODO placeholder
     curr_token = fake_analysis(curr_token, NULL, NULL);
 

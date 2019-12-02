@@ -47,6 +47,9 @@ void print_ac(tAC* ac) {
     printf("AC: ");
     print_type(ac->type);
     printf("\n");
+    if(ac->op1 != NULL) printf("  1 %s\n", get_cstring_string(ac->op1->str));
+    if(ac->op2 != NULL) printf("  2 %s\n", get_cstring_string(ac->op2->str));
+    if(ac->res != NULL) printf("  r %s\n", get_cstring_string(ac->res->str));
     return;
   }
   printf("Adress code struct\n    type - %d\n", ac->type);
