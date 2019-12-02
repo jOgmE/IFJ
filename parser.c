@@ -24,7 +24,7 @@
 #include "parser.h"
 
 //TODO delete, just for debug
-#include "tests/hojkas/st_debug.c"
+//#include "tests/hojkas/st_debug.c"
 
 Token *curr_token = NULL;
 Token *last_token = NULL;
@@ -953,7 +953,7 @@ void parser_do_magic()
 
    //prog <- pocatecni nonterminal, cely program
    //TODO delete this (but keep prog() calling)
-   bool overall = prog();
+   /*bool overall = prog();
    printf("\n_______________________________________\n");
    printf("Analysis complete?      ");
    if(overall) printf("YES\n");
@@ -962,7 +962,7 @@ void parser_do_magic()
    if(!kill_after_analysis) printf(" YES\n");
    else printf(" ERROR n. %d\n", global_error_code);
    printf("\n______________________________________\n");
-   print_all_ac_by_f(true);
+   print_all_ac_by_f(true);*/
 
    //TODO
    //prohledat tabulku, jestli v ni nezbylo neco nedef -> fce v symtable

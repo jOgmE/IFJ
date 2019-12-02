@@ -70,7 +70,7 @@ void create_symtable(STable **st, size_t size)
 
   (*st)->size = size;
 
-  for(int i = 0; i < size; i++) (*st)->item_array[i] = NULL;
+  for(unsigned i = 0; i < size; i++) (*st)->item_array[i] = NULL;
 }
 
 void destroy_line(STItem **i)
@@ -88,7 +88,7 @@ void destroy_line(STItem **i)
 void destroy_symtable(STable **st)
 {
   size_t size = (*st)->size;
-  for(int i = 0; i < size; i++) destroy_line(&((*st)->item_array[i]));
+  for(unsigned i = 0; i < size; i++) destroy_line(&((*st)->item_array[i]));
   free((*st)->item_array);
   free((*st));
   *st = NULL;
@@ -172,7 +172,7 @@ bool st_is_active()
 void set_st_act(STable *st)
 {
   size_t size = st->size;
-  for(int i = 0; i < size; i++) {
+  for(unsigned i = 0; i < size; i++) {
     if(st->item_array[i] != NULL) {
       act_item = st->item_array[i];
       return;
