@@ -638,7 +638,7 @@ bool command() //---COMMAND---
     //sure expression, nezapomenout na check, ze neni prazdny
     //TODO placeholder
     curr_token = fake_analysis(curr_token, NULL, NULL);
-
+    
     //:
     can_continue = terminal(COL);
     heavy_check(C_r4e1);
