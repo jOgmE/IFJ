@@ -2,6 +2,9 @@
 #include "../../symtable.h"
 #include "../../adress_code.h"
 
+#ifndef _ST_DEBUG_
+#define _ST_DEBUG_
+
 extern STable* global_st;
 extern STable* local_st;
 
@@ -137,3 +140,5 @@ void print_local()
 {
   print_table(local_st, local_st->size);
 }
+
+#endif
