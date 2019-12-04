@@ -358,7 +358,7 @@ void define_id_from_token(Token *token, st_type type, int param_count)
   }
 
   cstring *key = init_cstring(get_cstring_string(token->str)); //kopie token str
-  add_undef_id_from_info(key);
+  add_undef_id_from_info(key, ST_UNDEFINED); //TODO fix with correct type
 
   define_id_from_info(key, type, param_count);
 }
@@ -380,10 +380,10 @@ void add_undef_id_from_info(cstring *key, st_type type)
   append_item(new);
 }
 
-void add_undef_id_from_token(Token *token, st_type type);
+void add_undef_id_from_token(Token *token, st_type type)
 {
   cstring *key = init_cstring(get_cstring_string(token->str)); //kopie token str
-  add_undef_id_from_info(key);
+  add_undef_id_from_info(key, ST_UNDEFINED); //TODO fix with correct type
 }
 
 st_type get_id_type(Token *token)

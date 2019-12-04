@@ -20,7 +20,7 @@
 #include "parser.h"
 
 //TODO delete, just for debug
-#include "tests/hojkas/st_debug.c"
+//#include "tests/hojkas/st_debug.c"
 
 Token *curr_token = NULL;
 Token *last_token = NULL;
@@ -151,7 +151,7 @@ cstring* create_label(label_enum type, int number)
 
 void stderr_print_token_info();
 
-//-----ROZKLADY-------------------      // 11 / 19
+//-----ROZKLADY-------------------      // 11 / 18
 bool prog();                            //done
 bool non_empty_prog_body();             //done
 bool prog_body();                       //done
@@ -163,7 +163,6 @@ bool not_sure2(); //started
 bool not_sure3(); //
 bool param_list();                      //done
 bool more_params();                     //done
-bool op(); //
 bool item();                            //done
 bool param_item();                      //done
 bool terminal(e_type type);             //done
@@ -1012,7 +1011,26 @@ bool not_sure1()
 bool not_sure2()
 {
   bool can_continue = true;
-  return can_continue;
+  if(Tis(ID)) {
+    //id not_sure3
+
+    return true;
+  }
+  else if(Tis(INT) || Tis(DEC) || Tis(STR)) {
+    //int/float/str rest_expr
+
+    return true;
+  }
+  else if(Tis(LPA)) {
+    //( rest_expr
+
+    return true;
+  }
+  else {
+    //token, co nenalezi zadnemu moznemu pravidlu
+    syntax_err("Placeholder: not_sure2: Token ", " nebyl ok.\n");
+    return false;
+  }
 }
 
 
@@ -1023,14 +1041,6 @@ bool not_sure3()
   return can_continue;
 }
 
-
-
-
-bool op()
-{
-  //co vic tu potrebuji? TODO
-  return (Tis_op);
-}
 
 
 
@@ -1157,7 +1167,7 @@ void parser_do_magic()
    //TODO delete this (but keep prog() calling)
    bool overall = prog();
    printf("______________________________________\n");
-   print_all_ac_by_f(true);
+   //print_all_ac_by_f(true);
    printf("_______________________________________\n");
    printf("Analysis complete?      ");
    if(overall) printf("YES\n");
