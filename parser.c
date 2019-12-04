@@ -151,15 +151,15 @@ cstring* create_label(label_enum type, int number)
 
 void stderr_print_token_info();
 
-//-----ROZKLADY-------------------      // 9  / 19
+//-----ROZKLADY-------------------      // 11 / 19
 bool prog();                            //done
 bool non_empty_prog_body();             //done
 bool prog_body();                       //done
 bool prog_body_with_def();              //done
 bool more_EOL();                        //done
-bool command(); //started
-bool not_sure1(); //
-bool not_sure2(); //
+bool command();                         //done
+bool not_sure1(); //started
+bool not_sure2(); //started
 bool not_sure3(); //
 bool param_list();                      //done
 bool more_params();                     //done
@@ -981,8 +981,30 @@ bool more_EOL() //---MORE_EOL---
 bool not_sure1()
 {
   bool can_continue = true;
-  curr_token = fake_token();
-  return can_continue;
+  if(Tis(LPA)) {
+    //( param list )
+
+    return true;
+  }
+  else if(Tis(EQ)) {
+    //= not_sure2
+
+    return true;
+  }
+  else if(Tis_op) {
+    // op rest_expression
+
+    return true;
+  }
+  else if(Tis(EOL)) {
+    //epsilon
+    return true;
+  }
+  else {
+    //token, co nenalezi zadnemu moznemu pravidlu
+    syntax_err("Placeholder: not_sure1: Token ", " nebyl ok.\n");
+    return false;
+  }
 }
 
 
