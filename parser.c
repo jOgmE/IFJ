@@ -12,6 +12,7 @@
  * já asi počítám s EOL EOF
  * IMPORTANT: jsem kkt, po dedentu nemusi byt eol, command s tim ale pocita,
  * mozne reseni: prepsat commandy krome techto, aby za sebou ocekavaly eol
+ * projit vsude, kde je init_token, pridat heavy checkk!
  *
  * NOTE: problem multi-hlaseni -> staci nehlasit kdekoliv, kde se zanoruji
  */
@@ -36,11 +37,13 @@ e_type faking[100] = {
   /*WHILE, INT, COL, EOL, INDENT, PASS, EOL, DEDENT, EOL,
   WHILE, INT, COL, EOL, INDENT, WHILE, INT, COL,
   EOL, INDENT, PASS, EOL, DEDENT, EOL, DEDENT, EOL,*/
-  IF, INT, COL, EOL, INDENT, PASS, EOL, DEDENT,ELSE, COL,
+  /*IF, INT, COL, EOL, INDENT, PASS, EOL, DEDENT,ELSE, COL,
   EOL, INDENT, PASS, EOL, DEDENT, EOL,
   IF, INT, COL, EOL, INDENT, IF, INT, COL, EOL, INDENT, PASS, EOL, DEDENT,ELSE, COL,
   EOL, INDENT, PASS, EOL, DEDENT, DEDENT,ELSE, COL,
-  EOL, INDENT, PASS, EOL, DEDENT,
+  EOL, INDENT, PASS, EOL, DEDENT,*/
+  WHILE, INT, COL, EOL, INDENT,
+  ID, EOL, DEDENT,
   EOL,
   EOFILE
 };
@@ -449,16 +452,21 @@ bool command() //---COMMAND---
     free(curr_token);
     curr_token = fake_token();
 
-    //sure_expresion
-    //TODO is this ok?
-    Token *ret_id = init_token();
-    add_string(ret_id, init_cstring("ret_id"));
-    ret_id->type = TEMP_ID;
-    Token *copy_ret_id = copy_token(ret_id);
-    heavy_check(C_r2e1);
+    Token *ret_id;
+    if(!kill_after_analysis) {
+      ret_id = init_token();
+      heavy_check(C_r2e1);
+      add_temp_id(ret_id, init_cstring("temp_ret"));
+      heavy_check(C_r2e1);
+    }
 
     //zavola analyzu vyrazu
-    curr_token = fake_analysis(curr_token, NULL, copy_ret_id);
+    Token *check = curr_token;
+    curr_token = fake_analysis(curr_token, NULL, ret_id);
+    if(check == curr_token) {
+      if(!kill_after_analysis) free_token(ret_id);
+      ret_id = NULL; //nebyl tam expr, nic se nevraci
+    }
 
     //vygenerovat ret_id navratovou hodnotu
     if(!kill_after_analysis) {
@@ -517,9 +525,13 @@ bool command() //---COMMAND---
       appendAC(LABEL, NULL, NULL, label);
     }
 
-    //TODO not okay, nazev
-    Token *cond = init_token();
-    add_simple_data(cond, TEMP_ID);
+    //vytvori cond token pro vysledek SA
+    Token *cond = NULL;
+    if(!kill_after_analysis) {
+      cond = init_token();
+      add_temp_id(cond, init_cstring("temp_cond"));
+      heavy_check(C_r3e1); //jen alloc_check
+    }
 
     Token *check = curr_token;
     curr_token = fake_analysis(curr_token, NULL, cond);
@@ -630,8 +642,14 @@ bool command() //---COMMAND---
     int this_if_count = if_count;
     if_count++;
     Token *label;
-    Token* cond = init_token();
-    add_simple_data(cond, TEMP_ID);
+    //vytvori cond token pro vysledek SA
+    Token *cond = NULL;
+    if(!kill_after_analysis) {
+      cond = init_token();
+      heavy_check(C_r4e1);
+      add_temp_id(cond, init_cstring("temp_cond"));
+      heavy_check(C_r4e1); //jen alloc_check
+    }
 
     Token *check = curr_token;
     curr_token = fake_analysis(curr_token, NULL, cond);
@@ -775,14 +793,61 @@ bool command() //---COMMAND---
   else if(Tis(INT) || Tis(STR) || Tis(DEC) || Tis(LPA)) {
     //curr tokoen je int, str, dec, lpa, vse indikuje, ze je treba vyraz
     //poslat analzye EOL mEOL
-    //TODO chybi vse kolem
+
+    //jista analyza, just send it
+    //TODO mozna dat dalsi parametr, aby nic negeneroval?
+    //neresim res, to by nemelo spadnout, nepotrebuji zadny 3ac
     curr_token = fake_analysis(curr_token, NULL, NULL);
+
+    C_r5rp1:
+    //EOL
+    can_continue = terminal(EOL);
+    heavy_check(C_r5e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r5e1); //jen pro kontrolu inner erroru, takze navesti je jedno
+
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(C_r5e2);
+
     return true;
-  }/*
+    C_r5e1:
+      if(flush_until(EOL) == false) return false;
+      goto C_r5rp1;
+    C_r5e2:
+      return false;
+  }
   else if(Tis(ID)) {
     //TODO, 3AC
     //id not_sure1 eol meol
-  }*/
+    //ulozim token s id, protoze nevim, jestli je to id funkce nebo normalni
+    last_token = curr_token;
+
+    can_continue = not_sure1();
+    heavy_check(C_r6e1);
+
+    last_token = NULL;
+
+    C_r6rp1:
+    //EOL
+    can_continue = terminal(EOL);
+    heavy_check(C_r6e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r6e1); //jen pro kontrolu inner erroru, takze navesti je jedno
+
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(C_r6e2);
+
+    return true;
+    C_r6e1:
+      if(flush_until(EOL) == false) return false;
+      goto C_r6rp1;
+    C_r6e2:
+      return false;
+  }
   else {
     //sem by se to nemělo při dobré implementaci dostat
     /*fprintf(stderr, "[hojkas] parser.c: command(): skoncilo v zakazanem stavu\n");*/
@@ -909,6 +974,31 @@ bool more_EOL() //---MORE_EOL---
     syntax_err("Placeholder: more_eol: Token ", " nebyl okay.\n");
     return false;
   }
+}
+
+
+
+bool not_sure1()
+{
+  bool can_continue = true;
+  curr_token = fake_token();
+  return can_continue;
+}
+
+
+
+bool not_sure2()
+{
+  bool can_continue = true;
+  return can_continue;
+}
+
+
+
+bool not_sure3()
+{
+  bool can_continue = true;
+  return can_continue;
 }
 
 
@@ -1045,7 +1135,7 @@ void parser_do_magic()
    //TODO delete this (but keep prog() calling)
    bool overall = prog();
    printf("______________________________________\n");
-   //print_all_ac_by_f(true);
+   print_all_ac_by_f(true);
    printf("_______________________________________\n");
    printf("Analysis complete?      ");
    if(overall) printf("YES\n");
