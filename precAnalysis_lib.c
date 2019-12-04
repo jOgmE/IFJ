@@ -1,4 +1,4 @@
-#include "precAnalysis.h"
+#include "precAnalysis_lib.h"
 
 Token *expressionAnalysis ( Token *input1, Token *input2, Token *res ) {
 
@@ -48,10 +48,12 @@ Token *expressionAnalysis ( Token *input1, Token *input2, Token *res ) {
 				break;
 
 			default:
-				// TODO error
+				kill_after_analysis = true;
+				global_error_code = SYNTAX_ANALYSIS_ERROR;
+				print_compile_error(SYNTAX_ANALYSIS_ERROR, ERROR, line_count, f, "Neplatny vyraz.");
 				break;
-
 		
+		}
 
 	} while ( PAEndAtTop(s) || !(*isFin) );
 
