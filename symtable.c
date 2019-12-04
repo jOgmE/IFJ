@@ -363,8 +363,9 @@ void define_id_from_token(Token *token, st_type type, int param_count)
   define_id_from_info(key, type, param_count);
 }
 
-void add_undef_id_from_info(cstring *key)
+void add_undef_id_from_info(cstring *key, st_type type)
 {
+  //TODO ověř i typ!!!
   if(!in_global) {
     //potrebujeme prohledat i local
     if(search_st(local_st, key)) return; //už info o nem existuje, okay, end
@@ -379,7 +380,7 @@ void add_undef_id_from_info(cstring *key)
   append_item(new);
 }
 
-void add_undef_id_from_token(Token *token)
+void add_undef_id_from_token(Token *token, st_type type);
 {
   cstring *key = init_cstring(get_cstring_string(token->str)); //kopie token str
   add_undef_id_from_info(key);

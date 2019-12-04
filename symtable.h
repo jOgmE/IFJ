@@ -50,8 +50,8 @@ void go_in_global();
 void go_in_local();
 void start_symtable_with_functions();
 void clean_all_symtables();
-void add_undef_id_from_info(cstring *key);
-void add_undef_id_from_token(Token *token);
+void add_undef_id_from_info(cstring *key, st_type type);
+void add_undef_id_from_token(Token *token, st_type type);
 st_type get_id_type(Token *token);
 
 void global_check_def();
