@@ -4,8 +4,9 @@
 extern tAC* first_ac;
 extern tAC* last_ac;
 
-FILE *f = NULL;
-
+FILE *source_file = NULL;
+#include "st_debug.c"
+/*
 void print_ac(tAC* ac) {
   printf("Adress code struct\n    type - %d\n", ac->type);
   printf("    Token op1 - %p\n", (void *) ac->op1);
@@ -55,13 +56,10 @@ void print_all_by_f()
     print_ac(readAC());
     actAC();
   }
-}
+}*/
 
 int main()
 {
-  //print_all_ac();
-  print_all_by_f();
-
   printf("Creating tokens and adding them, INT = 5, DEC = 5.5 and id = hi\n");
   Token* op1 = init_token();
   Token* op2 = init_token();
@@ -90,15 +88,11 @@ int main()
   add_id(res, str3);
   appendAC(MUL, op1, op2, res);
 
-  //print_all_ac();
-  print_all_by_f();
+  res = init_token();
+  add_id(res, init_cstring("my change"));
+  changeLastRes(res);
 
-  printf("------\n");
-  setACAct();
-  set_ac_breakpoint();
-  print_ac(readAC());
-  goto_ac_breakpoint();
-  print_ac(readAC());
+  print_all_ac_by_f(true);
 
   destroyACList();
 

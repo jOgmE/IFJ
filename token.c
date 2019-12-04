@@ -2,7 +2,7 @@
  *
  * Implements functions working with the token.
  * Interface token
- * 
+ *
  * \autor xpocsn00
  * \date 2019-11-03
  * \version 0.1
@@ -78,6 +78,20 @@ void add_id(Token *token, cstring *str){
 void add_docs(Token *token, cstring *str){
     add_simple_data(token, DOCS);
     token->str = str;
+}
+
+void add_label(Token *token, cstring *str)
+{
+  if(token == NULL) return;
+  add_simple_data(token, LAB);
+  token->str = str;
+}
+
+void add_temp_id(Token *token, cstring *str)
+{
+  if(token == NULL) return;
+  add_simple_data(token, TEMP_ID);
+  token->str = str;
 }
 
 e_type getTokenType(Token *token){
