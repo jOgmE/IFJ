@@ -8,6 +8,8 @@
 
 #include "adress_code.h"
 
+extern bool kill_after_analysis;
+
 tAC *first_ac = NULL;
 tAC *last_ac = NULL;
 tAC *curr_ac = NULL;
@@ -99,6 +101,17 @@ void goto_ac_breakpoint()
 {
   if(breakpoint_ac == NULL) fprintf(stderr, "Breakpoint nebyl nastaven, nedelam nic\n");
   else curr_ac = breakpoint_ac;
+}
+
+void changeLastRes(Token* token)
+{
+  //nakopiruje token a da ho místo posledního
+  //prvku v posledním 3AC za podmínky,
+  //že !kill_after_analysis
+  if(last_ac == NULL || token == NULL || kill_after_analysis) return;
+  if(last_ac->res != NULL) free(last_ac->res);
+  Token *new = copy_token(token);
+  last_ac->res = new;
 }
 
 tAC *readAC()

@@ -70,7 +70,7 @@ void create_symtable(STable **st, size_t size)
 
   (*st)->size = size;
 
-  for(int i = 0; i < size; i++) (*st)->item_array[i] = NULL;
+  for(unsigned i = 0; i < size; i++) (*st)->item_array[i] = NULL;
 }
 
 void destroy_line(STItem **i)
@@ -88,7 +88,7 @@ void destroy_line(STItem **i)
 void destroy_symtable(STable **st)
 {
   size_t size = (*st)->size;
-  for(int i = 0; i < size; i++) destroy_line(&((*st)->item_array[i]));
+  for(unsigned i = 0; i < size; i++) destroy_line(&((*st)->item_array[i]));
   free((*st)->item_array);
   free((*st));
   *st = NULL;
@@ -172,7 +172,7 @@ bool st_is_active()
 void set_st_act(STable *st)
 {
   size_t size = st->size;
-  for(int i = 0; i < size; i++) {
+  for(unsigned i = 0; i < size; i++) {
     if(st->item_array[i] != NULL) {
       act_item = st->item_array[i];
       return;
@@ -358,13 +358,14 @@ void define_id_from_token(Token *token, st_type type, int param_count)
   }
 
   cstring *key = init_cstring(get_cstring_string(token->str)); //kopie token str
-  add_undef_id_from_info(key);
+  add_undef_id_from_info(key, ST_UNDEFINED); //TODO fix with correct type
 
   define_id_from_info(key, type, param_count);
 }
 
-void add_undef_id_from_info(cstring *key)
+void add_undef_id_from_info(cstring *key, st_type type)
 {
+  //TODO ověř i typ!!!
   if(!in_global) {
     //potrebujeme prohledat i local
     if(search_st(local_st, key)) return; //už info o nem existuje, okay, end
@@ -379,10 +380,10 @@ void add_undef_id_from_info(cstring *key)
   append_item(new);
 }
 
-void add_undef_id_from_token(Token *token)
+void add_undef_id_from_token(Token *token, st_type type)
 {
   cstring *key = init_cstring(get_cstring_string(token->str)); //kopie token str
-  add_undef_id_from_info(key);
+  add_undef_id_from_info(key, ST_UNDEFINED); //TODO fix with correct type
 }
 
 st_type get_id_type(Token *token)

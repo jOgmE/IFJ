@@ -34,7 +34,7 @@ Token *getToken()
     else
     {
         global_error_code = 99;
-        return;
+        return NULL;
     }
 
     //checking static variable

@@ -139,5 +139,7 @@ void set_ac_breakpoint();
 //vrátí se zpátky na act ten, kdy se nastavil breakpoint
 //nebyl-li nastaven, neprovede se nic
 void goto_ac_breakpoint();
+//zmeni res v poslednim AC na token, ktery nakopiruje, nepouzije
+void changeLastRes(Token* token);
 
 #endif //_ADRESS_CODE_H_

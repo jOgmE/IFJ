@@ -7,39 +7,46 @@
  *
  * IMPORTANT: z nejakeho duvodu se stringy vypisuji v synt erroru jen par znaku,
  * proverit TODO
- * IMPORTANT: Vypisy s "neocekavana skladba" by to chtělo asi přepsat
- * IMPORTANT: není stav, že PBWD může začínat EOL... hodit do tabulky před to
- * MEOL a sem přihodit stavy podle tabulky
  * bacha na print funkci
  * IMPORTANT: na konci souboru nemusí být EOL EOF, ale jen EOF, ale
  * já asi počítám s EOL EOF
- * jsou ty stavy zakázané? ...
+ * IMPORTANT: jsem kkt, po dedentu nemusi byt eol, command s tim ale pocita,
+ * mozne reseni: prepsat commandy krome techto, aby za sebou ocekavaly eol
+ * projit vsude, kde je init_token, pridat heavy checkk!
  *
- * NOTE: zbytečne vícemásobné hlášení, souvisí s ne moc nice hlášeními
- * actually not that bad, vypise to postupne jak to vybublava, sice vickrat,
- * ale vice infa...
+ * NOTE: problem multi-hlaseni -> staci nehlasit kdekoliv, kde se zanoruji
  */
 
 #include "parser.h"
 
 //TODO delete, just for debug
-#include "tests/hojkas/st_debug.c"
+//#include "tests/hojkas/st_debug.c"
 
 Token *curr_token = NULL;
 Token *last_token = NULL;
+
+int while_count = 0;
+int if_count = 0;
 
 //-------SIMULACNI FUNKCE, VYMAZAT-----------
 //TODO delete
 
 e_type faking[100] = {
-  DEF, ID, LPA, INT, COM, ID, RPA, COL, EOL, INDENT,
-  PASS, EOL, DEDENT, PASS, EOL, RETURN, INT, PLUS, INT, EOL,
-  WHILE, INT, COL, EOL, INDENT, PASS, EOL, DEDENT, EOL,
-  IF, INT, COL, EOL, INDENT, PASS, EOL, DEDENT, EOL,
+  /*DEF, ID, LPA, INT, COM, ID, RPA, COL, EOL, INDENT,
+  PASS, EOL, DEDENT, PASS, EOL, RETURN, INT, PLUS, INT, EOL*/
+  /*WHILE, INT, COL, EOL, INDENT, PASS, EOL, DEDENT, EOL,
+  WHILE, INT, COL, EOL, INDENT, WHILE, INT, COL,
+  EOL, INDENT, PASS, EOL, DEDENT, EOL, DEDENT, EOL,*/
+  /*IF, INT, COL, EOL, INDENT, PASS, EOL, DEDENT,ELSE, COL,
+  EOL, INDENT, PASS, EOL, DEDENT, EOL,
+  IF, INT, COL, EOL, INDENT, IF, INT, COL, EOL, INDENT, PASS, EOL, DEDENT,ELSE, COL,
+  EOL, INDENT, PASS, EOL, DEDENT, DEDENT,ELSE, COL,
+  EOL, INDENT, PASS, EOL, DEDENT,*/
+  WHILE, INT, COL, EOL, INDENT,
+  ID, EOL, DEDENT,
+  EOL,
   EOFILE
 };
-
-//int fake_num = 16;
 
 Token *fake_token()
 {
@@ -48,6 +55,7 @@ Token *fake_token()
   /*fprintf(stderr, "Loading state %d\n", time);*/
   add_simple_data(new, faking[time]);
   if(faking[time] != EOFILE) time++;
+  line_count++;
   return new;
 }
 
@@ -60,7 +68,7 @@ Token *fake_token()
 Token *fake_analysis(Token *op1, Token *op2, Token *res)
 {
   while(Tis_item || Tis_op) {
-      free_token(curr_token);
+      //free_token(curr_token);
       curr_token = fake_token();
   }
   return curr_token;
@@ -98,21 +106,63 @@ bool flush_until(e_type token_type)
   return false;
 }
 
+typedef enum {
+  L_WHILE_START, L_WHILE_LABEL, L_WHILE_END, L_IF_START, L_IF_ELSE, L_IF_END
+} label_enum;
+
+//vytvori label pro while nebo if, iteruje cislo, aby byl label unikatni
+cstring* create_label(label_enum type, int number)
+{
+  cstring* str = NULL;
+  char num[30];
+
+  switch (type)
+  {
+    case L_WHILE_LABEL:
+      sprintf(num, "l_wl_%d", number);
+      str = init_cstring(num);
+      break;
+    case L_WHILE_START:
+      sprintf(num, "l_ws_%d", number);
+      str = init_cstring(num);
+      break;
+    case L_WHILE_END:
+      sprintf(num, "l_we_%d", number);
+      str = init_cstring(num);
+      break;
+    case L_IF_START:
+      sprintf(num, "l_is_%d", number);
+      str = init_cstring(num);
+      break;
+    case L_IF_ELSE:
+      sprintf(num, "l_ie_%d", number);
+      str = init_cstring(num);
+      break;
+    case L_IF_END:
+      sprintf(num, "l_in_%d", number);
+      str = init_cstring(num);
+      break;
+    default:
+      fprintf(stderr, "[hojkas] vytvareni labelu pro neexistujici hodnotu, bad hojkas\n");
+      break;
+  }
+  return str;
+}
+
 void stderr_print_token_info();
 
-//-----ROZKLADY-------------------      // 9  / 19
+//-----ROZKLADY-------------------      // 11 / 18
 bool prog();                            //done
 bool non_empty_prog_body();             //done
 bool prog_body();                       //done
 bool prog_body_with_def();              //done
 bool more_EOL();                        //done
-bool command(); //started
-bool not_sure1(); //
-bool not_sure2(); //
+bool command();                         //done
+bool not_sure1(); //started
+bool not_sure2(); //started
 bool not_sure3(); //
 bool param_list();                      //done
 bool more_params();                     //done
-bool op(); //
 bool item();                            //done
 bool param_item();                      //done
 bool terminal(e_type type);             //done
@@ -153,7 +203,7 @@ bool prog() //---PROG---
 bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
 {
   //prog_body_with_def -> epsilon
-  //prog_body_with_def -> command EOL more_EOL prog_body_with_def
+  //prog_body_with_def -> command prog_body_with_def
   //prog_body_with_def -> def id ( param_list ) : EOL indent
   //                      non_empty_prog_body dedent prog_body_with_def
   bool can_continue = true;
@@ -256,45 +306,29 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
       if(flush_until(RPA) == false) return false;
       goto PBWD_r2rp1;
     PBWD_r2e1:
-      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"def id ( parametrs ) : EOL\".\n");
+      //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"def id ( parametrs ) : EOL\".\n");
       if(flush_until(EOL) == false) return false;
       goto PBWD_r2rp2;
     PBWD_r2e2:
-      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"indent program_body_with_definition dedent\".\n");
+      //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"indent program_body_with_definition dedent\".\n");
       can_continue = flush_until(DEDENT);
       return can_continue;
   }
   else if(Tis(ID) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(STR) || Tis(INT) || Tis(DEC)) {
-    //prog_body_with_def -> command EOL more_EOL prog_body_with_def
+    //prog_body_with_def -> command prog_body_with_def
     //command
     can_continue = command();
     heavy_check(PBWD_r3e1);
 
-    PBWD_r3rp1:
-    //EOL
-    can_continue = terminal(EOL);
-    heavy_check(PBWD_r3e1);
-    free_token(curr_token);
-    curr_token = fake_token();
-    heavy_check(PBWD_r3e1); //jen pro kontrolu inner erroru, takze navesti je jedno
-
-    //more_EOL
-    can_continue = more_EOL();
-    heavy_check(PBWD_r3e2);
-
     //prog_body_with_def
     can_continue = prog_body_with_def();
-    heavy_check(PBWD_r3e2);
+    heavy_check(PBWD_r3e1);
 
     return true;
 
     //ERROR
     PBWD_r3e1:
-      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"command EOL\".\n");
-      if(flush_until(EOL) == false) return false; //neuspesny flush dojel na konec souboru
-      goto PBWD_r3rp1;
-    PBWD_r3e2:
-      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"EOL more_EOL program_body_with_definitions\".\n");
+      //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"EOL more_EOL program_body_with_definitions\".\n");
       return false;
   }
   else {
@@ -309,11 +343,11 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
 
 bool non_empty_prog_body() //---NON EMPTY PROGRAM BODY---
 {
-  //non_empty_prog_body -> more_EOL command EOL more_EOL PB
+  //non_empty_prog_body -> more_EOL command PB
   bool can_continue = true;
 
   if(Tis(EOL) || Tis(ID) || Tis(STR) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
-    //non_empty_prog_body -> more_EOL command EOL more_EOL PB
+    //non_empty_prog_body -> more_EOL command PB
     //more_EOL
     can_continue = more_EOL();
     heavy_check(NEPB_r1e1);
@@ -322,31 +356,15 @@ bool non_empty_prog_body() //---NON EMPTY PROGRAM BODY---
     can_continue = command();
     heavy_check(NEPB_r1e1);
 
-    NEPB_r1rp1:
-    //EOL
-    can_continue = terminal(EOL);
-    heavy_check(NEPB_r1e1);
-    free_token(curr_token);
-    curr_token = fake_token();
-    heavy_check(NEPB_r1e1);
-
-    //more_EOL
-    can_continue = more_EOL();
-    heavy_check(NEPB_r1e2);
-
     //program_body
     can_continue = prog_body();
-    heavy_check(NEPB_r1e2);
+    heavy_check(NEPB_r1e1);
 
     return true;
 
     //ERROR
     NEPB_r1e1:
-      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"more_EOL command EOL more_EOL program_body\".\n");
-      if(flush_until(EOL) == false) return false;
-      goto NEPB_r1rp1;
-    NEPB_r1e2:
-      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"more_EOL command EOL more_EOL program_body\".\n");
+      //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"more_EOL command EOL more_EOL program_body\".\n");
       return false;
   }
   else {
@@ -363,40 +381,24 @@ bool non_empty_prog_body() //---NON EMPTY PROGRAM BODY---
 bool prog_body() //---PROG_BODY---
 {
   //prog_body -> epsilon
-  //prog_body -> command EOL more_EOL prog_body
+  //prog_body -> command prog_body
   bool can_continue = true;
 
   if(Tis(ID) || Tis(STR) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
-    //prog_body -> command EOL more_EOL prog_body
+    //prog_body -> command prog_body
     //command
     can_continue = command();
     heavy_check(PB_r1e1);
 
-    PB_r1rp1:
-    //EOL
-    can_continue = terminal(EOL);
-    heavy_check(PB_r1e1);
-    free_token(curr_token);
-    curr_token = fake_token();
-    heavy_check(PB_r1e1);
-
-    //more_EOL
-    can_continue = more_EOL();
-    heavy_check(PB_r1e2);
-
     //program_body
     can_continue = prog_body();
-    heavy_check(PB_r1e2);
+    heavy_check(PB_r1e1);
 
     return true;
 
     //ERROR
     PB_r1e1:
-      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"command EOL more_EOL program_body\".\n");
-      if(flush_until(EOL) == false) return false;
-      goto PB_r1rp1;
-    PB_r1e2:
-      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"command EOL more_EOL program_body\".\n");
+      //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"command EOL more_EOL program_body\".\n");
       return false;
   }
   else if(Tis(DEDENT)) {
@@ -418,28 +420,52 @@ bool command() //---COMMAND---
 {
   bool can_continue = true;
   if(Tis(PASS)) {
-    //c -> pass
+    //c -> pass EOL more_EOL
     //nemusím kontrolovat pass, jinak by to sem nedoslo
     free(curr_token);
     curr_token = fake_token();
 
+    C_r1rp1:
+    //EOL
+    can_continue = terminal(EOL);
+    heavy_check(C_r1e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r1e1); //jen pro kontrolu inner erroru, takze navesti je jedno
+
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(C_r1e2);
+
     return true;
+    //error
+    C_r1e1:
+      if(flush_until(EOL) == false) return false;
+      goto C_r1rp1;
+    C_r1e2:
+      return false;
   }
   else if(Tis(RETURN)) {
-    //c -> return sure_expresion
+    //c -> return sure_expresion EOL more_EOL
     //nemusím kontrolovat return, jinak by to sem nedoslo
     free(curr_token);
     curr_token = fake_token();
 
-    //sure_expresion
-    Token *ret_id = init_token();
-    add_string(ret_id, init_cstring("ret_id"));
-    ret_id->type = TEMP_ID;
-    Token *copy_ret_id = copy_token(ret_id);
-    heavy_check(C_r2e1);
+    Token *ret_id;
+    if(!kill_after_analysis) {
+      ret_id = init_token();
+      heavy_check(C_r2e1);
+      add_temp_id(ret_id, init_cstring("temp_ret"));
+      heavy_check(C_r2e1);
+    }
 
     //zavola analyzu vyrazu
-    curr_token = fake_analysis(curr_token, NULL, copy_ret_id);
+    Token *check = curr_token;
+    curr_token = fake_analysis(curr_token, NULL, ret_id);
+    if(check == curr_token) {
+      if(!kill_after_analysis) free_token(ret_id);
+      ret_id = NULL; //nebyl tam expr, nic se nevraci
+    }
 
     //vygenerovat ret_id navratovou hodnotu
     if(!kill_after_analysis) {
@@ -447,26 +473,89 @@ bool command() //---COMMAND---
       heavy_check(C_r2e1); //alok check, asi to nespadne na error label
     }
 
+    C_r2rp1:
+    //EOL
+    can_continue = terminal(EOL);
+    heavy_check(C_r2e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r2e1); //jen pro kontrolu inner erroru, takze navesti je jedno
+
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(C_r2e2);
+
     return true;
     C_r2e1:
-      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"return expr\".\n");
+      //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"return expr\".\n");
+      if(flush_until(EOL) == false) return false;
+      goto C_r2rp1;
+    C_r2e2:
       return false;
   }
   else if(Tis(WHILE)) {
     //c-> while sure_expresion : EOL indent NEPB dedent
     //while
+    int this_while_count = while_count;
+    while_count++;
+
     can_continue = terminal(WHILE);
     heavy_check(C_r3e1);
     free_token(curr_token);
     curr_token = fake_token();
     heavy_check(C_r3e1);
 
-    //TODO 3AC vytvorit label
+    //L_WHILE_LABEL label
+    //zpracovat cond
+    //cond jump na L_WHILE_START
+    //jump na L_WHILE_END
+    //L_WHILE_START label
+    //vlastni program
+    //JUMP na WHILE_LABEL
+    //L_WHILE_END label
+    //while_count pridat
 
-    //expression == cond, znegovat
-    curr_token = fake_analysis(curr_token, NULL, NULL);
+    //vytvori label while_label
+    Token *label;
+    if(!kill_after_analysis) {
+      appendAC(WHILE_START, NULL, NULL, NULL);
+      label = init_token();
+      add_label(label, create_label(L_WHILE_LABEL, this_while_count));
+      appendAC(LABEL, NULL, NULL, label);
+    }
 
-    //TODO 3AC tu vůbec zatím není řešen! jen syntax...
+    //vytvori cond token pro vysledek SA
+    Token *cond = NULL;
+    if(!kill_after_analysis) {
+      cond = init_token();
+      add_temp_id(cond, init_cstring("temp_cond"));
+      heavy_check(C_r3e1); //jen alloc_check
+    }
+
+    Token *check = curr_token;
+    curr_token = fake_analysis(curr_token, NULL, cond);
+    if(curr_token == check) {
+      syntax_err("Pred tokenem ", " nebyl expression ale byt mel.\n");
+      goto C_r3e1;
+    }
+    //kill_after_analysis = true;
+    //vytvori cond_jump na zaklade cond
+    if(!kill_after_analysis) {
+      label = init_token();
+      add_label(label, create_label(L_WHILE_START, this_while_count));
+      appendAC(COND_JUMP, cond, NULL, label);
+      //jump na WHILE_END, sem se to dostane ve vysledem kodu, pokud
+      //podminka cyklu jiz neplati
+      label = init_token();
+      add_label(label, create_label(L_WHILE_END, this_while_count));
+      appendAC(JUMP, NULL, NULL, label);
+      //vytvori label while starts, kam se skace po uspesne podmince
+      label = init_token();
+      add_label(label, create_label(L_WHILE_START, this_while_count));
+      appendAC(LABEL, NULL, NULL, label);
+
+      heavy_check(C_r3e1);
+    }
 
     //:
     can_continue = terminal(COL);
@@ -502,6 +591,24 @@ bool command() //---COMMAND---
     curr_token = fake_token();
     heavy_check(C_r3e2);
 
+    if(!kill_after_analysis) {
+      //vytvori jump na while_label
+      label = init_token();
+      add_label(label, create_label(L_WHILE_LABEL, this_while_count));
+      appendAC(JUMP, NULL, NULL, label);
+      //vytvori jump na while_end
+      label = init_token();
+      add_label(label, create_label(L_WHILE_END, this_while_count));
+      appendAC(LABEL, NULL, NULL, label);
+      //generuje while_end
+      appendAC(WHILE_END, NULL, NULL, NULL);
+      heavy_check(C_r3e2); //tohle nikdy neskoci, jen pro alloc check
+    }
+
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(C_r3e2);
+
     return true;
 
     //error
@@ -513,16 +620,42 @@ bool command() //---COMMAND---
       goto C_r3rp2;
   }
   else if(Tis(IF)) {
-    //c -> if se : eol indent nepb dedent
+    //c -> if se : eol indent nepb dedent else : EOL indent nepb dedent
     //TODO uplne chybi 3ac veci
     //if don't need to check
     free_token(curr_token);
     curr_token = fake_token();
     heavy_check(C_r4e1);
 
-    //sure expression
-    //TODO placeholder
-    curr_token = fake_analysis(curr_token, NULL, NULL);
+    //shrnuti:
+    //vypocet cond
+    //COND_JUMP na L_IF_START
+    //JUMP na L_IF_ELSE
+    //label L_IF_START
+    //vlastni kod if casti
+    //JUMP na L_IF_END
+    //label L_IF_ELSE
+    //vlastni kod else casti
+    //label L_IF_END
+
+    int this_if_count = if_count;
+    if_count++;
+    Token *label;
+    //vytvori cond token pro vysledek SA
+    Token *cond = NULL;
+    if(!kill_after_analysis) {
+      cond = init_token();
+      heavy_check(C_r4e1);
+      add_temp_id(cond, init_cstring("temp_cond"));
+      heavy_check(C_r4e1); //jen alloc_check
+    }
+
+    Token *check = curr_token;
+    curr_token = fake_analysis(curr_token, NULL, cond);
+    if(curr_token == check) {
+      syntax_err("Pred tokenem ", " nebyl expression ale byt mel.\n");
+      goto C_r4e1;
+    }
 
     //:
     can_continue = terminal(COL);
@@ -546,6 +679,22 @@ bool command() //---COMMAND---
     curr_token = fake_token();
     heavy_check(C_r4e2);
 
+    if(!kill_after_analysis) {
+      //cond_jump na L_IF_START
+      label = init_token();
+      add_label(label, create_label(L_IF_START, this_if_count));
+      appendAC(COND_JUMP, cond, NULL, label);
+      //JUMP na L_IF_ELSE
+      label = init_token();
+      add_label(label, create_label(L_IF_ELSE, this_if_count));
+      appendAC(JUMP, NULL, NULL, label);
+      //label L_IF_START
+      label = init_token();
+      add_label(label, create_label(L_IF_START, this_if_count));
+      appendAC(LABEL, NULL, NULL, label);
+      heavy_check(C_r4e2);
+    }
+
     //non_empty_prog_body
     can_continue = non_empty_prog_body();
     heavy_check(C_r4e2);
@@ -558,6 +707,72 @@ bool command() //---COMMAND---
     curr_token = fake_token();
     heavy_check(C_r4e2);
 
+    //else
+    can_continue = terminal(ELSE);
+    heavy_check(C_r4e3);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r4e3);
+
+    //:
+    can_continue = terminal(COL);
+    heavy_check(C_r4e3);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r4e3);
+
+    C_r4rp3:
+    //EOL
+    can_continue = terminal(EOL);
+    heavy_check(C_r4e3);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r4e3);
+
+    //indent
+    can_continue = terminal(INDENT);
+    heavy_check(C_r4e4);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r4e4);
+
+    //JUMP na L_IF_END
+    //label L_IF_ELSE
+    if(!kill_after_analysis) {
+      label = init_token();
+      add_label(label, create_label(L_IF_END, this_if_count));
+      appendAC(JUMP, NULL, NULL, label);
+
+      label = init_token();
+      add_label(label, create_label(L_IF_ELSE, this_if_count));
+      appendAC(LABEL, NULL, NULL, label);
+      heavy_check(C_r4e4);
+    }
+
+    //non_empty_prog_body
+    can_continue = non_empty_prog_body();
+    heavy_check(C_r4e2);
+
+    //label L_IF_END
+    if(!kill_after_analysis) {
+      label = init_token();
+      add_label(label, create_label(L_IF_END, this_if_count));
+      appendAC(LABEL, NULL, NULL, label);
+      heavy_check(C_r4e4);
+    }
+
+    C_r4rp4:
+    //dedent
+    can_continue = terminal(DEDENT);
+    heavy_check(C_r4e4);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r4e4);
+
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(C_r4e4);
+
     return true;
 
     //error
@@ -567,17 +782,71 @@ bool command() //---COMMAND---
     C_r4e2:
       if(flush_until(DEDENT) == false) return false;
       goto C_r4rp2;
+    C_r4e3:
+      if(flush_until(EOL) == false) return false;
+      goto C_r4rp3;
+    C_r4e4:
+      if(flush_until(DEDENT) == false) return false;
+      goto C_r4rp4;
   }
   else if(Tis(INT) || Tis(STR) || Tis(DEC) || Tis(LPA)) {
     //curr tokoen je int, str, dec, lpa, vse indikuje, ze je treba vyraz
-    //poslat analzye
-    //TODO chybi vse kolem
+    //poslat analzye EOL mEOL
+
+    //jista analyza, just send it
+    //TODO mozna dat dalsi parametr, aby nic negeneroval?
+    //neresim res, to by nemelo spadnout, nepotrebuji zadny 3ac
     curr_token = fake_analysis(curr_token, NULL, NULL);
+
+    C_r5rp1:
+    //EOL
+    can_continue = terminal(EOL);
+    heavy_check(C_r5e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r5e1); //jen pro kontrolu inner erroru, takze navesti je jedno
+
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(C_r5e2);
+
     return true;
-  }/*
+    C_r5e1:
+      if(flush_until(EOL) == false) return false;
+      goto C_r5rp1;
+    C_r5e2:
+      return false;
+  }
   else if(Tis(ID)) {
     //TODO, 3AC
-  }*/
+    //id not_sure1 eol meol
+    //ulozim token s id, protoze nevim, jestli je to id funkce nebo normalni
+    last_token = curr_token;
+
+    can_continue = not_sure1();
+    heavy_check(C_r6e1);
+
+    last_token = NULL;
+
+    C_r6rp1:
+    //EOL
+    can_continue = terminal(EOL);
+    heavy_check(C_r6e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(C_r6e1); //jen pro kontrolu inner erroru, takze navesti je jedno
+
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(C_r6e2);
+
+    return true;
+    C_r6e1:
+      if(flush_until(EOL) == false) return false;
+      goto C_r6rp1;
+    C_r6e2:
+      return false;
+  }
   else {
     //sem by se to nemělo při dobré implementaci dostat
     /*fprintf(stderr, "[hojkas] parser.c: command(): skoncilo v zakazanem stavu\n");*/
@@ -609,7 +878,7 @@ bool param_list() //---PARAM_LIST----
 
     //ERROR
     PL_r1e1:
-      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"item more_params\".\n");
+      //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"item more_params\".\n");
       return false;
   }
   else if(Tis(RPA)) {
@@ -653,7 +922,7 @@ bool more_params() //---MORE_PARAMS---
 
     //ERROR
     MP_r1e1:
-      syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \", item more_params\".\n");
+      //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \", item more_params\".\n");
       return false;
   }
   else if(Tis(RPA)) {
@@ -708,12 +977,70 @@ bool more_EOL() //---MORE_EOL---
 
 
 
-
-bool op()
+bool not_sure1()
 {
-  //co vic tu potrebuji? TODO
-  return (Tis_op);
+  bool can_continue = true;
+  if(Tis(LPA)) {
+    //( param list )
+
+    return true;
+  }
+  else if(Tis(EQ)) {
+    //= not_sure2
+
+    return true;
+  }
+  else if(Tis_op) {
+    // op rest_expression
+
+    return true;
+  }
+  else if(Tis(EOL)) {
+    //epsilon
+    return true;
+  }
+  else {
+    //token, co nenalezi zadnemu moznemu pravidlu
+    syntax_err("Placeholder: not_sure1: Token ", " nebyl ok.\n");
+    return false;
+  }
 }
+
+
+
+bool not_sure2()
+{
+  bool can_continue = true;
+  if(Tis(ID)) {
+    //id not_sure3
+
+    return true;
+  }
+  else if(Tis(INT) || Tis(DEC) || Tis(STR)) {
+    //int/float/str rest_expr
+
+    return true;
+  }
+  else if(Tis(LPA)) {
+    //( rest_expr
+
+    return true;
+  }
+  else {
+    //token, co nenalezi zadnemu moznemu pravidlu
+    syntax_err("Placeholder: not_sure2: Token ", " nebyl ok.\n");
+    return false;
+  }
+}
+
+
+
+bool not_sure3()
+{
+  bool can_continue = true;
+  return can_continue;
+}
+
 
 
 
@@ -802,7 +1129,7 @@ bool terminal(e_type type)
   else {
     //neni to terminal, ktery v tomto momente musime pro spravnou syntaxi dostat
     syntax_err("Token ", " je v dane konstrukci chybny (nebo je chyba v tom, co mu predchazelo).");
-    fprintf(stderr, "Byl ocekavan token: ");
+    fprintf(stderr, " Byl ocekavan token: ");
     if(type == INDENT) fprintf(stderr, "INDENT.\n");
     else if(type == EOFILE) fprintf(stderr, "EOFILE.\n");
     else if(type == EOL) fprintf(stderr, "EOL.\n");
@@ -839,15 +1166,16 @@ void parser_do_magic()
    //prog <- pocatecni nonterminal, cely program
    //TODO delete this (but keep prog() calling)
    bool overall = prog();
-   printf("\n_______________________________________\n");
+   printf("______________________________________\n");
+   //print_all_ac_by_f(true);
+   printf("_______________________________________\n");
    printf("Analysis complete?      ");
    if(overall) printf("YES\n");
    else printf("NO\n");
    printf("Analysis without error?");
    if(!kill_after_analysis) printf(" YES\n");
    else printf(" ERROR n. %d\n", global_error_code);
-   printf("\n______________________________________\n");
-   print_all_ac_by_f(true);
+
 
    //TODO
    //prohledat tabulku, jestli v ni nezbylo neco nedef -> fce v symtable
@@ -856,7 +1184,8 @@ void parser_do_magic()
    clean_all_symtables();
  }
 
- //tu protoze mne stvalo jak pres to musim furt scrollovat, doslova zadny jiny duvod
+ //tu protoze mne stvalo jak pres to musim furt scrollovat,
+ //doslova zadny jiny duvod
  void stderr_print_token_info()
  {
      int i;
