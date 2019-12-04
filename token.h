@@ -171,6 +171,15 @@ void add_docs(Token *token, cstring *str);
  */
 void add_label(Token *token, cstring *str);
 
+/* Set token data (for temp_id)
+ *
+ * Makes TEMP_ID type token with data
+ *
+ * @param token to set
+ * @param str of label to be set
+ */
+void add_temp_id(Token *token, cstring *str);
+
 
 
 //---------------------------------------------------------

@@ -87,6 +87,13 @@ void add_label(Token *token, cstring *str)
   token->str = str;
 }
 
+void add_temp_id(Token *token, cstring *str)
+{
+  if(token == NULL) return;
+  add_simple_data(token, TEMP_ID);
+  token->str = str;
+}
+
 e_type getTokenType(Token *token){
     return token->type;
 }
