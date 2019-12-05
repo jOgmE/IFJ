@@ -5,4 +5,6 @@
 
 char getFromTable (e_type tokenS, e_type tokenI, int *isFin);
 
+int decode ( e_type token );
+
 #endif
