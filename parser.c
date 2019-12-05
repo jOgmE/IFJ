@@ -7,12 +7,16 @@
  *
  * IMPORTANT: z nejakeho duvodu se stringy vypisuji v synt erroru jen par znaku,
  * proverit TODO
+ * IMPORTANT: Vypisy s "neocekavana skladba" by to chtělo asi přepsat
+ * IMPORTANT: není stav, že PBWD může začínat EOL... hodit do tabulky před to
+ * MEOL a sem přihodit stavy podle tabulky
  * bacha na print funkci
  * IMPORTANT: na konci souboru nemusí být EOL EOF, ale jen EOF, ale
  * já asi počítám s EOL EOF
  * IMPORTANT: jsem kkt, po dedentu nemusi byt eol, command s tim ale pocita,
  * mozne reseni: prepsat commandy krome techto, aby za sebou ocekavaly eol
  * projit vsude, kde je init_token, pridat heavy checkk!
+ *
  *
  * NOTE: problem multi-hlaseni -> staci nehlasit kdekoliv, kde se zanoruji
  */
@@ -24,6 +28,7 @@
 
 Token *curr_token = NULL;
 Token *last_token = NULL;
+Token *id_to_assign = NULL;
 
 int while_count = 0;
 int if_count = 0;
@@ -32,21 +37,20 @@ int if_count = 0;
 //TODO delete
 
 e_type faking[100] = {
-  /*DEF, ID, LPA, INT, COM, ID, RPA, COL, EOL, INDENT,
-  PASS, EOL, DEDENT, PASS, EOL, RETURN, INT, PLUS, INT, EOL*/
-  /*WHILE, INT, COL, EOL, INDENT, PASS, EOL, DEDENT, EOL,
-  WHILE, INT, COL, EOL, INDENT, WHILE, INT, COL,
-  EOL, INDENT, PASS, EOL, DEDENT, EOL, DEDENT, EOL,*/
-  /*IF, INT, COL, EOL, INDENT, PASS, EOL, DEDENT,ELSE, COL,
-  EOL, INDENT, PASS, EOL, DEDENT, EOL,
-  IF, INT, COL, EOL, INDENT, IF, INT, COL, EOL, INDENT, PASS, EOL, DEDENT,ELSE, COL,
-  EOL, INDENT, PASS, EOL, DEDENT, DEDENT,ELSE, COL,
-  EOL, INDENT, PASS, EOL, DEDENT,*/
-  WHILE, INT, COL, EOL, INDENT,
-  ID, EOL, DEDENT,
+  /*DEF, ID, LPA, INT, COM, ID, COM, ID, RPA, COL, EOL, INDENT,
+  PASS, EOL, DEDENT,*/
+  ID, EQ, ID, LPA, INT, COM, ID, RPA, EOL,
+  ID, EQ, ID, PLUS, ID, EOL,
+  ID, LPA, INT, RPA, EOL,
+  IF, INT, COL, EOL, INDENT,
+  ID, EQ, ID, MINUS, INT, EOL,
+  RETURN, ID, EOL,
+  DEDENT, ELSE, COL, EOL, INDENT, PASS, EOL, DEDENT,
   EOL,
   EOFILE
 };
+
+//int fake_num = 16;
 
 Token *fake_token()
 {
@@ -54,6 +58,7 @@ Token *fake_token()
   Token *new = init_token();
   /*fprintf(stderr, "Loading state %d\n", time);*/
   add_simple_data(new, faking[time]);
+  new->str = init_cstring("temp_name");
   if(faking[time] != EOFILE) time++;
   line_count++;
   return new;
@@ -67,7 +72,7 @@ Token *fake_token()
 
 Token *fake_analysis(Token *op1, Token *op2, Token *res)
 {
-  while(Tis_item || Tis_op) {
+  while(Tis_item || Tis_op|| Tis(LPA) || Tis(RPA)) {
       //free_token(curr_token);
       curr_token = fake_token();
   }
@@ -151,25 +156,22 @@ cstring* create_label(label_enum type, int number)
 
 void stderr_print_token_info();
 
-//-----ROZKLADY-------------------      // 11 / 18
-bool prog();                            //done
-bool non_empty_prog_body();             //done
-bool prog_body();                       //done
-bool prog_body_with_def();              //done
-bool more_EOL();                        //done
-bool command();                         //done
-bool not_sure1(); //started
+//-----ROZKLADY-------------------          // 11 / 15
+bool prog();                                //done
+bool non_empty_prog_body();                 //done
+bool prog_body();                           //done
+bool prog_body_with_def();                  //done
+bool more_EOL();                            //done
+bool command();                             //done
+bool not_sure1();                           //done
 bool not_sure2(); //started
-bool not_sure3(); //
-bool param_list();                      //done
-bool more_params();                     //done
-bool item();                            //done
-bool param_item();                      //done
-bool terminal(e_type type);             //done
-bool terminal_expr(); //
-bool work_out_fce_id(bool defined); //started
-bool work_out_val_id(bool defined); //started
-bool work_out_label_id(bool defined); //started
+bool not_sure3(); //started
+bool param_list(int*);                      //done
+bool more_params(int*);                     //done
+bool param_item();                          //done
+bool terminal(e_type type);                 //done
+bool work_out_fce_id(Token*, int, bool); //started
+bool work_out_val_id(Token*, bool); //started
 
 
 bool prog() //---PROG---
@@ -229,8 +231,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     heavy_check(PBWD_r2e1); //co kdyby selhala alokace...
 
     //id
-    can_continue = work_out_fce_id(true); //will also define
-    heavy_check(PBWD_r2e1);
+    Token *def_id = copy_token(curr_token); //ulozi id pro budouci overeni semantikou
     if(!kill_after_analysis) {
       //generate label of fce
       appendAC(LABEL, NULL, NULL, curr_token);
@@ -246,8 +247,12 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     heavy_check(PBWD_r2e1);
 
     //param_list
-    can_continue = param_list();
-    heavy_check(PBWD_r2e1_1);
+    int param_count = 0;
+    can_continue = param_list(&param_count);
+    heavy_check(PBWD_r2e1);
+
+    can_continue = work_out_fce_id(def_id, param_count, true); //will also define
+    heavy_check(PBWD_r2e1);
 
     PBWD_r2rp1:
     //)
@@ -294,6 +299,10 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     curr_token = fake_token();
     heavy_check(PBWD_r2e2);
 
+    //mEOL
+    can_continue = more_EOL();
+    heavy_check(PBWD_r2e2);
+
     //PBWD
     can_continue = prog_body_with_def();
     heavy_check(PBWD_r2e2);
@@ -320,14 +329,29 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     can_continue = command();
     heavy_check(PBWD_r3e1);
 
+    PBWD_r3rp1:
+    //EOL
+    can_continue = terminal(EOL);
+    heavy_check(PBWD_r3e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(PBWD_r3e1); //jen pro kontrolu inner erroru, takze navesti je jedno
+
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(PBWD_r3e2);
+
     //prog_body_with_def
     can_continue = prog_body_with_def();
-    heavy_check(PBWD_r3e1);
+    heavy_check(PBWD_r3e2);
 
     return true;
 
     //ERROR
     PBWD_r3e1:
+      if(flush_until(EOL) == false) return false;
+      goto PBWD_r3rp1;
+    PBWD_r3e2:
       //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"EOL more_EOL program_body_with_definitions\".\n");
       return false;
   }
@@ -356,14 +380,29 @@ bool non_empty_prog_body() //---NON EMPTY PROGRAM BODY---
     can_continue = command();
     heavy_check(NEPB_r1e1);
 
+    NEPB_r1rp1:
+    //EOL
+    can_continue = terminal(EOL);
+    heavy_check(NEPB_r1e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(NEPB_r1e1);
+
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(NEPB_r1e2);
+
     //program_body
     can_continue = prog_body();
-    heavy_check(NEPB_r1e1);
+    heavy_check(NEPB_r1e2);
 
     return true;
 
     //ERROR
     NEPB_r1e1:
+      if(flush_until(EOL) == false) return false;
+      goto NEPB_r1rp1;
+    NEPB_r1e2:
       //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"more_EOL command EOL more_EOL program_body\".\n");
       return false;
   }
@@ -390,14 +429,29 @@ bool prog_body() //---PROG_BODY---
     can_continue = command();
     heavy_check(PB_r1e1);
 
+    PB_r1rp1:
+    //EOL
+    can_continue = terminal(EOL);
+    heavy_check(PB_r1e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(PB_r1e1);
+
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(PB_r1e2);
+
     //program_body
     can_continue = prog_body();
-    heavy_check(PB_r1e1);
+    heavy_check(PB_r1e2);
 
     return true;
 
     //ERROR
     PB_r1e1:
+      if(flush_until(EOL) == false) return false;
+      goto PB_r1rp1;
+    PB_r1e2:
       //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"command EOL more_EOL program_body\".\n");
       return false;
   }
@@ -451,7 +505,7 @@ bool command() //---COMMAND---
     free(curr_token);
     curr_token = fake_token();
 
-    Token *ret_id;
+    Token *ret_id; //musi byt stejne jako u volani fce, dulezite
     if(!kill_after_analysis) {
       ret_id = init_token();
       heavy_check(C_r2e1);
@@ -472,6 +526,8 @@ bool command() //---COMMAND---
       appendAC(RET, NULL, NULL, ret_id);
       heavy_check(C_r2e1); //alok check, asi to nespadne na error label
     }
+
+    //TODO funkce do symtable, jestli je return v dobre casti
 
     C_r2rp1:
     //EOL
@@ -822,11 +878,14 @@ bool command() //---COMMAND---
     //id not_sure1 eol meol
     //ulozim token s id, protoze nevim, jestli je to id funkce nebo normalni
     last_token = curr_token;
+    curr_token = fake_token();
+    heavy_check(C_r6e1);
 
     can_continue = not_sure1();
     heavy_check(C_r6e1);
 
     last_token = NULL;
+    id_to_assign = NULL;
 
     C_r6rp1:
     //EOL
@@ -859,7 +918,7 @@ bool command() //---COMMAND---
 
 
 
-bool param_list() //---PARAM_LIST----
+bool param_list(int* param_count) //---PARAM_LIST----
 {
   //param_list -> item more_params
   //param_list -> epsilon
@@ -870,8 +929,9 @@ bool param_list() //---PARAM_LIST----
     //item
     can_continue = param_item();
     heavy_check(PL_r1e1);
+    (*param_count)++;
 
-    can_continue = more_params();
+    can_continue = more_params(param_count);
     heavy_check(PL_r1e1);
 
     return true;
@@ -896,7 +956,7 @@ bool param_list() //---PARAM_LIST----
 
 
 
-bool more_params() //---MORE_PARAMS---
+bool more_params(int* param_count) //---MORE_PARAMS---
 {
   bool can_continue = true;
   //more_params -> epsilon
@@ -913,9 +973,10 @@ bool more_params() //---MORE_PARAMS---
     //item
     can_continue = param_item();
     heavy_check(MP_r1e1);
+    (*param_count)++;
 
     //more_params
-    can_continue = more_params();
+    can_continue = more_params(param_count);
     heavy_check(MP_r1e1);
 
     return true;
@@ -981,22 +1042,79 @@ bool not_sure1()
 {
   bool can_continue = true;
   if(Tis(LPA)) {
-    //( param list )
+    //id ( param list ), id je v last_token
+    //(
+    //nemusím checkovat LPA, jinak bych se sem nedostala
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(NS1_r1e1);
+
+    //TODO pokud print, jinak!!!
+
+    //param_list
+    int param_count = 0;
+    can_continue = param_list(&param_count);
+    heavy_check(NS1_r1e1);
+
+    NS1_r1rp1:
+    //)
+    can_continue = terminal(RPA);
+    heavy_check(NS1_r1e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(NS1_r1e1);
+
+    //zpracovat id
+    work_out_fce_id(last_token, param_count, false);
+    if(!kill_after_analysis) {
+      appendAC(CALL, NULL, NULL, last_token);
+      heavy_check(NS1_r1e1);
+    }
+    else free_token(last_token);
 
     return true;
+    //errors
+    NS1_r1e1:
+      if(flush_until(RPA) == false) return false;
+      goto NS1_r1rp1;
   }
   else if(Tis(EQ)) {
     //= not_sure2
+    //nemusim checkovat EQ
+    free(curr_token);
+    curr_token = fake_token();
+
+    //ulozim last token do id to assing
+    id_to_assign = last_token;
+    last_token = NULL;
+
+    Token* copy_id = copy_token(id_to_assign);
+    work_out_val_id(copy_id, true); //zadefinuji id, kteremu se bude prirazovat
+
+    can_continue = not_sure2();
+    if(!can_continue || global_error_code != SUCCESS) return false;
 
     return true;
   }
   else if(Tis_op) {
-    // op rest_expression
+    Token *ret_id;
+    if(!kill_after_analysis) {
+      ret_id = init_token();
+      heavy_check(NS1_r3e1);
+      add_temp_id(ret_id, init_cstring("temp_ret"));
+      heavy_check(NS1_r3e1);
+    }
+    curr_token = fake_analysis(last_token, curr_token, ret_id);
+    if(!kill_after_analysis) free_token(ret_id); //nikam vysledek neukladam
 
     return true;
+    NS1_r3e1:
+      //afaik nepotrebne, tam jde jen o aloc checky
+      return false;
   }
   else if(Tis(EOL)) {
     //epsilon
+    work_out_val_id(last_token, false);
     return true;
   }
   else {
@@ -1013,18 +1131,40 @@ bool not_sure2()
   bool can_continue = true;
   if(Tis(ID)) {
     //id not_sure3
+    last_token = curr_token;
+    curr_token = fake_token();
+
+    can_continue = not_sure3();
+    heavy_check(NS2_r1e1);
 
     return true;
+
+    NS2_r1e1:
+      return false;
   }
-  else if(Tis(INT) || Tis(DEC) || Tis(STR)) {
-    //int/float/str rest_expr
+  else if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(LPA)) {
+    //int/float/str/( rest_expr
+    //vytvori cond token pro vysledek SA
+    Token *ret_id = NULL;
+    if(!kill_after_analysis) {
+      ret_id = init_token();
+      add_temp_id(ret_id, init_cstring("ret_id"));
+      heavy_check(NS2_r2e1); //jen alloc_check
+    }
+
+    curr_token = fake_analysis(curr_token, NULL, ret_id);
+    heavy_check(NS2_r2e1);
+
+    if(!kill_after_analysis) {
+      appendAC(ASSIGN, ret_id, NULL, id_to_assign);
+      heavy_check(NS2_r2e1);
+    }
+    id_to_assign = NULL;
 
     return true;
-  }
-  else if(Tis(LPA)) {
-    //( rest_expr
-
-    return true;
+    NS2_r2e1:
+      //nemelo by to sem jit, jen radsi
+      return false;
   }
   else {
     //token, co nenalezi zadnemu moznemu pravidlu
@@ -1038,60 +1178,138 @@ bool not_sure2()
 bool not_sure3()
 {
   bool can_continue = true;
-  return can_continue;
+  if(Tis(LPA)) {
+    // ( param_list )
+
+    //(
+    //nemusím checkovat LPA, jinak bych se sem nedostala
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(NS3_r1e1);
+
+    //TODO pokud print, jinak!!!
+
+    //param_list
+    int param_count = 0;
+    can_continue = param_list(&param_count);
+    heavy_check(NS3_r1e1);
+
+    NS3_r1rp1:
+    //)
+    can_continue = terminal(RPA);
+    heavy_check(NS3_r1e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(NS3_r1e1);
+
+    //nastvit ret value
+    Token *ret_id; //stejne jako vzdy u return, dulezite
+    if(!kill_after_analysis) {
+      ret_id = init_token();
+      heavy_check(NS3_r1e2);
+      add_temp_id(ret_id, init_cstring("temp_ret"));
+      heavy_check(NS3_r1e2);
+    }
+
+    //zpracovat id
+    work_out_fce_id(last_token, param_count, false);
+    if(!kill_after_analysis) {
+      appendAC(CALL, NULL, NULL, last_token);
+      heavy_check(NS3_r1e2);
+    }
+    else free_token(last_token);
+
+    if(!kill_after_analysis) {
+      appendAC(ASSIGN, ret_id, NULL, id_to_assign);
+    }
+    else {
+      free_token(id_to_assign);
+    }
+
+    id_to_assign = NULL;
+    last_token = NULL;
+
+    return true;
+
+    NS3_r1e1:
+      if(flush_until(RPA) == false) return false;
+      goto NS3_r1rp1;
+    NS3_r1e2:
+      return false;
+  }
+  else if(Tis_op) {
+    //op rest_expr
+
+    Token *ret_id = NULL;
+    if(!kill_after_analysis) {
+      ret_id = init_token();
+      add_temp_id(ret_id, init_cstring("ret_id"));
+      heavy_check(NS3_r2e1); //jen alloc_check
+    }
+
+    curr_token = fake_analysis(last_token, curr_token, ret_id);
+    heavy_check(NS3_r2e1);
+
+    if(!kill_after_analysis) {
+      appendAC(ASSIGN, ret_id, NULL, id_to_assign);
+      heavy_check(NS3_r2e1);
+    }
+    id_to_assign = NULL;
+
+    return true;
+    NS3_r2e1:
+      return false;
+  }
+  else if(Tis(EOL)) {
+    //epsilon
+    //aka bylo to id1 = id2, id1 - id_to_assign, id2 - last_token
+    can_continue = work_out_val_id(last_token, false);
+    heavy_check(NS3_r3e1);
+
+    if(!kill_after_analysis) {
+      appendAC(ASSIGN, last_token, NULL, id_to_assign);
+    }
+    else {
+      free_token(id_to_assign);
+      free_token(last_token);
+    }
+
+    id_to_assign = NULL;
+    last_token = NULL;
+
+    return true;
+    NS3_r3e1:
+      return false;
+  }
+  else {
+    //token, co nenalezi zadnemu moznemu pravidlu
+    syntax_err("Placeholder: not_sure3: Token ", " nebyl ok.\n");
+    return false;
+  }
 }
 
 
 
 
 //funguje pro: ID
-bool work_out_fce_id(bool define)
+bool work_out_fce_id(Token* token, int param_count, bool define)
 {
   bool can_continue = true;
-  //
+  //nakopirovat ten token!
+
   return can_continue;
 }
 
 
-bool work_out_val_id(bool define)
+bool work_out_val_id(Token *token, bool define)
 {
   bool can_continue = true;
+  //nakopirovat ten token!
   //check definition, define
   //or just check type
   return can_continue;
 }
 
-
-
-bool work_out_label_id(bool define)
-{
-  bool can_continue = true;
-  //
-  return can_continue;
-}
-
-
-bool item()
-{
-  if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID) || Tis(NONE)) {
-    if(Tis(ID)) {
-      work_out_val_id(false);
-    }
-    if(!kill_after_analysis) {
-      appendAC(PARAM, NULL, NULL, curr_token);
-    }
-    else {
-      free_token(curr_token);
-    }
-    curr_token = fake_token();
-    return true;
-  }
-  else {
-    /*fprintf(stderr, "[hojkas] parser.c: param_item(): skoncilo v zakazanem stavu\n");*/
-    syntax_err("Placeholder: item: Token ", " nebyl okay.\n");
-    return false;
-  }
-}
 
 
 
@@ -1100,7 +1318,7 @@ bool param_item()
 {
   if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID)) {
     if(Tis(ID)) {
-      work_out_val_id(false);
+      work_out_val_id(curr_token, false);
     }
     if(!kill_after_analysis) {
       appendAC(PARAM, NULL, NULL, curr_token);
