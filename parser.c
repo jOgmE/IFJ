@@ -244,7 +244,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     //param_list
     int param_count = 0;
     can_continue = param_list(&param_count);
-    heavy_check(PBWD_r2e1);
+    heavy_check(PBWD_r2e1_1);
 
     can_continue = work_out_fce_id(def_id, param_count, true); //will also define
     heavy_check(PBWD_r2e1);
