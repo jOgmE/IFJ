@@ -14,6 +14,7 @@
  * mozne reseni: prepsat commandy krome techto, aby za sebou ocekavaly eol
  * projit vsude, kde je init_token, pridat heavy checkk!
  *
+ *
  * NOTE: problem multi-hlaseni -> staci nehlasit kdekoliv, kde se zanoruji
  */
 
@@ -33,18 +34,10 @@ int if_count = 0;
 //TODO delete
 
 e_type faking[100] = {
-  DEF, ID, LPA, INT, COM, ID, COM, ID, RPA, COL, EOL, INDENT,
-  PASS, EOL, DEDENT,
-  /*WHILE, INT, COL, EOL, INDENT, PASS, EOL, DEDENT, EOL,
-  WHILE, INT, COL, EOL, INDENT, WHILE, INT, COL,
-  EOL, INDENT, PASS, EOL, DEDENT, EOL, DEDENT, EOL,*/
-  /*IF, INT, COL, EOL, INDENT, PASS, EOL, DEDENT,ELSE, COL,
-  EOL, INDENT, PASS, EOL, DEDENT, EOL,
-  IF, INT, COL, EOL, INDENT, IF, INT, COL, EOL, INDENT, PASS, EOL, DEDENT,ELSE, COL,
-  EOL, INDENT, PASS, EOL, DEDENT, DEDENT,ELSE, COL,
-  EOL, INDENT, PASS, EOL, DEDENT,*/
-  /*WHILE, INT, COL, EOL, INDENT,
-  ID, EOL, DEDENT,*/
+  /*DEF, ID, LPA, INT, COM, ID, COM, ID, RPA, COL, EOL, INDENT,
+  PASS, EOL, DEDENT,*/
+  ID, PLUS, ID,
+  EOL,
   EOFILE
 };
 
@@ -152,14 +145,14 @@ cstring* create_label(label_enum type, int number)
 
 void stderr_print_token_info();
 
-//-----ROZKLADY-------------------          // 9 / 15
+//-----ROZKLADY-------------------          // 11 / 15
 bool prog();                                //done
 bool non_empty_prog_body();                 //done
 bool prog_body();                           //done
 bool prog_body_with_def();                  //done
 bool more_EOL();                            //done
 bool command();                             //done
-bool not_sure1(); //started
+bool not_sure1();                           //done
 bool not_sure2(); //started
 bool not_sure3(); //started
 bool param_list(int*);                      //done
@@ -247,8 +240,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     can_continue = param_list(&param_count);
     heavy_check(PBWD_r2e1_1);
 
-    printf("Param_count = %d\n", param_count);
-    can_continue = work_out_fce_id(curr_token, param_count, true); //will also define
+    can_continue = work_out_fce_id(def_id, param_count, true); //will also define
     heavy_check(PBWD_r2e1);
 
     PBWD_r2rp1:
@@ -294,6 +286,10 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     }
     free_token(curr_token);
     curr_token = fake_token();
+    heavy_check(PBWD_r2e2);
+
+    //mEOL
+    can_continue = more_EOL();
     heavy_check(PBWD_r2e2);
 
     //PBWD
@@ -474,6 +470,8 @@ bool command() //---COMMAND---
       appendAC(RET, NULL, NULL, ret_id);
       heavy_check(C_r2e1); //alok check, asi to nespadne na error label
     }
+
+    //TODO funkce do symtable, jestli je return v dobre casti
 
     C_r2rp1:
     //EOL
@@ -824,6 +822,8 @@ bool command() //---COMMAND---
     //id not_sure1 eol meol
     //ulozim token s id, protoze nevim, jestli je to id funkce nebo normalni
     last_token = curr_token;
+    curr_token = fake_token();
+    heavy_check(C_r6e1);
 
     can_continue = not_sure1();
     heavy_check(C_r6e1);
@@ -989,6 +989,7 @@ bool not_sure1()
     //(
     //nemusím checkovat LPA, jinak bych se sem nedostala
     free_token(curr_token);
+    curr_token = fake_token();
     heavy_check(NS1_r1e1);
 
     //param_list
@@ -1005,11 +1006,13 @@ bool not_sure1()
     heavy_check(NS1_r1e1);
 
     //zpracovat id
+    Token *id_copy = copy_token(last_token);
     work_out_fce_id(last_token, param_count, false);
     if(!kill_after_analysis) {
       appendAC(CALL, NULL, NULL, last_token);
       heavy_check(NS1_r1e1);
     }
+    else free_token(last_token);
 
     return true;
     //errors
@@ -1019,13 +1022,37 @@ bool not_sure1()
   }
   else if(Tis(EQ)) {
     //= not_sure2
+    //nemusim checkovat EQ
+    free(curr_token);
+    curr_token = fake_token();
+
+    //ulozim last token do id to assing
+    id_to_assign = last_token;
+    last_token = NULL;
+
+    Token* copy_id = copy_token(id_to_assign);
+    work_out_val_id(copy_id, true); //zadefinuji id, kteremu se bude prirazovat
+
+    can_continue = not_sure2();
+    if(!can_continue || global_error_code != SUCCESS) return false;
 
     return true;
   }
   else if(Tis_op) {
-    // op rest_expression
+    Token *ret_id;
+    if(!kill_after_analysis) {
+      ret_id = init_token();
+      heavy_check(NS1_r3e1);
+      add_temp_id(ret_id, init_cstring("temp_ret"));
+      heavy_check(NS1_r3e1);
+    }
+    curr_token = fake_analysis(last_token, curr_token, ret_id);
+    if(!kill_after_analysis) free_token(ret_id); //nikam vysledek neukladam
 
     return true;
+    NS1_r3e1:
+      //afaik nepotrebne, tam jde jen o aloc checky
+      return false;
   }
   else if(Tis(EOL)) {
     //epsilon
