@@ -265,7 +265,7 @@ int PACodeRule3 ( PAStack *s, Token *res )
 	switch (s->top->content->type) {
 
 		case ID:
-			add_undef_id_from_token(s->top->content);
+			add_undef_id_from_token(s->top->content, ST_VALUE);
 			switch (get_id_type(s->top->content)) {
 				case ST_VALUE:
 				case ST_UNDEFINED:
