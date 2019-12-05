@@ -24,9 +24,6 @@ int main(int argc, char const *argv[])
         return 1;
     }
 
-    //For errors.h
-    file_name = argv[1];
-
     parser_do_magic();
 
     if (global_error_code == INTERNAL_ERROR)

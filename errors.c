@@ -12,8 +12,6 @@ error_type global_error_code = SUCCESS;
 
 bool kill_after_analysis = false;
 
-char *file_name = NULL;
-
 char *error_type_names[] = {
     "SUCCESS",
     "LEXICAL_ANALYSIS_ERROR",
@@ -67,7 +65,7 @@ void print_internal_error(error_type type, error_sev severity, char *message)
     fprintf(stderr, "[%s] %s (%s)\n", error_sev_names[severity], message, get_error(type));
 }
 
-void print_compile_error(error_type type, error_sev severity, size_t line_num, char *message)
+void print_compile_error(error_type type, error_sev severity, size_t line_num, char *file_name, char *message)
 {
     fprintf(stderr, "[%s] %s " BOLD_WHITE "%s:%zu" RESET_COLOR " (%s)\n", error_sev_names[severity], message, file_name, line_num, get_error(type));
 }

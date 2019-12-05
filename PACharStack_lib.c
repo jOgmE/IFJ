@@ -3,6 +3,21 @@
 
 #include "PACharStack_lib.h"
 
+/* polozka stacku
+struct pastackelement {
+	char c;
+	Token *content;	// TODO update other functions
+	struct pastackelement *belowPtr;
+};*/
+
+
+/* struktura stacku
+struct pastack {
+	PAStackElem *top;
+};*/
+
+
+
 // inicializace stacku
 void PAInit ( PAStack **s )
 {
@@ -160,7 +175,7 @@ void PAAddBracket ( PAStack *s )
 
 	} while ( elem != NULL );
 
-	printf("[filip] No terminal to swap in PAAddBracket.\n");
+	fprintf(stderr, "No terminal to swap in PAAddBracket.\n");
 }
 
 
@@ -175,7 +190,7 @@ int PACodeRule1 ( PAStack *s , Token *res )
 	switch (s->top->content->type) {
 
 		case ID:
-			add_undef_id_from_token(s->top->content, ST_VALUE);
+			add_undef_id_from_token(s->top->content);
 			switch (get_id_type(s->top->content)) {
 				case ST_VALUE:
 				case ST_UNDEFINED:
@@ -190,9 +205,7 @@ int PACodeRule1 ( PAStack *s , Token *res )
 					break;
 				case ST_LABEL:
 				case ST_FUNCTION:
-					kill_after_analysis = true;
-					global_error_code = SEMANTIC_DEFINITION_ERROR;
-					print_compile_error(SEMANTIC_DEFINITION_ERROR, ERROR, line_count, "Spatny identifikator ve vyrazu.");
+					// TODO sem error
 				default:
 					break; // projde na return 1;
 				
@@ -215,7 +228,7 @@ int PACodeRule1 ( PAStack *s , Token *res )
 	}
 	
 	free_token(tmp);
-	printf("[filip] Typ tokenu propadl switchem.\n");
+	// TODO internal error
 	return 1;
 }
 
@@ -265,7 +278,7 @@ int PACodeRule3 ( PAStack *s, Token *res )
 	switch (s->top->content->type) {
 
 		case ID:
-			add_undef_id_from_token(s->top->content, ST_VALUE);
+			add_undef_id_from_token(s->top->content);
 			switch (get_id_type(s->top->content)) {
 				case ST_VALUE:
 				case ST_UNDEFINED:
@@ -281,9 +294,7 @@ int PACodeRule3 ( PAStack *s, Token *res )
 					break;
 				case ST_LABEL:
 				case ST_FUNCTION:
-					kill_after_analysis = true;
-					global_error_code = SEMANTIC_DEFINITION_ERROR;
-					print_compile_error(SEMANTIC_DEFINITION_ERROR, ERROR, line_count, "Spatny identifikator ve vyrazu.");
+					// TODO sem error
 				default:
 					break; // projde na return 1;
 				
@@ -307,7 +318,7 @@ int PACodeRule3 ( PAStack *s, Token *res )
 	}
 
 	free_token(tmp);
-	printf("[filip] Typ tokenu propadl switchem.");
+	// TODO internal error
 	return 1;
 
 }
@@ -325,7 +336,7 @@ int PAApplyRule ( PAStack *s, Token *res )
 	while ( i < 4 ) {
 	
 		if ( ptr == NULL ) {
-			printf("[filip] Vnitrni error aplikace pravidla.\n");
+			printf("Error.\n"); //TODO vnitrni error
 			return 0;
 		}
 
@@ -349,7 +360,7 @@ int PAApplyRule ( PAStack *s, Token *res )
 			// TODO E->i
 
 		} else {
-			printf("[filip] Chyba pri kopirovani vrcholu stacku.\n");
+			printf("Error.\n"); //TODO error
 			return 1;
 		}
 
@@ -374,16 +385,16 @@ int PAApplyRule ( PAStack *s, Token *res )
 				// TODO E->(E)
 
 			} else {
-				printf("[filip] Chyba pri kopirovani vrcholu stacku.\n"); // TODO error
+				printf("Error.\n"); // TODO error
 				return 1;
 			}
 
 		} else {
-			printf("[filip] Chyba pri kopirovani vrcholu stacku.\n"); // TODO error
+			printf("Error.\n"); // TODO error
 			return 1;
 		}
 	} else {
-		printf("[filip] Chyba pri kopirovani vrcholu stacku.\n");
+		printf("Error.\n");
 		return 1;
 	}
 
