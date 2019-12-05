@@ -36,7 +36,7 @@ int if_count = 0;
 e_type faking[100] = {
   /*DEF, ID, LPA, INT, COM, ID, COM, ID, RPA, COL, EOL, INDENT,
   PASS, EOL, DEDENT,*/
-  ID, PLUS, ID,
+  ID, EQ, ID, PLUS, ID,
   EOL,
   EOFILE
 };
@@ -61,7 +61,7 @@ Token *fake_token()
 
 Token *fake_analysis(Token *op1, Token *op2, Token *res)
 {
-  while(Tis_item || Tis_op) {
+  while(Tis_item || Tis_op|| Tis(LPA) || Tis(RPA)) {
       //free_token(curr_token);
       curr_token = fake_token();
   }
@@ -992,6 +992,8 @@ bool not_sure1()
     curr_token = fake_token();
     heavy_check(NS1_r1e1);
 
+    //TODO pokud print, jinak!!!
+
     //param_list
     int param_count = 0;
     can_continue = param_list(&param_count);
@@ -1006,7 +1008,6 @@ bool not_sure1()
     heavy_check(NS1_r1e1);
 
     //zpracovat id
-    Token *id_copy = copy_token(last_token);
     work_out_fce_id(last_token, param_count, false);
     if(!kill_after_analysis) {
       appendAC(CALL, NULL, NULL, last_token);
@@ -1073,18 +1074,40 @@ bool not_sure2()
   bool can_continue = true;
   if(Tis(ID)) {
     //id not_sure3
+    last_token = curr_token;
+    curr_token = fake_token();
+
+    can_continue = not_sure3();
+    heavy_check(NS2_r1e1);
 
     return true;
+
+    NS2_r1e1:
+      return false;
   }
-  else if(Tis(INT) || Tis(DEC) || Tis(STR)) {
-    //int/float/str rest_expr
+  else if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(LPA)) {
+    //int/float/str/( rest_expr
+    //vytvori cond token pro vysledek SA
+    Token *ret_id = NULL;
+    if(!kill_after_analysis) {
+      ret_id = init_token();
+      add_temp_id(ret_id, init_cstring("ret_id"));
+      heavy_check(NS2_r2e1); //jen alloc_check
+    }
+
+    curr_token = fake_analysis(curr_token, NULL, ret_id);
+    heavy_check(NS2_r2e1);
+
+    if(!kill_after_analysis) {
+      appendAC(ASSIGN, ret_id, NULL, id_to_assign);
+      heavy_check(NS2_r2e1);
+    }
+    id_to_assign = NULL;
 
     return true;
-  }
-  else if(Tis(LPA)) {
-    //( rest_expr
-
-    return true;
+    NS2_r2e1:
+      //nemelo by to sem jit, jen radsi
+      return false;
   }
   else {
     //token, co nenalezi zadnemu moznemu pravidlu
@@ -1106,11 +1129,46 @@ bool not_sure3()
   else if(Tis_op) {
     //op rest_expr
 
+    Token *ret_id = NULL;
+    if(!kill_after_analysis) {
+      ret_id = init_token();
+      add_temp_id(ret_id, init_cstring("ret_id"));
+      heavy_check(NS3_r1e1); //jen alloc_check
+    }
+
+    curr_token = fake_analysis(last_token, curr_token, ret_id);
+    heavy_check(NS3_r1e1);
+
+    if(!kill_after_analysis) {
+      appendAC(ASSIGN, ret_id, NULL, id_to_assign);
+      heavy_check(NS3_r1e1);
+    }
+    id_to_assign = NULL;
+
     return true;
+    NS3_r1e1:
+      return false;
   }
   else if(Tis(EOL)) {
     //epsilon
+    //aka bylo to id1 = id2, id1 - id_to_assign, id2 - last_token
+    can_continue = work_out_val_id(last_token, false);
+    heavy_check(NS3_r3e1);
+
+    if(!kill_after_analysis) {
+      appendAC(ASSIGN, last_token, NULL, id_to_assign);
+    }
+    else {
+      free_token(id_to_assign);
+      free_token(last_token);
+    }
+
+    id_to_assign = NULL;
+    last_token = NULL;
+
     return true;
+    NS3_r3e1:
+      return false;
   }
   else {
     //token, co nenalezi zadnemu moznemu pravidlu
@@ -1126,7 +1184,7 @@ bool not_sure3()
 bool work_out_fce_id(Token* token, int param_count, bool define)
 {
   bool can_continue = true;
-  //
+  //nakopirovat ten token!
 
   return can_continue;
 }
@@ -1135,6 +1193,7 @@ bool work_out_fce_id(Token* token, int param_count, bool define)
 bool work_out_val_id(Token *token, bool define)
 {
   bool can_continue = true;
+  //nakopirovat ten token!
   //check definition, define
   //or just check type
   return can_continue;
