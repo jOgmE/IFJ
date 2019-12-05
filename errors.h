@@ -17,7 +17,7 @@
 #define BOLD_WHITE "\033[1m\033[37m"
 #define RESET_COLOR "\033[0m"
 
-char *file_name;
+extern char *file_name;
 
 /**
  * Výčet typů errorů
