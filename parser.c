@@ -24,7 +24,7 @@
 #include "parser.h"
 
 //TODO delete, just for debug
-//#include "tests/hojkas/st_debug.c"
+#include "tests/hojkas/st_debug.c"
 
 Token *curr_token = NULL;
 Token *last_token = NULL;
@@ -39,13 +39,13 @@ int if_count = 0;
 e_type faking[100] = {
   /*DEF, ID, LPA, INT, COM, ID, COM, ID, RPA, COL, EOL, INDENT,
   PASS, EOL, DEDENT,*/
-  ID, EQ, ID, LPA, INT, COM, ID, RPA, EOL,
-  ID, EQ, ID, PLUS, ID, EOL,
+  //ID, EQ, ID, LPA, INT, COM, ID, RPA, EOL,
+  ID, EQ, ID, PLUS, ID, EOL,/*
   ID, LPA, INT, RPA, EOL,
   IF, INT, COL, EOL, INDENT,
   ID, EQ, ID, MINUS, INT, EOL,
   RETURN, ID, EOL,
-  DEDENT, ELSE, COL, EOL, INDENT, PASS, EOL, DEDENT,
+  DEDENT, ELSE, COL, EOL, INDENT, PASS, EOL, DEDENT,*/
   EOL,
   EOFILE
 };
@@ -249,7 +249,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     //param_list
     int param_count = 0;
     can_continue = param_list(&param_count);
-    heavy_check(PBWD_r2e1);
+    heavy_check(PBWD_r2e1_1);
 
     can_continue = work_out_fce_id(def_id, param_count, true); //will also define
     heavy_check(PBWD_r2e1);
@@ -1385,7 +1385,7 @@ void parser_do_magic()
    //TODO delete this (but keep prog() calling)
    bool overall = prog();
    printf("______________________________________\n");
-   //print_all_ac_by_f(true);
+   print_all_ac_by_f(true);
    printf("_______________________________________\n");
    printf("Analysis complete?      ");
    if(overall) printf("YES\n");
