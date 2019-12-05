@@ -1,10 +1,11 @@
 //parser testing yay finally
 
-#include "../../lib/parser.h"
+#include "../../parser.h"
 #include "symtable.h"
 #include "dynamic_string.h"
 
-FILE *f = NULL; //scaner to jeste nema
+FILE *source_file = NULL; //scaner to jeste nema
+
 
 int main()
 {
