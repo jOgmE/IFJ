@@ -17,6 +17,8 @@
 #define BOLD_WHITE "\033[1m\033[37m"
 #define RESET_COLOR "\033[0m"
 
+char *file_name;
+
 /**
  * Výčet typů errorů
  */
@@ -84,6 +86,6 @@ void print_internal_error(error_type type, error_sev severity, char *message);
  * @param file_name Název zdrovojého souboru
  * @param message Zpráva pro vypsání
  */
-void print_compile_error(error_type type, error_sev severity, size_t line_num, char *file_name, char *message);
+void print_compile_error(error_type type, error_sev severity, size_t line_num, char *message);
 
 #endif // ERRORS_H
