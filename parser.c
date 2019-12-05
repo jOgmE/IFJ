@@ -20,10 +20,11 @@
 #include "parser.h"
 
 //TODO delete, just for debug
-//#include "tests/hojkas/st_debug.c"
+#include "tests/hojkas/st_debug.c"
 
 Token *curr_token = NULL;
 Token *last_token = NULL;
+Token *id_to_assign = NULL;
 
 int while_count = 0;
 int if_count = 0;
@@ -32,8 +33,8 @@ int if_count = 0;
 //TODO delete
 
 e_type faking[100] = {
-  /*DEF, ID, LPA, INT, COM, ID, RPA, COL, EOL, INDENT,
-  PASS, EOL, DEDENT, PASS, EOL, RETURN, INT, PLUS, INT, EOL*/
+  DEF, ID, LPA, INT, COM, ID, COM, ID, RPA, COL, EOL, INDENT,
+  PASS, EOL, DEDENT,
   /*WHILE, INT, COL, EOL, INDENT, PASS, EOL, DEDENT, EOL,
   WHILE, INT, COL, EOL, INDENT, WHILE, INT, COL,
   EOL, INDENT, PASS, EOL, DEDENT, EOL, DEDENT, EOL,*/
@@ -42,9 +43,8 @@ e_type faking[100] = {
   IF, INT, COL, EOL, INDENT, IF, INT, COL, EOL, INDENT, PASS, EOL, DEDENT,ELSE, COL,
   EOL, INDENT, PASS, EOL, DEDENT, DEDENT,ELSE, COL,
   EOL, INDENT, PASS, EOL, DEDENT,*/
-  WHILE, INT, COL, EOL, INDENT,
-  ID, EOL, DEDENT,
-  EOL,
+  /*WHILE, INT, COL, EOL, INDENT,
+  ID, EOL, DEDENT,*/
   EOFILE
 };
 
@@ -54,6 +54,7 @@ Token *fake_token()
   Token *new = init_token();
   /*fprintf(stderr, "Loading state %d\n", time);*/
   add_simple_data(new, faking[time]);
+  new->str = init_cstring("temp_name");
   if(faking[time] != EOFILE) time++;
   line_count++;
   return new;
@@ -151,25 +152,22 @@ cstring* create_label(label_enum type, int number)
 
 void stderr_print_token_info();
 
-//-----ROZKLADY-------------------      // 11 / 18
-bool prog();                            //done
-bool non_empty_prog_body();             //done
-bool prog_body();                       //done
-bool prog_body_with_def();              //done
-bool more_EOL();                        //done
-bool command();                         //done
+//-----ROZKLADY-------------------          // 9 / 15
+bool prog();                                //done
+bool non_empty_prog_body();                 //done
+bool prog_body();                           //done
+bool prog_body_with_def();                  //done
+bool more_EOL();                            //done
+bool command();                             //done
 bool not_sure1(); //started
 bool not_sure2(); //started
-bool not_sure3(); //
-bool param_list();                      //done
-bool more_params();                     //done
-bool item();                            //done
-bool param_item();                      //done
-bool terminal(e_type type);             //done
-bool terminal_expr(); //
-bool work_out_fce_id(bool defined); //started
-bool work_out_val_id(bool defined); //started
-bool work_out_label_id(bool defined); //started
+bool not_sure3(); //started
+bool param_list(int*);                      //done
+bool more_params(int*);                     //done
+bool param_item();                          //done
+bool terminal(e_type type);                 //done
+bool work_out_fce_id(Token*, int, bool); //started
+bool work_out_val_id(Token*, bool); //started
 
 
 bool prog() //---PROG---
@@ -229,8 +227,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     heavy_check(PBWD_r2e1); //co kdyby selhala alokace...
 
     //id
-    can_continue = work_out_fce_id(true); //will also define
-    heavy_check(PBWD_r2e1);
+    Token *def_id = copy_token(curr_token); //ulozi id pro budouci overeni semantikou
     if(!kill_after_analysis) {
       //generate label of fce
       appendAC(LABEL, NULL, NULL, curr_token);
@@ -246,8 +243,13 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     heavy_check(PBWD_r2e1);
 
     //param_list
-    can_continue = param_list();
+    int param_count = 0;
+    can_continue = param_list(&param_count);
     heavy_check(PBWD_r2e1_1);
+
+    printf("Param_count = %d\n", param_count);
+    can_continue = work_out_fce_id(curr_token, param_count, true); //will also define
+    heavy_check(PBWD_r2e1);
 
     PBWD_r2rp1:
     //)
@@ -827,6 +829,7 @@ bool command() //---COMMAND---
     heavy_check(C_r6e1);
 
     last_token = NULL;
+    id_to_assign = NULL;
 
     C_r6rp1:
     //EOL
@@ -859,7 +862,7 @@ bool command() //---COMMAND---
 
 
 
-bool param_list() //---PARAM_LIST----
+bool param_list(int* param_count) //---PARAM_LIST----
 {
   //param_list -> item more_params
   //param_list -> epsilon
@@ -870,8 +873,9 @@ bool param_list() //---PARAM_LIST----
     //item
     can_continue = param_item();
     heavy_check(PL_r1e1);
+    (*param_count)++;
 
-    can_continue = more_params();
+    can_continue = more_params(param_count);
     heavy_check(PL_r1e1);
 
     return true;
@@ -896,7 +900,7 @@ bool param_list() //---PARAM_LIST----
 
 
 
-bool more_params() //---MORE_PARAMS---
+bool more_params(int* param_count) //---MORE_PARAMS---
 {
   bool can_continue = true;
   //more_params -> epsilon
@@ -913,9 +917,10 @@ bool more_params() //---MORE_PARAMS---
     //item
     can_continue = param_item();
     heavy_check(MP_r1e1);
+    (*param_count)++;
 
     //more_params
-    can_continue = more_params();
+    can_continue = more_params(param_count);
     heavy_check(MP_r1e1);
 
     return true;
@@ -931,7 +936,6 @@ bool more_params() //---MORE_PARAMS---
     return true;
   }
   else {
-    //sem by se to nemělo při dobré implementaci dostat
     /*fprintf(stderr, "[hojkas] parser.c: more_params(): skoncilo v zakazanem stavu\n");*/
     syntax_err("Placeholder: more_params: Token ", " nebyl okay.\n");
     return false;
@@ -981,9 +985,37 @@ bool not_sure1()
 {
   bool can_continue = true;
   if(Tis(LPA)) {
-    //( param list )
+    //id ( param list ), id je v last_token
+    //(
+    //nemusím checkovat LPA, jinak bych se sem nedostala
+    free_token(curr_token);
+    heavy_check(NS1_r1e1);
+
+    //param_list
+    int param_count = 0;
+    can_continue = param_list(&param_count);
+    heavy_check(NS1_r1e1);
+
+    NS1_r1rp1:
+    //)
+    can_continue = terminal(RPA);
+    heavy_check(NS1_r1e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(NS1_r1e1);
+
+    //zpracovat id
+    work_out_fce_id(last_token, param_count, false);
+    if(!kill_after_analysis) {
+      appendAC(CALL, NULL, NULL, last_token);
+      heavy_check(NS1_r1e1);
+    }
 
     return true;
+    //errors
+    NS1_r1e1:
+      if(flush_until(RPA) == false) return false;
+      goto NS1_r1rp1;
   }
   else if(Tis(EQ)) {
     //= not_sure2
@@ -997,6 +1029,7 @@ bool not_sure1()
   }
   else if(Tis(EOL)) {
     //epsilon
+    work_out_val_id(last_token, false);
     return true;
   }
   else {
@@ -1038,22 +1071,41 @@ bool not_sure2()
 bool not_sure3()
 {
   bool can_continue = true;
-  return can_continue;
+  if(Tis(LPA)) {
+    // ( param_list )
+
+    return true;
+  }
+  else if(Tis_op) {
+    //op rest_expr
+
+    return true;
+  }
+  else if(Tis(EOL)) {
+    //epsilon
+    return true;
+  }
+  else {
+    //token, co nenalezi zadnemu moznemu pravidlu
+    syntax_err("Placeholder: not_sure3: Token ", " nebyl ok.\n");
+    return false;
+  }
 }
 
 
 
 
 //funguje pro: ID
-bool work_out_fce_id(bool define)
+bool work_out_fce_id(Token* token, int param_count, bool define)
 {
   bool can_continue = true;
   //
+
   return can_continue;
 }
 
 
-bool work_out_val_id(bool define)
+bool work_out_val_id(Token *token, bool define)
 {
   bool can_continue = true;
   //check definition, define
@@ -1063,44 +1115,13 @@ bool work_out_val_id(bool define)
 
 
 
-bool work_out_label_id(bool define)
-{
-  bool can_continue = true;
-  //
-  return can_continue;
-}
-
-
-bool item()
-{
-  if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID) || Tis(NONE)) {
-    if(Tis(ID)) {
-      work_out_val_id(false);
-    }
-    if(!kill_after_analysis) {
-      appendAC(PARAM, NULL, NULL, curr_token);
-    }
-    else {
-      free_token(curr_token);
-    }
-    curr_token = fake_token();
-    return true;
-  }
-  else {
-    /*fprintf(stderr, "[hojkas] parser.c: param_item(): skoncilo v zakazanem stavu\n");*/
-    syntax_err("Placeholder: item: Token ", " nebyl okay.\n");
-    return false;
-  }
-}
-
-
 
 
 bool param_item()
 {
   if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID)) {
     if(Tis(ID)) {
-      work_out_val_id(false);
+      work_out_val_id(curr_token, false);
     }
     if(!kill_after_analysis) {
       appendAC(PARAM, NULL, NULL, curr_token);
@@ -1167,7 +1188,7 @@ void parser_do_magic()
    //TODO delete this (but keep prog() calling)
    bool overall = prog();
    printf("______________________________________\n");
-   //print_all_ac_by_f(true);
+   print_all_ac_by_f(true);
    printf("_______________________________________\n");
    printf("Analysis complete?      ");
    if(overall) printf("YES\n");
