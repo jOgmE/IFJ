@@ -6,3 +6,6 @@ PROJ=ifj19
 
 all: $(SRC)
 	$(CC) $(CFLAGS) $^ -o $(PROJ)
+
+clean:
+	rm $(PROJ)

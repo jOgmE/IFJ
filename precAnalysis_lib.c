@@ -19,49 +19,47 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 	int *isFin;
 	*isFin = 0;
 
-	do
-	{
 
-		switch (getFromTable(PATopTerm(s)->type, curToken->type, isFin))
-		{
+	do {
 
-		case '[':
-			PAPush(s, curToken);
-			if (PATop(socket) != NULL)
-			{
-				curToken = PATop(socket);
-				PAPop(socket);
-			}
-			else
-			{
-				getToken(curToken);
-			}
-			break;
 
-		case '=':
-			PAAddBracket(s);
-			PAPush(s, curToken);
-			if (PATop(socket) != NULL)
-			{
-				curToken = PATop(socket);
-				PAPop(socket);
-			}
-			else
-			{
-				getToken(curToken);
-			}
-			break;
+		switch (getFromTable(PATopTerm(s)->type, curToken->type, isFin)) {
 
-		case ']':
-			PAApplyRule(s, res); // <- tady je moloch
-			break;
+			case '[':
+				PAPush(s, curToken);
+				if (PATop(socket) != NULL) {
+					curToken = PATop(socket);
+					PAPop(socket);	
+				} else {
+					getToken(curToken);
+				}
+				break;
 
-		default:
-			// TODO error
-			break;
+			case '=':
+				PAAddBracket(s);
+				PAPush(s, curToken);
+				if (PATop(socket) != NULL) {
+					curToken = PATop(socket);
+					PAPop(socket);	
+				} else {
+					getToken(curToken);
+				}
+				break;
+
+			case ']':
+				PAApplyRule(s, res);	// <- tady je moloch
+				break;
+
+			default:
+				kill_after_analysis = true;
+				global_error_code = SYNTAX_ANALYSIS_ERROR;
+				print_compile_error(SYNTAX_ANALYSIS_ERROR, ERROR, line_count, "Neplatny vyraz.");
+				break;
+		
 		}
 
-	} while (PAEndAtTop(s) || !(*isFin));
+	} while ( PAEndAtTop(s) || !(*isFin) );
+
 
 	PAYeet(socket);
 	PAYeet(s);
