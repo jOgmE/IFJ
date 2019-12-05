@@ -192,7 +192,7 @@ int PACodeRule1 ( PAStack *s , Token *res )
 				case ST_FUNCTION:
 					kill_after_analysis = true;
 					global_error_code = SEMANTIC_DEFINITION_ERROR;
-					//print_compile_error(SEMANTIC_DEFINITION_ERROR, ERROR, line_count, f, "Spatny identifikator ve vyrazu.");
+					print_compile_error(SEMANTIC_DEFINITION_ERROR, ERROR, line_count, "Spatny identifikator ve vyrazu.");
 				default:
 					break; // projde na return 1;
 				
@@ -283,7 +283,7 @@ int PACodeRule3 ( PAStack *s, Token *res )
 				case ST_FUNCTION:
 					kill_after_analysis = true;
 					global_error_code = SEMANTIC_DEFINITION_ERROR;
-					//print_compile_error(SEMANTIC_DEFINITION_ERROR, ERROR, line_count, f, "Spatny identifikator ve vyrazu.");
+					print_compile_error(SEMANTIC_DEFINITION_ERROR, ERROR, line_count, "Spatny identifikator ve vyrazu.");
 				default:
 					break; // projde na return 1;
 				

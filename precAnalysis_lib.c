@@ -53,7 +53,7 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 			default:
 				kill_after_analysis = true;
 				global_error_code = SYNTAX_ANALYSIS_ERROR;
-				//print_compile_error(SYNTAX_ANALYSIS_ERROR, ERROR, line_count, f, "Neplatny vyraz.");
+				print_compile_error(SYNTAX_ANALYSIS_ERROR, ERROR, line_count, "Neplatny vyraz.");
 				break;
 		
 		}
