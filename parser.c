@@ -36,7 +36,13 @@ int if_count = 0;
 e_type faking[100] = {
   /*DEF, ID, LPA, INT, COM, ID, COM, ID, RPA, COL, EOL, INDENT,
   PASS, EOL, DEDENT,*/
-  ID, EQ, ID, PLUS, ID,
+  ID, EQ, ID, LPA, INT, COM, ID, RPA, EOL,
+  ID, EQ, ID, PLUS, ID, EOL,
+  ID, LPA, INT, RPA, EOL,
+  IF, INT, COL, EOL, INDENT,
+  ID, EQ, ID, MINUS, INT, EOL,
+  RETURN, ID, EOL,
+  DEDENT, ELSE, COL, EOL, INDENT, PASS, EOL, DEDENT,
   EOL,
   EOFILE
 };
@@ -449,7 +455,7 @@ bool command() //---COMMAND---
     free(curr_token);
     curr_token = fake_token();
 
-    Token *ret_id;
+    Token *ret_id; //musi byt stejne jako u volani fce, dulezite
     if(!kill_after_analysis) {
       ret_id = init_token();
       heavy_check(C_r2e1);
@@ -1124,7 +1130,61 @@ bool not_sure3()
   if(Tis(LPA)) {
     // ( param_list )
 
+    //(
+    //nemusím checkovat LPA, jinak bych se sem nedostala
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(NS3_r1e1);
+
+    //TODO pokud print, jinak!!!
+
+    //param_list
+    int param_count = 0;
+    can_continue = param_list(&param_count);
+    heavy_check(NS3_r1e1);
+
+    NS3_r1rp1:
+    //)
+    can_continue = terminal(RPA);
+    heavy_check(NS3_r1e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(NS3_r1e1);
+
+    //nastvit ret value
+    Token *ret_id; //stejne jako vzdy u return, dulezite
+    if(!kill_after_analysis) {
+      ret_id = init_token();
+      heavy_check(NS3_r1e2);
+      add_temp_id(ret_id, init_cstring("temp_ret"));
+      heavy_check(NS3_r1e2);
+    }
+
+    //zpracovat id
+    work_out_fce_id(last_token, param_count, false);
+    if(!kill_after_analysis) {
+      appendAC(CALL, NULL, NULL, last_token);
+      heavy_check(NS3_r1e2);
+    }
+    else free_token(last_token);
+
+    if(!kill_after_analysis) {
+      appendAC(ASSIGN, ret_id, NULL, id_to_assign);
+    }
+    else {
+      free_token(id_to_assign);
+    }
+
+    id_to_assign = NULL;
+    last_token = NULL;
+
     return true;
+
+    NS3_r1e1:
+      if(flush_until(RPA) == false) return false;
+      goto NS3_r1rp1;
+    NS3_r1e2:
+      return false;
   }
   else if(Tis_op) {
     //op rest_expr
@@ -1133,20 +1193,20 @@ bool not_sure3()
     if(!kill_after_analysis) {
       ret_id = init_token();
       add_temp_id(ret_id, init_cstring("ret_id"));
-      heavy_check(NS3_r1e1); //jen alloc_check
+      heavy_check(NS3_r2e1); //jen alloc_check
     }
 
     curr_token = fake_analysis(last_token, curr_token, ret_id);
-    heavy_check(NS3_r1e1);
+    heavy_check(NS3_r2e1);
 
     if(!kill_after_analysis) {
       appendAC(ASSIGN, ret_id, NULL, id_to_assign);
-      heavy_check(NS3_r1e1);
+      heavy_check(NS3_r2e1);
     }
     id_to_assign = NULL;
 
     return true;
-    NS3_r1e1:
+    NS3_r2e1:
       return false;
   }
   else if(Tis(EOL)) {
