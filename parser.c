@@ -21,7 +21,7 @@
 #include "parser.h"
 
 //TODO delete, just for debug
-#include "tests/hojkas/st_debug.c"
+//#include "tests/hojkas/st_debug.c"
 
 Token *curr_token = NULL;
 Token *last_token = NULL;
@@ -1334,7 +1334,7 @@ void parser_do_magic()
    //TODO delete this (but keep prog() calling)
    bool overall = prog();
    printf("______________________________________\n");
-   print_all_ac_by_f(true);
+   //print_all_ac_by_f(true);
    printf("_______________________________________\n");
    printf("Analysis complete?      ");
    if(overall) printf("YES\n");
