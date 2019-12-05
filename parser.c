@@ -7,6 +7,9 @@
  *
  * IMPORTANT: z nejakeho duvodu se stringy vypisuji v synt erroru jen par znaku,
  * proverit TODO
+ * IMPORTANT: Vypisy s "neocekavana skladba" by to chtělo asi přepsat
+ * IMPORTANT: není stav, že PBWD může začínat EOL... hodit do tabulky před to
+ * MEOL a sem přihodit stavy podle tabulky
  * bacha na print funkci
  * IMPORTANT: na konci souboru nemusí být EOL EOF, ale jen EOF, ale
  * já asi počítám s EOL EOF
@@ -46,6 +49,8 @@ e_type faking[100] = {
   EOL,
   EOFILE
 };
+
+//int fake_num = 16;
 
 Token *fake_token()
 {
@@ -244,7 +249,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     //param_list
     int param_count = 0;
     can_continue = param_list(&param_count);
-    heavy_check(PBWD_r2e1_1);
+    heavy_check(PBWD_r2e1);
 
     can_continue = work_out_fce_id(def_id, param_count, true); //will also define
     heavy_check(PBWD_r2e1);
@@ -324,14 +329,29 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     can_continue = command();
     heavy_check(PBWD_r3e1);
 
+    PBWD_r3rp1:
+    //EOL
+    can_continue = terminal(EOL);
+    heavy_check(PBWD_r3e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(PBWD_r3e1); //jen pro kontrolu inner erroru, takze navesti je jedno
+
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(PBWD_r3e2);
+
     //prog_body_with_def
     can_continue = prog_body_with_def();
-    heavy_check(PBWD_r3e1);
+    heavy_check(PBWD_r3e2);
 
     return true;
 
     //ERROR
     PBWD_r3e1:
+      if(flush_until(EOL) == false) return false;
+      goto PBWD_r3rp1;
+    PBWD_r3e2:
       //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"EOL more_EOL program_body_with_definitions\".\n");
       return false;
   }
@@ -360,14 +380,29 @@ bool non_empty_prog_body() //---NON EMPTY PROGRAM BODY---
     can_continue = command();
     heavy_check(NEPB_r1e1);
 
+    NEPB_r1rp1:
+    //EOL
+    can_continue = terminal(EOL);
+    heavy_check(NEPB_r1e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(NEPB_r1e1);
+
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(NEPB_r1e2);
+
     //program_body
     can_continue = prog_body();
-    heavy_check(NEPB_r1e1);
+    heavy_check(NEPB_r1e2);
 
     return true;
 
     //ERROR
     NEPB_r1e1:
+      if(flush_until(EOL) == false) return false;
+      goto NEPB_r1rp1;
+    NEPB_r1e2:
       //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"more_EOL command EOL more_EOL program_body\".\n");
       return false;
   }
@@ -394,14 +429,29 @@ bool prog_body() //---PROG_BODY---
     can_continue = command();
     heavy_check(PB_r1e1);
 
+    PB_r1rp1:
+    //EOL
+    can_continue = terminal(EOL);
+    heavy_check(PB_r1e1);
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(PB_r1e1);
+
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(PB_r1e2);
+
     //program_body
     can_continue = prog_body();
-    heavy_check(PB_r1e1);
+    heavy_check(PB_r1e2);
 
     return true;
 
     //ERROR
     PB_r1e1:
+      if(flush_until(EOL) == false) return false;
+      goto PB_r1rp1;
+    PB_r1e2:
       //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"command EOL more_EOL program_body\".\n");
       return false;
   }
@@ -942,6 +992,7 @@ bool more_params(int* param_count) //---MORE_PARAMS---
     return true;
   }
   else {
+    //sem by se to nemělo při dobré implementaci dostat
     /*fprintf(stderr, "[hojkas] parser.c: more_params(): skoncilo v zakazanem stavu\n");*/
     syntax_err("Placeholder: more_params: Token ", " nebyl okay.\n");
     return false;
