@@ -249,7 +249,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     //param_list
     int param_count = 0;
     can_continue = param_list(&param_count);
-    heavy_check(PBWD_r2e1_1);
+    heavy_check(PBWD_r2e1);
 
     can_continue = work_out_fce_id(def_id, param_count, true); //will also define
     heavy_check(PBWD_r2e1);
@@ -343,12 +343,15 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
 
     //prog_body_with_def
     can_continue = prog_body_with_def();
-    heavy_check(PBWD_r3e1);
+    heavy_check(PBWD_r3e2);
 
     return true;
 
     //ERROR
     PBWD_r3e1:
+      if(flush_until(EOL) == false) return false;
+      goto PBWD_r3rp1;
+    PBWD_r3e2:
       //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"EOL more_EOL program_body_with_definitions\".\n");
       return false;
   }
@@ -391,12 +394,15 @@ bool non_empty_prog_body() //---NON EMPTY PROGRAM BODY---
 
     //program_body
     can_continue = prog_body();
-    heavy_check(NEPB_r1e1);
+    heavy_check(NEPB_r1e2);
 
     return true;
 
     //ERROR
     NEPB_r1e1:
+      if(flush_until(EOL) == false) return false;
+      goto NEPB_r1rp1;
+    NEPB_r1e2:
       //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"more_EOL command EOL more_EOL program_body\".\n");
       return false;
   }
@@ -437,12 +443,15 @@ bool prog_body() //---PROG_BODY---
 
     //program_body
     can_continue = prog_body();
-    heavy_check(PB_r1e1);
+    heavy_check(PB_r1e2);
 
     return true;
 
     //ERROR
     PB_r1e1:
+      if(flush_until(EOL) == false) return false;
+      goto PB_r1rp1;
+    PB_r1e2:
       //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"command EOL more_EOL program_body\".\n");
       return false;
   }
