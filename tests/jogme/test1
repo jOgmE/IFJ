@@ -1,4 +1,5 @@
 i = 12
 bc = i + 21
-while(23)
+while(23):
     print('abcd')
+

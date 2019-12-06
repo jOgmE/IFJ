@@ -425,7 +425,7 @@ Token *getToken()
                     {
                         //error
                         indentStackDestroy(stack);
-                        global_error_code = LEXICAL_ANALYSIS_ERROR;
+                        global_error_code = SYNTAX_ANALYSIS_ERROR;
                         return NULL;
                     }
                     indentStackPush(stack, ws);
@@ -450,7 +450,7 @@ Token *getToken()
                         {
                             //error
                             indentStackDestroy(stack);
-                            global_error_code = LEXICAL_ANALYSIS_ERROR;
+                            global_error_code = SYNTAX_ANALYSIS_ERROR;
                             return NULL;
                         }
                         ws = 0;
