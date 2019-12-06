@@ -36,7 +36,7 @@ int if_count = 0;
 e_type faking[100] = {
   /*DEF, ID, LPA, INT, COM, ID, COM, ID, RPA, COL, EOL, INDENT,
   PASS, EOL, DEDENT,*/
-  ID, EQ, ID, LPA, INT, COM, ID, RPA, EOL,
+  ID, ID, LPA, INT, COM, ID, RPA, EOL,
   ID, EQ, ID, PLUS, ID, EOL,
   ID, LPA, INT, RPA, EOL,
   IF, INT, COL, EOL, INDENT,
@@ -65,6 +65,10 @@ Token *fake_token()
 #define Tis_op (Tis(L) || Tis(LEQ) || Tis(G) || Tis(GEQ) || Tis(EQ) || Tis(NEQ) || Tis(PLUS) || Tis(MINUS) || Tis(AST) || Tis(SL) || Tis(DSL))
 
 
+//scanner
+#define fake_token() getToken()
+
+
 Token *fake_analysis(Token *op1, Token *op2, Token *res)
 {
   while(Tis_item || Tis_op|| Tis(LPA) || Tis(RPA)) {
@@ -73,6 +77,9 @@ Token *fake_analysis(Token *op1, Token *op2, Token *res)
   }
   return curr_token;
 }
+
+//SA vyrazu
+#define fake_analysis(a, b, c) expressionAnalysis(a, b, c)
 
 //------MAKRA---------------------
 //vypíše chybové hlášení a nastaví global_error_code na error pokud už není
@@ -1330,9 +1337,10 @@ void parser_do_magic()
    //nacte prvni token
    curr_token = fake_token();
 
+   /*bool overall = */prog();
    //prog <- pocatecni nonterminal, cely program
    //TODO delete this (but keep prog() calling)
-   bool overall = prog();
+   /*bool overall = prog();
    printf("______________________________________\n");
    //print_all_ac_by_f(true);
    printf("_______________________________________\n");
@@ -1341,7 +1349,7 @@ void parser_do_magic()
    else printf("NO\n");
    printf("Analysis without error?");
    if(!kill_after_analysis) printf(" YES\n");
-   else printf(" ERROR n. %d\n", global_error_code);
+   else printf(" ERROR n. %d\n", global_error_code);*/
 
 
    //TODO

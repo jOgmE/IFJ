@@ -9,6 +9,12 @@ FILE *source_file = NULL; //scaner to jeste nema
 
 int main()
 {
+  source_file = fopen("input", "r");
+  if(source_file == NULL) {
+    fprintf(stderr, "well, file fault\n");
+    return 1;
+  }
   parser_do_magic();
+  fclose(source_file);
   return 0;
 }
