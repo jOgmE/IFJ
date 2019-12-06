@@ -4,13 +4,13 @@
  * Test file for scanner.
  */
 
-#include "../../lib/dynamic_string.h"
-#include "../../lib/errors.h"
-#include "../../scanner/token.h"
-#include "../../scanner/scanner.h"
+#include "../../dynamic_string.h"
+#include "../../errors.h"
+#include "../../token.h"
+#include "../../scanner.h"
 
 //global variable for file
-FILE *f;
+FILE *source_file;
 
 convert types[] = {
     {INDENT, "indent"},
@@ -169,13 +169,13 @@ int testTokenReading()
 
 void runTest(const char *test)
 {
-    f = fopen(test, "r");
-    printFile(f);
-    fclose(f);
-    f = fopen(test, "r");
+    source_file = fopen(test, "r");
+    printFile(source_file);
+    fclose(source_file);
+    source_file = fopen(test, "r");
     printSeparator(test);
     testTokenReading();
-    fclose(f);
+    fclose(source_file);
     printf(".............................................................\n\n\n");
 }
 

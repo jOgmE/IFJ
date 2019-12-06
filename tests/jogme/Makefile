@@ -1,7 +1,7 @@
 CC=gcc
 FLAGS=-std=c99 -Wall -Wextra -Werror -g
 APP=test_scanner
-LIB=../../lib/
+LIB=../../
 DEPENDENCIES=$(LIB)dynamic_string.* $(LIB)errors.* $(LIB)indent_stack.* $(LIB)scanner.* $(LIB)token.*
 
 all: $(APP)

@@ -68,7 +68,7 @@
 //---------------------------------------------------------
 
 extern size_t line_count;
-extern FILE *f;
+extern FILE *source_file;
 
 /* Brief get a Token from the stream f
  *

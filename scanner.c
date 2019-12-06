@@ -23,16 +23,9 @@ static tIndentStack *stack;
 //from S that dedent happened or not.
 //static bool indent = false;
 
-FILE *f = NULL;
-
 Token *getToken()
 {
-    if (f == NULL && source_file != NULL)
-    {
-        f = source_file;
-    }
-    else
-    {
+    if(!source_file){
         global_error_code = 99;
         return NULL;
     }
@@ -74,7 +67,7 @@ Token *getToken()
     //ends while when resolved == 0
     while (resolved)
     {
-        if ((c = fgetc(f)) == EOF)
+        if ((c = fgetc(source_file)) == EOF)
         {
             if (checkDedent(stack, c, token))
                 return token;
@@ -111,7 +104,7 @@ Token *getToken()
                     return token;
             }
             if (c == 13)
-                c = fgetc(f); //fcking windows with \r\n
+                c = fgetc(source_file); //fcking windows with \r\n
             if (c == 10)
             {
                 present_state = F2;
@@ -403,7 +396,7 @@ Token *getToken()
                 break;
             }
             //ungetc the first char that is not ws
-            ungetc(c, f);
+            ungetc(c, source_file);
 
             //empty stack == push INDENT
             if (indentStackEmpty(stack))
@@ -472,7 +465,7 @@ Token *getToken()
             break;
         case F2:
             //generating token EOL
-            ungetc(c, f);
+            ungetc(c, source_file);
             scanner_first_token = true;
             add_simple_data(token, EOL);
             ++line_count;
@@ -489,7 +482,7 @@ Token *getToken()
             {
                 //not a string char
                 //ending final state
-                ungetc(c, f);
+                ungetc(c, source_file);
                 //checking for keyword
                 if (isKeyword(our_string) != 999)
                 { //is keyword
@@ -521,7 +514,7 @@ Token *getToken()
             }
 
             //end of the number
-            ungetc(c, f);
+            ungetc(c, source_file);
             if (cstrToInt(our_string, token))
             { //checking return value
                 return NULL;
@@ -541,7 +534,7 @@ Token *getToken()
             }
 
             //end of the decimal number
-            ungetc(c, f);
+            ungetc(c, source_file);
             if (cstrToDec(our_string, token))
             {
                 return NULL;
@@ -555,7 +548,7 @@ Token *getToken()
             }
 
             //end of the decimal number expressed in exponential notation
-            ungetc(c, f);
+            ungetc(c, source_file);
             if (cstrToDec(our_string, token))
             {
                 return NULL;
@@ -566,6 +559,18 @@ Token *getToken()
             if (c == 48)
                 break; //'0'
 
+            if(c == 46){ //.
+                if ((our_string = init_cstring_size(256)) == NULL)
+                {
+                    global_error_code = INTERNAL_ERROR;
+                    return NULL;
+                }
+                append_char(our_string, '0');
+                append_char(our_string, c);
+                present_state = Q10;
+                break;
+            }
+
             if (is19num(c) || isIdNameStart(c))
             {
                 //error
@@ -574,11 +579,11 @@ Token *getToken()
                 return NULL;
             }
 
-            ungetc(c, f);
+            ungetc(c, source_file);
             add_int(token, 0);
             return token;
         case F9: //end of the string
-            ungetc(c, f);
+            ungetc(c, source_file);
             resize_cstring(our_string, our_string->length + 1);
             add_string(token, our_string);
             return token;
@@ -589,11 +594,11 @@ Token *getToken()
                 break;
             }
 
-            ungetc(c, f);
+            ungetc(c, source_file);
             add_simple_data(token, ASS); //:nicoSmug
             return token;
         case F12: //equal op
-            ungetc(c, f);
+            ungetc(c, source_file);
             add_simple_data(token, EQ);
             return token;
         case F13:
@@ -603,11 +608,11 @@ Token *getToken()
                 break;
             }
 
-            ungetc(c, f);
+            ungetc(c, source_file);
             add_simple_data(token, L);
             return token;
         case F14:
-            ungetc(c, f);
+            ungetc(c, source_file);
             add_simple_data(token, LEQ);
             return token;
         case F15:
@@ -617,19 +622,19 @@ Token *getToken()
                 break;
             }
 
-            ungetc(c, f);
+            ungetc(c, source_file);
             add_simple_data(token, G);
             return token;
         case F16:
-            ungetc(c, f);
+            ungetc(c, source_file);
             add_simple_data(token, GEQ);
             return token;
         case F17:
-            ungetc(c, f);
+            ungetc(c, source_file);
             add_simple_data(token, NEQ);
             return token;
         case F19: //case F18 moved to S
-            ungetc(c, f);
+            ungetc(c, source_file);
             resize_cstring(our_string, our_string->length + 1);
             //adding STRING!!
             add_string(token, our_string);
@@ -641,11 +646,11 @@ Token *getToken()
                 break;
             }
 
-            ungetc(c, f);
+            ungetc(c, source_file);
             add_simple_data(token, SL);
             return token;
         case F23:
-            ungetc(c, f);
+            ungetc(c, source_file);
             add_simple_data(token, DSL);
             return token;
             //cases F24-25 moved to S
@@ -732,7 +737,7 @@ bool checkDedent(tIndentStack *stack, char c, Token *token)
 {
     if (!indentStackEmpty(stack))
     {
-        ungetc(c, f);
+        ungetc(c, source_file);
         add_simple_data(token, DEDENT);
         indentStackPop(stack);
         return true;
