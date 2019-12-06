@@ -1,0 +1,5 @@
+a = 0
+b = 2
+while a < 8:
+     a = a + b
+     b = 'hi'

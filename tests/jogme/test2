@@ -1,0 +1,18 @@
+def fenix(some, nope):
+    if 1:
+        pass
+    else:
+        print('We are going to do IFJ\n\t')
+
+
+
+a = 21 + 32 * (41 -21+32*9432909) - c
+
+def foo():
+    21
+
+def foo1():
+    21
+
+b = foo1() + foo2()
+print(a+b)
