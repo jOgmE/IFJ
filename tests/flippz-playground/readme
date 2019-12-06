@@ -1,0 +1,34 @@
+Jak používat Flippz-playground:
+
+1) do svého souboru "pracAnalysis_lib.c" si narveš hned na druhý řádek toto:
+
+#define getToken(someshit) someshit = fake_token()
+extern Token *fake_token();
+
+nebo
+#define getToken() fake_token()
+místo prvního, pokud sis to už opravil (já měla verzi, kde máš divné volání
+get token s parametrem)
+
+2) v souboru "test.c" je od 15. řádku e_type faking[100], do toho narvi
+   oddělené čárkami typy tokenů, které chceš simulovat
+   (nasimuluje to typ, nějaký string, hodnoty na 0, afaik by ti to
+   mělo stačit)
+
+3) spustíš skript "./run.sh" (pokud to nepůjde, dej prvně příkaz "chmod +x run.sh",
+   tím tomu povolíš execute)
+   (btw toto je pro tvoje pohodlí, jen to udělá "make" "./f_test" "rm f_test")
+
+
+Jaký formát dostaneš na výstupu:
+
+(jakýkoliv tvůj výpis)
+______________________________________
+AC: LABEL
+AC: LABEL
+AC: LABEL (vygenerovaný ac kod vcetne typu a nazvu, pokud je)
+(ty LABEL jsou moje, znaci, ze parser predava slovo tvoji analyze,
+kdybys chtel vedet,co je generace jednoho prubehu sa vyrazu)
+_______________________________________
+Analysis without error? ERROR n. 2 (YES, pokud zadny error, jinak cislo erroru
+co zustalo v global_error_code)
