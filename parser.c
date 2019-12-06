@@ -36,13 +36,13 @@ int if_count = 0;
 e_type faking[100] = {
   /*DEF, ID, LPA, INT, COM, ID, COM, ID, RPA, COL, EOL, INDENT,
   PASS, EOL, DEDENT,*/
-  ID, ID, LPA, INT, COM, ID, RPA, EOL,
+  /*ID, ID, LPA, INT, COM, ID, RPA, EOL,
   ID, EQ, ID, PLUS, ID, EOL,
   ID, LPA, INT, RPA, EOL,
   IF, INT, COL, EOL, INDENT,
   ID, EQ, ID, MINUS, INT, EOL,
   RETURN, ID, EOL,
-  DEDENT, ELSE, COL, EOL, INDENT, PASS, EOL, DEDENT,
+  DEDENT, ELSE, COL, EOL, INDENT, PASS, EOL, DEDENT,*/
   EOL,
   EOFILE
 };
@@ -79,7 +79,7 @@ Token *fake_analysis(Token *op1, Token *op2, Token *res)
 }
 
 //SA vyrazu
-#define fake_analysis(a, b, c) expressionAnalysis(a, b, c)
+//#define fake_analysis(a, b, c) expressionAnalysis(a, b, c)
 
 //------MAKRA---------------------
 //vypíše chybové hlášení a nastaví global_error_code na error pokud už není
@@ -1034,9 +1034,9 @@ bool not_sure1()
       if(flush_until(RPA) == false) return false;
       goto NS1_r1rp1;
   }
-  else if(Tis(EQ)) {
+  else if(Tis(ASS)) {
     //= not_sure2
-    //nemusim checkovat EQ
+    //nemusim checkovat ass
     free(curr_token);
     curr_token = fake_token();
 
