@@ -1,6 +1,6 @@
 /** @file ifj19.c
  *  Hlavní rozhraní programu
- * 
+ *
  *  @author Jaroslav Hort (xhortj04)
  *  @date 2019
  */
@@ -35,7 +35,7 @@ int main(int argc, char const *argv[])
         return INTERNAL_ERROR;
     }
 
-    init_gen();
+    if(global_error_code == SUCCESS) init_gen();
 
     if (global_error_code == INTERNAL_ERROR)
     {
