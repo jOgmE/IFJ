@@ -70,12 +70,12 @@ int decode(e_type token)
 }
 
 // vrati znak pro vyhodnoceni PA. isFin se nastavi na 1 pokud byl prichozi token dekodovan jako non-expr
-char getFromTable(e_type tokenS, e_type tokenI, int *isFin)
+char getFromTable(Token *tokenS, Token *tokenI, int *isFin)
 {
-	if (decode(tokenI) == 17) *isFin = 1;
+	if (decode(tokenI->type) == 17) *isFin = 1;
 	else *isFin = 0;
 
-	return PATable[decode(tokenS)][decode(tokenI)];
+	return PATable[(tokenS == NULL) ? 17 : decode(tokenS->type)][decode(tokenI->type)];
 }
 
 #endif

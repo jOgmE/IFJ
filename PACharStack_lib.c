@@ -371,7 +371,7 @@ int PAApplyRule ( PAStack *s, Token *res )
 			
 
 		} else {
-			printf("[filip] Chyba pri kopirovani vrcholu stacku.\n");
+			print_compile_error(SYNTAX_ANALYSIS_ERROR, ERROR, line_count, "Chyba ve vyrazu.");
 			return 1;
 		}
 
@@ -394,16 +394,16 @@ int PAApplyRule ( PAStack *s, Token *res )
 				return 0;
 
 			} else {
-				printf("[filip] Chyba pri kopirovani vrcholu stacku.\n");
+				print_compile_error(SYNTAX_ANALYSIS_ERROR, ERROR, line_count, "Chyba ve vyrazu.");
 				return 1;
 			}
 
 		} else {
-			printf("[filip] Chyba pri kopirovani vrcholu stacku.\n");
+			print_compile_error(SYNTAX_ANALYSIS_ERROR, ERROR, line_count, "Chyba ve vyrazu.");
 			return 1;
 		}
 	} else {
-		printf("[filip] Chyba pri kopirovani vrcholu stacku.\n");
+		print_compile_error(SYNTAX_ANALYSIS_ERROR, ERROR, line_count, "Chyba ve vyrazu.");
 		return 1;
 	}
 
@@ -419,6 +419,7 @@ void PAPop ( PAStack *s )
 	if ( s->top->content != NULL ) free_token(s->top->content);
 	PAStackElem *tmp = s->top;
 	s->top = s->top->belowPtr;
+	printf("Popping character %c\n", tmp->c);
 	free(tmp);
 
 }
