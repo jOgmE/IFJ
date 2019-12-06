@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-std=c99 -Wall -Wextra
+CFLAGS=-std=c99 -Wall -Wextra -g
 
 SRC=$(wildcard *.c)
 PROJ=ifj19
