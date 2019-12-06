@@ -7,6 +7,11 @@
 void PAInit ( PAStack **s )
 {
 	*s = (PAStack *) malloc(sizeof(PAStack));
+	if ( *s == NULL ) {
+		kill_after_analysis = true;
+		global_error_code = INTERNAL_ERROR;
+		print_internal_error(INTERNAL_ERROR, ERROR, "Chyba alokace pameti.");
+	}
 
 	(*s)->top = NULL;
 }
@@ -17,6 +22,11 @@ void PAInit ( PAStack **s )
 void PAPushFin ( PAStack *s )
 {
 	PAStackElem *newElem = (PAStackElem *) malloc(sizeof(PAStackElem));
+	if ( newElem == NULL ) {
+		kill_after_analysis = true;
+		global_error_code = INTERNAL_ERROR;
+		print_internal_error(INTERNAL_ERROR, ERROR, "Chyba alokace pameti.");
+	}
 
 	newElem->c = '$';
 	newElem->content = NULL;
@@ -31,6 +41,11 @@ void PAPushFin ( PAStack *s )
 void PAPush ( PAStack *s, Token *content )
 {
 	PAStackElem *newElem = (PAStackElem *) malloc(sizeof(PAStackElem));
+	if ( newElem == NULL ) {
+		kill_after_analysis = true;
+		global_error_code = INTERNAL_ERROR;
+		print_internal_error(INTERNAL_ERROR, ERROR, "Chyba alokace pameti.");
+	}
 
 	char c;
 	switch (content->type) {
@@ -65,6 +80,11 @@ void PAPush ( PAStack *s, Token *content )
 void PAPushE ( PAStack *s, Token *content)
 {
 	PAStackElem *newElem = (PAStackElem *) malloc(sizeof(PAStackElem));
+	if ( newElem == NULL ) {
+		kill_after_analysis = true;
+		global_error_code = INTERNAL_ERROR;
+		print_internal_error(INTERNAL_ERROR, ERROR, "Chyba alokace pameti.");
+	}
 
 	newElem->c = 'E';
 	newElem->content = content;
@@ -168,7 +188,7 @@ void PAAddBracket ( PAStack *s )
 
 
 // provede zpetnou derivaci E->i
-int PACodeRule1 ( PAStack *s , Token *res )
+int PACodeRule1 ( PAStack *s )
 {
 	Token *tmp = copy_token(s->top->content);
 
@@ -184,7 +204,6 @@ int PACodeRule1 ( PAStack *s , Token *res )
 					PAPop(s);	// popne '['
 
 					PAPushE(s, tmp);		
-					res = tmp;
 				
 					return 0;
 					break;
@@ -206,7 +225,6 @@ int PACodeRule1 ( PAStack *s , Token *res )
 			PAPop(s);	// popne '['
 
 			PAPushE(s, tmp);
-			res = tmp;		
 
 			return 0;
 			break;
@@ -244,19 +262,21 @@ int PACodeRule2 ( PAStack *s, Token *E1, Token *op, Token *E2, Token *res )
 
 	appendAC(getACOP(op->type), E1, E2, copy_token(result));
 
+	
+
 	PAPop(s);
 	PAPop(s);
 	PAPop(s);
 	PAPop(s); // popne "[E+E"
 
 	PAPushE(s, result);
-	res = result;
+	changeLastRes(res);
 
 	return 0;	
 }
 
 // provede zpetnou derivaci E->(E)
-int PACodeRule3 ( PAStack *s, Token *res )
+int PACodeRule3 ( PAStack *s )
 {
 	PAPop(s); // popne ')'
 
@@ -275,7 +295,6 @@ int PACodeRule3 ( PAStack *s, Token *res )
 					PAPop(s);	// popne '['
 
 					PAPushE(s, tmp);		
-					res = tmp;
 
 					return 0;
 					break;
@@ -298,7 +317,6 @@ int PACodeRule3 ( PAStack *s, Token *res )
 			PAPop(s);	// popne '['
 
 			PAPushE(s, tmp);	
-			res = tmp;	
 
 			return 0;
 			break;
@@ -342,11 +360,12 @@ int PAApplyRule ( PAStack *s, Token *res )
 
 	if ( i == 1 ) {
 		if ( tempStack[2]->c == '[' && tempStack[3]->c == 'i' ) {
-				
-			printf("PA: Derivace E->i\n");
-			PACodeRule1(s, res);
+			
+			// PROVEDENI E->i
+			
+			PACodeRule1(s);
 			return 0;
-			// TODO E->i
+			
 
 		} else {
 			printf("[filip] Chyba pri kopirovani vrcholu stacku.\n");
@@ -361,25 +380,23 @@ int PAApplyRule ( PAStack *s, Token *res )
 
 			if ( tempStack[1]->c == 'E' && tempStack[2]->c == '+' && tempStack[3]->c == 'E' ) {
 
-				printf("Derivace E->E+E\n");
+				// PROVEDENI E->E+E	
 				PACodeRule2(s, tempStack[1]->content, tempStack[2]->content, tempStack[3]->content, res);
 				return 0;
-				// TODO E->E+E
-
+				
 			} else if ( tempStack[1]->c == '(' && tempStack[2]->c == 'E' && tempStack[3]->c == ')' ) {
 
-				printf("Derivace E->(E)\n");
-				PACodeRule3(s, res);
+				// PROVEDENI E->(E)
+				PACodeRule3(s);
 				return 0;
-				// TODO E->(E)
 
 			} else {
-				printf("[filip] Chyba pri kopirovani vrcholu stacku.\n"); // TODO error
+				printf("[filip] Chyba pri kopirovani vrcholu stacku.\n");
 				return 1;
 			}
 
 		} else {
-			printf("[filip] Chyba pri kopirovani vrcholu stacku.\n"); // TODO error
+			printf("[filip] Chyba pri kopirovani vrcholu stacku.\n");
 			return 1;
 		}
 	} else {

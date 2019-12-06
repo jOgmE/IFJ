@@ -21,9 +21,26 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 
 
 	do {
+		if (kill_after_analysis == true) {
+			
+			while (decode(curToken->type)!=17)
+			{
+				if (PATop(socket) != NULL) {
+					curToken = PATop(socket);
+					PAPop(socket);	
+				} else {
+					getToken(curToken);
+				}
+			}
+		
+			break;
+		}
 
 
-		switch (getFromTable(PATopTerm(s)->type, curToken->type, isFin)) {
+
+		char switchC = getFromTable(PATopTerm(s)->type, curToken->type, isFin);
+
+		switch (switchC) {
 
 			case '[':
 				PAPush(s, curToken);
