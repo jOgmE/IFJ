@@ -186,6 +186,7 @@ void PAAddBracket ( PAStack *s )
 
 
 
+// funkce PACODERULE# jsou pouze vynaty z funkce ApplyRule, ktera uz je i tak dlouha
 
 // provede zpetnou derivaci E->i
 int PACodeRule1 ( PAStack *s )
@@ -237,6 +238,7 @@ int PACodeRule1 ( PAStack *s )
 	return 1;
 }
 
+// na zaklade typu operatoru vrati prislusny typ volani AC
 ac_type getACOP ( e_type op )
 {
 	switch ( op ) {
@@ -351,6 +353,7 @@ int PAApplyRule ( PAStack *s, Token *res )
 		printf("tempStack[%d] = %c\n", 3-i, tempStack[3-i]->c);
 		
 		if ( ptr->c == '$' || ptr->c == '[' ) break;
+		// ^ skonci pri nalezeni '[' (OK) nebo '$' (Uh oh)
 
 		ptr = ptr->belowPtr;
 		i++;	
@@ -368,7 +371,7 @@ int PAApplyRule ( PAStack *s, Token *res )
 			
 
 		} else {
-			printf("[filip] Chyba pri kopirovani vrcholu stacku.\n");
+			print_compile_error(SYNTAX_ANALYSIS_ERROR, ERROR, line_count, "Chyba ve vyrazu.");
 			return 1;
 		}
 
@@ -391,16 +394,16 @@ int PAApplyRule ( PAStack *s, Token *res )
 				return 0;
 
 			} else {
-				printf("[filip] Chyba pri kopirovani vrcholu stacku.\n");
+				print_compile_error(SYNTAX_ANALYSIS_ERROR, ERROR, line_count, "Chyba ve vyrazu.");
 				return 1;
 			}
 
 		} else {
-			printf("[filip] Chyba pri kopirovani vrcholu stacku.\n");
+			print_compile_error(SYNTAX_ANALYSIS_ERROR, ERROR, line_count, "Chyba ve vyrazu.");
 			return 1;
 		}
 	} else {
-		printf("[filip] Chyba pri kopirovani vrcholu stacku.\n");
+		print_compile_error(SYNTAX_ANALYSIS_ERROR, ERROR, line_count, "Chyba ve vyrazu.");
 		return 1;
 	}
 
@@ -416,6 +419,7 @@ void PAPop ( PAStack *s )
 	if ( s->top->content != NULL ) free_token(s->top->content);
 	PAStackElem *tmp = s->top;
 	s->top = s->top->belowPtr;
+	printf("Popping character %c\n", tmp->c);
 	free(tmp);
 
 }
