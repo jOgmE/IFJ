@@ -16,7 +16,7 @@
 #include "errors.h"
 #include "adress_code.h"
 #include <stdbool.h>
-//#include "" flippz something
+#include "precAnalysis_lib.h"
 
 extern bool kill_after_analysis;
 extern error_type global_error_code;

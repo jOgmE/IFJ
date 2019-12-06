@@ -186,6 +186,7 @@ void PAAddBracket ( PAStack *s )
 
 
 
+// funkce PACODERULE# jsou pouze vynaty z funkce ApplyRule, ktera uz je i tak dlouha
 
 // provede zpetnou derivaci E->i
 int PACodeRule1 ( PAStack *s )
@@ -237,6 +238,7 @@ int PACodeRule1 ( PAStack *s )
 	return 1;
 }
 
+// na zaklade typu operatoru vrati prislusny typ volani AC
 ac_type getACOP ( e_type op )
 {
 	switch ( op ) {
@@ -351,6 +353,7 @@ int PAApplyRule ( PAStack *s, Token *res )
 		printf("tempStack[%d] = %c\n", 3-i, tempStack[3-i]->c);
 		
 		if ( ptr->c == '$' || ptr->c == '[' ) break;
+		// ^ skonci pri nalezeni '[' (OK) nebo '$' (Uh oh)
 
 		ptr = ptr->belowPtr;
 		i++;	

@@ -3,6 +3,7 @@
 #ifndef _PA_TABLE
 #define _PA_TABLE
 
+// tabulka precedencni analyzy
 const char PATable[18][18] = {
 	// ID    INT   DEC   STR   L     LEQ   G     GEQ   EQ    NEQ   PLUS  MINUS AST   SL    DSL   LPA   RPA   "$"
 	/* ID	*/ {' ', ' ', ' ', ' ', ']', ']', ']', ']', ']', ']', ' ', ' ', ' ', ' ', ' ', ' ', ']', ']'},
@@ -24,7 +25,7 @@ const char PATable[18][18] = {
 	/* RPA	*/ {' ', ' ', ' ', ' ', ']', ']', ']', ']', ']', ']', ']', ']', ']', ']', ']', ' ', ' ', ']'},
 	/* "$"	*/ {' ', ' ', ' ', ' ', '[', '[', '[', '[', '[', '[', '[', '[', '[', '[', '[', ' ', ' ', ' '}};
 
-// prevede token na vstupu na koordinat
+// prevede token na vstupu na koordinat (taky pouzito pro flush v PA)
 int decode(e_type token)
 {
 	switch (token)
@@ -68,7 +69,7 @@ int decode(e_type token)
 	}
 }
 
-// vrati znak pro vyhodnoceni PA
+// vrati znak pro vyhodnoceni PA. isFin se nastavi na 1 pokud byl prichozi token dekodovan jako non-expr
 char getFromTable(e_type tokenS, e_type tokenI, int *isFin)
 {
 	if (decode(tokenI) == 17) *isFin = 1;
