@@ -16,15 +16,19 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 		PAPush(socket, input2);
 	PAPush(socket, input1);
 
+
 	// inicializace hlavniho stacku PA
 	PAStack *s;
 	PAInit(&s);
 	PAPushFin(s);
 
-	Token *curToken = (input2 == NULL) ? input1 : input2;
+	
+	Token *curToken = init_token();	
+	curToken = (input2 == NULL) ? input1 : input2;
 
 	int *isFin;
 	*isFin = 0;
+
 
 
 	do {
@@ -46,8 +50,9 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 
 
 		// vybere z tabulky PA prislusny symbol
-		char switchC = getFromTable(PATopTerm(s)->type, curToken->type, isFin);
-
+			
+		char switchC = getFromTable(PATopTerm(s), curToken, isFin);
+		printf("%c\n", switchC); // TODO odstran
 		switch (switchC) {
 
 			case '[':
@@ -87,10 +92,13 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 
 	} while ( PAEndAtTop(s) || !(*isFin) );
 
-	// uvolneni
-	PAYeet(socket);
-	PAYeet(s);
+	printf("Prefree.\n");
 
+	// uvolneni -- NECO V YEETU TROPI POTIZE, TODO vyresit to
+	//PAYeet(socket);
+	//PAYeet(s);
+
+	printf("Bye.\n");
 	// navrat navic prejateho tokenu (interpretovaneho jako '$')
 	return curToken;
 }
