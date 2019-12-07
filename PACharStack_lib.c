@@ -95,15 +95,15 @@ void PAPushE ( PAStack *s, Token *content)
 
 
 
-// vrati hodnotu nejvyssiho terminalu na stacku
-Token *PATopTerm ( PAStack *s )
+// vrati polozku nejvyssiho terminalu na stacku
+PAStackElem *PATopTerm ( PAStack *s )
 {
 	PAStackElem *elem = s->top;
 
 	while ( elem != NULL ) {
 		
 		if ( elem->c != 'E' ) {
-			return elem->content;
+			return elem;
 		} else {
 			elem = elem->belowPtr;
 		}
@@ -111,7 +111,7 @@ Token *PATopTerm ( PAStack *s )
 	}
 
 
-	// DO ERROR HERE
+	// TODO ERROR HERE
 	return 0;
 }
 
@@ -132,7 +132,7 @@ int PAEndAtTop ( PAStack *s )
 {
 	if (s->top == NULL ) return 0;
 
-	if (s->top->c == '$' ) return 1;
+	if (PATopTerm(s)->c == '$' ) return 1;
 	else return 0;
 }
 
@@ -257,21 +257,42 @@ ac_type getACOP ( e_type op )
 	}
 }
 
+void appendNumber ( cstring *str, int *i ) {
+	int j = *i;
+	*i = *i + 1;
+	do {
+		append_char(str, (char)(j % 10) + '0');
+		j = j / 10;
+	} while ( j > 0 );
+}
+
+
 // provede zpetnou derivaci E->E+E
-int PACodeRule2 ( PAStack *s, Token *E1, Token *op, Token *E2, Token *res )
+int PACodeRule2 ( PAStack *s, Token *E1, Token *op, Token *E2, Token *res, int *tempInt )
 {
 	Token *result = init_token();
 
+	// TODO give em names!
+
+	cstring *tempName = init_cstring("temp_");
+
+	appendNumber(tempName, tempInt);
+
+	add_temp_id(result, tempName);
+
+	printf("owo im a cute widdwe pwint\n");
+
 	appendAC(getACOP(op->type), E1, E2, copy_token(result));
 
-	
 
 	PAPop(s);
 	PAPop(s);
 	PAPop(s);
 	PAPop(s); // popne "[E+E"
 
+
 	PAPushE(s, result);
+
 	changeLastRes(res);
 
 	return 0;	
@@ -334,7 +355,7 @@ int PACodeRule3 ( PAStack *s )
 
 
 // upravi vrchol zasobniku podle pravidel E->i, E->(E), E->E<OP>E
-int PAApplyRule ( PAStack *s, Token *res )
+int PAApplyRule ( PAStack *s, Token *res, int *tempInt)
 {
 	PAStackElem* tempStack[4];
 	int i = 0;
@@ -350,7 +371,7 @@ int PAApplyRule ( PAStack *s, Token *res )
 		}
 
 		tempStack[3-i] = ptr;
-		printf("tempStack[%d] = %c\n", 3-i, tempStack[3-i]->c);
+		//printf("tempStack[%d] = %c\n", 3-i, tempStack[3-i]->c);
 		
 		if ( ptr->c == '$' || ptr->c == '[' ) break;
 		// ^ skonci pri nalezeni '[' (OK) nebo '$' (Uh oh)
@@ -358,8 +379,6 @@ int PAApplyRule ( PAStack *s, Token *res )
 		ptr = ptr->belowPtr;
 		i++;	
 	}
-
-	printf("after cycle i = %d\n", i);
 
 	if ( i == 1 ) {
 		if ( tempStack[2]->c == '[' && tempStack[3]->c == 'i' ) {
@@ -383,8 +402,8 @@ int PAApplyRule ( PAStack *s, Token *res )
 
 			if ( tempStack[1]->c == 'E' && tempStack[2]->c == '+' && tempStack[3]->c == 'E' ) {
 
-				// PROVEDENI E->E+E	
-				PACodeRule2(s, tempStack[1]->content, tempStack[2]->content, tempStack[3]->content, res);
+				// PROVEDENI E->E+E
+				PACodeRule2(s, tempStack[1]->content, tempStack[2]->content, tempStack[3]->content, res, tempInt);
 				return 0;
 				
 			} else if ( tempStack[1]->c == '(' && tempStack[2]->c == 'E' && tempStack[3]->c == ')' ) {
@@ -419,7 +438,6 @@ void PAPop ( PAStack *s )
 	if ( s->top->content != NULL ) free_token(s->top->content);
 	PAStackElem *tmp = s->top;
 	s->top = s->top->belowPtr;
-	printf("Popping character %c\n", tmp->c);
 	free(tmp);
 
 }
