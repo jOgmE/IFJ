@@ -35,7 +35,11 @@ int main(int argc, char const *argv[])
         return INTERNAL_ERROR;
     }
 
-    if(global_error_code == SUCCESS) init_gen();
+    if (global_error_code == SUCCESS)
+    {
+        init_gen();
+        generate_code();
+    }
 
     if (global_error_code == INTERNAL_ERROR)
     {
