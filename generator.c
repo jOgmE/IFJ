@@ -39,6 +39,7 @@ bool createframe_written = false;
 
 size_t tmp_if_counter = 0;
 size_t tmp_var_counter = 0;
+
 size_t param_counter = 0;
 
 #ifdef DEBUG
@@ -273,12 +274,13 @@ void definition_start()
 
 void definition_end()
 {
-    append_string(CURRENT_BLOCK, "POPFRAME\nRETURN\n");
+    append_string(CURRENT_BLOCK, "POPFRAME\nRETURN\n\n");
 
-    CURRENT_BLOCK = result_functions_code;
+    CURRENT_BLOCK = result_main_function_code;
     frame_t temp_frame_var = CURRENT_FRAME;
     switch_frame(PREVIOUS_FRAME);
     PREVIOUS_FRAME = temp_frame_var;
+    param_counter = 0;
     function_definition = false;
 }
 
@@ -403,6 +405,7 @@ void write_label(char *label)
 
 char *write_check_and_define(Token *token)
 {
+    //likely an error somewhere
     if (token == NULL)
     {
         return "";
@@ -413,14 +416,13 @@ char *write_check_and_define(Token *token)
         return "";
     }
 
-    if (compare_string(token->str, "temp_ret\001"))
+    if (compare_string(token->str, "temp_ret\001") || compare_string(token->str, "temp_ret"))
     {
         free_cstring(token->str);
         token->str = init_cstring("%temp_ret");
         return "TF";
     }
 
-    // char *token_key = get_table_key_from_token(token);
     char *token_key = token->str->str;
 
     bool token_exists_global = item_exists_table(token_key, GLOBAL_FRAME);
@@ -462,7 +464,7 @@ void write_createframe()
 
 void write_param(Token *res)
 {
-    if (param_counter == 0)
+    if (param_counter == 0 && !function_definition)
     {
         function_call_assign = true;
         write_createframe();
@@ -482,26 +484,27 @@ void write_param(Token *res)
         //     switch_frame(TEMP_FRAME);
         // }
 
-        append_string(CURRENT_BLOCK, "DEFVAR TF@%");
-        append_string(CURRENT_BLOCK, param_counter_str);
-        append_string(CURRENT_BLOCK, "\n");
+        // append_string(CURRENT_BLOCK, "DEFVAR TF@%");
+        // append_string(CURRENT_BLOCK, param_counter_str);
+        // append_string(CURRENT_BLOCK, "\n");
 
         append_string(CURRENT_BLOCK, "MOVE TF@%");
         append_string(CURRENT_BLOCK, param_counter_str);
-        write_symbol(res, res_frame_str, true);
-        append_string(CURRENT_BLOCK, "\n");
+        append_string(CURRENT_BLOCK, " ");
+        write_symbol(res, res_frame_str, false);
     }
     else
     {
-        append_string(CURRENT_BLOCK, "DEFVAR ");
-        append_string(CURRENT_BLOCK, res_frame_str);
-        append_string(CURRENT_BLOCK, "\n");
+        // append_string(CURRENT_BLOCK, "DEFVAR ");
+        // append_string(CURRENT_BLOCK, res_frame_str);
+        // append_string(CURRENT_BLOCK, "\n");
 
         append_string(CURRENT_BLOCK, "MOVE ");
         write_symbol(res, res_frame_str, false);
-        append_string(CURRENT_BLOCK, " LF@%\n");
+        append_string(CURRENT_BLOCK, "LF@%");
         append_string(CURRENT_BLOCK, param_counter_str);
     }
+    append_string(CURRENT_BLOCK, "\n");
 }
 
 void write_return(Token *res)
@@ -1253,6 +1256,9 @@ void generate_code()
             break;
         case PARAM:
             write_param(res);
+            break;
+        case RET:
+            write_return(res);
             break;
         default:
             break;
