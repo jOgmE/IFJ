@@ -1,5 +1,8 @@
 #include "precAnalysis_lib.h"
 
+#define getToken() fake_token()
+extern Token *fake_token();
+
 // struktura prec analyzy je v podstate totozna s jejim popisem v prezentaci
 // (dokonce i zasobnik pouziva znakove reprezentace 'E', 'i', '+' za operatory, '$' atd)
 // Vetsina funkcionality se ukryva ve funkci PAApplyRule(), kterou nelze prehlednout
@@ -7,15 +10,15 @@
 
 Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 {
-
 	// socket stack pro akomodaci vice prichazejicich vstupu
 	PAStack *socket;
 	PAInit(&socket);
 
-	if (input2 != NULL)
+	if (input2 != NULL) {
 		PAPush(socket, input2);
-	PAPush(socket, input1);
+		}
 
+	
 
 	// inicializace hlavniho stacku PA
 	PAStack *s;
@@ -23,12 +26,12 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 	PAPushFin(s);
 
 	
+	
 	Token *curToken = init_token();	
 	curToken = (input2 == NULL) ? input1 : input2;
 
-	int *isFin;
-	*isFin = 0;
-
+	int isFin = 0;
+	int tempInt = 0;
 
 
 	do {
@@ -41,7 +44,7 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 					curToken = PATop(socket);
 					PAPop(socket);	
 				} else {
-					getToken(curToken);
+					curToken = getToken();
 				}
 			}
 		
@@ -51,33 +54,32 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 
 		// vybere z tabulky PA prislusny symbol
 			
-		char switchC = getFromTable(PATopTerm(s), curToken, isFin);
-		printf("%c\n", switchC); // TODO odstran
+		char switchC = getFromTable(PATopTerm(s)->content, curToken, &isFin);
 		switch (switchC) {
 
-			case '[':
+			case '=':
 				PAPush(s, curToken);
 				if (PATop(socket) != NULL) {
 					curToken = PATop(socket);
 					PAPop(socket);	
 				} else {
-					getToken(curToken);
+					curToken = getToken();
 				}
 				break;
 
-			case '=':
+			case '[':
 				PAAddBracket(s);
 				PAPush(s, curToken);
 				if (PATop(socket) != NULL) {
 					curToken = PATop(socket);
 					PAPop(socket);	
 				} else {
-					getToken(curToken);
+					curToken = getToken();
 				}
 				break;
 
 			case ']':
-				PAApplyRule(s, res);	// <- tady je moloch
+				PAApplyRule(s, res, &tempInt);	// <- tady je moloch
 				break;
 
 			// kdyby scanner narazil na token mimo rozsah PA, je interpretovan jako '$', ktery ma sve ']'
@@ -89,16 +91,14 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 				break;
 		
 		}
+		
+	} while ( !(PAEndAtTop(s) && isFin) );
 
-	} while ( PAEndAtTop(s) || !(*isFin) );
-
-	printf("Prefree.\n");
 
 	// uvolneni -- NECO V YEETU TROPI POTIZE, TODO vyresit to
-	//PAYeet(socket);
-	//PAYeet(s);
+	PAYeet(socket);
+	PAYeet(s);
 
-	printf("Bye.\n");
 	// navrat navic prejateho tokenu (interpretovaneho jako '$')
 	return curToken;
 }
