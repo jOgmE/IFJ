@@ -180,6 +180,7 @@ char *get_table_key_from_token(Token *token)
     {
     case STR:
     case ID:
+    case TEMP_ID:
         return token->str->str;
     case INT:
         return convert_int_to_string(token->i);
@@ -313,7 +314,7 @@ void write_symbol_type(Token *symb, bool skip_space)
 
 void write_symbol(Token *symb, char *symb_frame, bool skip_space)
 {
-    if (symb->type == ID)
+    if (symb->type == ID || symb->type == TEMP_ID)
     {
         write_symbol_id(symb, symb_frame, skip_space);
     }
@@ -388,7 +389,7 @@ void write_label(char *label)
 
 char *write_check_and_define(Token *token)
 {
-    if (token->type != ID)
+    if (token->type != ID && token->type != TEMP_ID)
     {
         return "";
     }
@@ -1066,6 +1067,8 @@ void generate_code()
 
         actAC();
     }
+
+    print_gen_all();
 }
 
 //******************************************************************************************//
