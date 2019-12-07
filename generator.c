@@ -35,6 +35,8 @@ bool inputf_appended = false;
 bool inputs_appended = false;
 bool len_appended = false;
 
+bool createframe_written = false;
+
 size_t tmp_if_counter = 0;
 size_t tmp_var_counter = 0;
 size_t param_counter = 0;
@@ -394,8 +396,8 @@ void write_label(char *label)
     if (function_definition)
     {
         append_string(CURRENT_BLOCK, "PUSHFRAME\n");
-        append_string(CURRENT_BLOCK, "DEFVAR LF@%retval\n");
-        append_string(CURRENT_BLOCK, "MOVE LF@%retval nil@nil\n");
+        append_string(CURRENT_BLOCK, "DEFVAR LF@%temp_ret\n");
+        append_string(CURRENT_BLOCK, "MOVE LF@%temp_ret nil@nil\n");
     }
 }
 
@@ -409,6 +411,13 @@ char *write_check_and_define(Token *token)
     if (token->type != ID && token->type != TEMP_ID)
     {
         return "";
+    }
+
+    if (compare_string(token->str, "temp_ret\001"))
+    {
+        free_cstring(token->str);
+        token->str = init_cstring("%temp_ret");
+        return "TF";
     }
 
     // char *token_key = get_table_key_from_token(token);
@@ -444,9 +453,10 @@ char *write_check_and_define(Token *token)
     return token_frame_str;
 }
 
-void write_create_frame()
+void write_createframe()
 {
-    append_string(CURRENT_BLOCK, "CREATE FRAME\n");
+    createframe_written = true;
+    append_string(CURRENT_BLOCK, "CREATEFRAME\n");
     switch_frame(TEMP_FRAME);
 }
 
@@ -455,7 +465,7 @@ void write_param(Token *res)
     if (param_counter == 0)
     {
         function_call_assign = true;
-        write_create_frame();
+        write_createframe();
     }
 
     ++param_counter;
@@ -496,7 +506,7 @@ void write_param(Token *res)
 
 void write_return(Token *res)
 {
-    append_string(CURRENT_BLOCK, "MOVE LF@%retval ");
+    append_string(CURRENT_BLOCK, "MOVE LF@%temp_ret ");
 
     char *res_frame_str = write_check_and_define(res);
 
@@ -545,11 +555,18 @@ void write_call(char *label)
 
     if (label_exists)
     {
+        if (!createframe_written)
+        {
+            write_createframe();
+            createframe_written = false;
+        }
+
         append_string(CURRENT_BLOCK, "CALL ");
         append_string(CURRENT_BLOCK, label);
+        append_string(CURRENT_BLOCK, "\n");
 
-        switch_frame(LOCAL_FRAME);
-        CURRENT_BLOCK = result_main_function_code;
+        //switch_frame(LOCAL_FRAME);
+        //CURRENT_BLOCK = result_main_function_code;
 
         param_counter = 0;
     }
@@ -557,22 +574,22 @@ void write_call(char *label)
     {
         if (strcmp(label, "inputi") == 0 && !inputi_appended)
         {
-            append_string(result_main_function_code, INPUTI_FUNC);
+            append_string(result_functions_code, INPUTI_FUNC);
             inputi_appended = true;
         }
         else if (strcmp(label, "inputs") == 0 && !inputs_appended)
         {
-            append_string(result_main_function_code, INPUTS_FUNC);
+            append_string(result_functions_code, INPUTS_FUNC);
             inputs_appended = true;
         }
         else if (strcmp(label, "inputf") == 0 && !inputf_appended)
         {
-            append_string(result_main_function_code, INPUTF_FUNC);
+            append_string(result_functions_code, INPUTF_FUNC);
             inputf_appended = true;
         }
         else if (strcmp(label, "len") == 0 && !len_appended)
         {
-            append_string(result_main_function_code, LEN_FUNC);
+            append_string(result_functions_code, LEN_FUNC);
             len_appended = true;
         }
         else
@@ -588,7 +605,10 @@ void write_call(char *label)
             print_compile_error(4, ERROR, 0, error_string->str);
 
             free_cstring(error_string);
+            return;
         }
+        insert_table_item(label, GLOBAL_FRAME);
+        write_call(label);
     }
 }
 
