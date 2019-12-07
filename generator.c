@@ -7,6 +7,8 @@
 
 #include "generator.h"
 
+#define DEBUG
+
 //******************************************************************************************//
 //******************************************************************************************//
 //********************                 Globalni promenne                      **************//
@@ -37,11 +39,19 @@ size_t tmp_if_counter = 0;
 size_t tmp_var_counter = 0;
 size_t param_counter = 0;
 
+#ifdef DEBUG
+
+bool just_type = false;
+
+#endif
+
 //******************************************************************************************//
 //******************************************************************************************//
 //********************                   Inicializace                         **************//
 //******************************************************************************************//
 //******************************************************************************************//
+
+#ifdef DEBUG
 
 void init_gen_test(char *filename)
 {
@@ -62,6 +72,8 @@ void init_gen_test(char *filename)
 
     init_gen();
 }
+
+#endif
 
 void init_gen()
 {
@@ -389,6 +401,11 @@ void write_label(char *label)
 
 char *write_check_and_define(Token *token)
 {
+    if (token == NULL)
+    {
+        return "";
+    }
+
     if (token->type != ID && token->type != TEMP_ID)
     {
         return "";
@@ -496,13 +513,15 @@ void check_and_define_while()
 
     Token *op1 = NULL, *op2 = NULL, *res = NULL;
 
+    append_string(CURRENT_BLOCK, "\n#while start\n");
+
     while (isACActive() && type != WHILE_END)
     {
-        if (type == WHILE_START)
-        {
-            setACAct();
-            check_and_define_while();
-        }
+        // if (type == WHILE_START)
+        // {
+        //     setACAct();
+        //     check_and_define_while();
+        // }
 
         op1 = readACop1();
         op2 = readACop2();
@@ -513,6 +532,8 @@ void check_and_define_while()
         write_check_and_define(res);
 
         type = readACtype();
+
+        actAC();
     }
 
     goto_ac_breakpoint();
@@ -1000,8 +1021,158 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
 //******************************************************************************************//
 //******************************************************************************************//
 
+#ifdef DEBUG
+
+void print_type(ac_type type)
+{
+    switch (type)
+    {
+    case LABEL:
+        printf("LABEL");
+        break;
+    case RET:
+        printf("RET");
+        break;
+    case CALL:
+        printf("CALL");
+        break;
+    case JUMP:
+        printf("JUMP");
+        break;
+    case COND_JUMP:
+        printf("COND_JUMP");
+        break;
+    case ADD:
+        printf("ADD");
+        break;
+    case SUB:
+        printf("SUB");
+        break;
+    case MUL:
+        printf("MUL");
+        break;
+    case DIV:
+        printf("DIV");
+        break;
+    case DIVINT:
+        printf("DIVINT");
+        break;
+    case ASSIGN:
+        printf("ASSIGN");
+        break;
+    case EQUAL:
+        printf("EQUAL");
+        break;
+    case NOT_EQUAL:
+        printf("NOT_EQUAL");
+        break;
+    case GREATER:
+        printf("GREATER");
+        break;
+    case GE:
+        printf("GE");
+        break;
+    case LESS:
+        printf("LESS");
+        break;
+    case LE:
+        printf("LE");
+        break;
+    case DEF_START:
+        printf("DEF_START");
+        break;
+    case DEF_END:
+        printf("DEF_END");
+        break;
+    case PARAM:
+        printf("PARAM");
+        break;
+    case WHILE_START:
+        printf("WHILE_START");
+        break;
+    case WHILE_END:
+        printf("WHILE_END");
+        break;
+    case UNDEFINED:
+        printf("UNDEFINED");
+        break;
+    }
+}
+
+void print_ac(tAC *ac)
+{
+    if (just_type)
+    {
+        printf("AC: ");
+        print_type(ac->type);
+        printf("\n");
+        if (ac->op1 != NULL)
+            printf("  1 %s\n", get_cstring_string(ac->op1->str));
+        if (ac->op2 != NULL)
+            printf("  2 %s\n", get_cstring_string(ac->op2->str));
+        if (ac->res != NULL)
+            printf("  r %s\n", get_cstring_string(ac->res->str));
+        return;
+    }
+    printf("Adress code struct\n    type - %d\n", ac->type);
+    printf("    Token op1 - %p\n", (void *)ac->op1);
+    if (ac->op1 != NULL)
+    {
+        printf("          dbl - %f\n          int - %d\n          typ - %d\n", ac->op1->dec, ac->op1->i, ac->op1->type);
+        if (ac->op1->str != NULL)
+        {
+            const char *str = get_cstring_string(ac->op1->str);
+            printf("          str - %s\n", str);
+        }
+        else
+            printf("          str - not\n");
+    }
+    printf("    Token op2 - %p\n", (void *)ac->op2);
+    if (ac->op2 != NULL)
+    {
+        printf("          dbl - %f\n          int - %d\n          typ - %d\n", ac->op2->dec, ac->op2->i, ac->op2->type);
+        if (ac->op2->str != NULL)
+        {
+            const char *str = get_cstring_string(ac->op2->str);
+            printf("          str - %s\n", str);
+        }
+        else
+            printf("          str - not\n");
+    }
+    printf("    Token op1 - %p\n", (void *)ac->res);
+    if (ac->res != NULL)
+    {
+        printf("          dbl - %f\n          int - %d\n          typ - %d\n", ac->res->dec, ac->res->i, ac->res->type);
+        if (ac->res->str != NULL)
+        {
+            const char *str = get_cstring_string(ac->res->str);
+            printf("          str - %s\n", str);
+        }
+        else
+            printf("          str - not\n");
+    }
+}
+
+#endif
+
 void generate_code()
 {
+
+#ifdef DEBUG
+
+    just_type = true;
+
+    setACAct();
+    while (isACActive())
+    {
+        print_ac(readAC());
+        actAC();
+    }
+
+    printf("\n\n");
+
+#endif
+
     setACAct();
 
     ac_type type;
@@ -1035,7 +1206,7 @@ void generate_code()
             write_comparison(type, op1, op2, res);
             break;
         case LABEL:
-            write_label(op1->str->str);
+            write_label(res->str->str);
             break;
         case JUMP:
             write_jump(res);
@@ -1057,7 +1228,7 @@ void generate_code()
             check_and_define_while();
             break;
         case WHILE_END:
-            continue;
+            break;
         case PARAM:
             write_param(res);
             break;
@@ -1070,6 +1241,8 @@ void generate_code()
 
     print_gen_all();
 }
+
+#ifdef DEBUG
 
 //******************************************************************************************//
 //******************************************************************************************//
@@ -1137,3 +1310,5 @@ int main(int argc, char const *argv[])
     return 0;
 }
 */
+
+#endif
