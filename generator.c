@@ -523,7 +523,9 @@ void check_and_define_while()
 
     Token *op1 = NULL, *op2 = NULL, *res = NULL;
 
+#ifdef DEBUG
     append_string(CURRENT_BLOCK, "\n#while start\n");
+#endif
 
     while (isACActive() && type != WHILE_END)
     {
