@@ -425,6 +425,13 @@ char *write_check_and_define(Token *token)
 
     char *token_key = token->str->str;
 
+#ifdef DEBUG
+    if (CURRENT_FRAME == LOCAL_FRAME && strcmp(token_key, "a") == 0)
+    {
+        int _a = 0;
+    }
+#endif
+
     bool token_exists_global = item_exists_table(token_key, GLOBAL_FRAME);
 
     char *token_frame_str;
