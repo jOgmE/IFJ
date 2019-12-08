@@ -51,5 +51,5 @@ int main(int argc, char const *argv[])
 
     fclose(source_file);
 
-    return 0;
+    return global_error_code;
 }
