@@ -19,5 +19,7 @@
 **/*.py
 tests/hojkas/input
 
+**/*.synctex.gz
+
 #trash from hojkas stack testing
 indent_stack

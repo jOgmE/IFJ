@@ -13,7 +13,7 @@
 #include "gen_frame_tables.h"
 
 #define INPUTS_FUNC                       \
-    "\nLABEL $inputs\n"                   \
+    "\nLABEL inputs\n"                    \
     "PUSHFRAME\n"                         \
     "DEFVAR LF@%temp_ret\n"               \
     "MOVE LF@%temp_ret nil@nil\n"         \
@@ -24,7 +24,7 @@
     "RETURN\n\n"
 
 #define INPUTI_FUNC                    \
-    "\nLABEL $inputi\n"                \
+    "\nLABEL inputi\n"                 \
     "PUSHFRAME\n"                      \
     "DEFVAR LF@%temp_ret\n"            \
     "MOVE LF@%temp_ret nil@nil\n"      \
@@ -35,7 +35,7 @@
     "RETURN\n\n"
 
 #define INPUTF_FUNC                      \
-    "\nLABEL $inputf\n"                  \
+    "\nLABEL inputf\n"                   \
     "PUSHFRAME\n"                        \
     "DEFVAR LF@%temp_ret\n"              \
     "MOVE LF@%temp_ret nil@nil\n"        \
@@ -46,20 +46,106 @@
     "RETURN\n\n"
 
 #define LEN_FUNC                  \
-    "\nLABEL $len\n"              \
+    "\nLABEL len\n"               \
     "PUSHFRAME\n"                 \
     "DEFVAR LF@%temp_ret\n"       \
     "MOVE LF@%temp_ret nil@nil\n" \
     "DEFVAR LF@%param1\n"         \
     "MOVE LF@%param1 LF@%1\n"     \
+    "DEFVAR LF@%len"              \
     "STRLEN LF@%len LF@%param1\n" \
     "MOVE LF@%temp_ret LF@%len\n" \
     "POPFRAME\n"                  \
     "RETURN\n\n"
 
-#define SUBSTR_FUNC
-#define ORD_FUNC
-#define CHR_FUNC
+#define PRINT_FUNC                \
+    "\nLABEL print\n"             \
+    "PUSHFRAME\n"                 \
+    "DEFVAR LF@%temp_ret\n"       \
+    "MOVE LF@%temp_ret nil@nil\n" \
+    "DEFVAR LF@%param1\n"         \
+    "MOVE LF@%param1 LF@%1\n"     \
+    "WRITE LF@%param1\n"          \
+    "POPFRAME\n"                  \
+    "RETURN\n\n"
+
+#define SUBSTR_FUNC                                      \
+    "\nLABEL substr\n"                                   \
+    "PUSHFRAME\n"                                        \
+    "DEFVAR LF@%temp_ret\n"                              \
+    "MOVE LF@%temp_ret string@\n"                        \
+    "DEFVAR LF@%param1\n"                                \
+    "MOVE LF@%param1 LF@%1\n"                            \
+    "DEFVAR LF@%param2\n"                                \
+    "MOVE LF@%param2 LF@%2\n"                            \
+    "DEFVAR LF@%param3\n"                                \
+    "MOVE LF@%param3 LF@%3\n"                            \
+    "DEFVAR LF@%len$check\n"                             \
+    "LT LF@%len$check LF@%param3 int@0\n"                \
+    "JUMPIFEQ substr$end LF@%len$check bool@true\n"      \
+    "DEFVAR LF@%len\n"                                   \
+    "STRLEN LF@%len LF@%param1\n"                        \
+    "LT LF@%len$check LF@%param2 int@0\n"                \
+    "JUMPIFEQ substr$end LF@%len$check bool@true\n"      \
+    "GT LF@%len$check LF@%param2 LF@%len\n"              \
+    "JUMPIFEQ substr$end LF@%len$check bool@true\n"      \
+    "DEFVAR LF@%substr$char\n"                           \
+    "LABEL substr$while\n"                               \
+    "EQ LF@%len$check LF@%param2 LF@%param3\n"           \
+    "JUMPIFEQ substr$end LF@%len$check bool@true\n"      \
+    "GETCHAR LF@%substr$char LF@%param1 LF@%param2\n"    \
+    "CONCAT LF@%temp_ret LF@%temp_ret LF@%substr$char\n" \
+    "ADD LF@%param2 LF@%param2 int@1\n"                  \
+    "JUMP substr$while\n"                                \
+    "LABEL substr$end\n"                                 \
+    "POPFRAME\n"                                         \
+    "RETURN\n\n"
+
+#define ORD_FUNC                                   \
+    "\nLABEL ord\n"                                \
+    "PUSHFRAME\n"                                  \
+    "DEFVAR LF@%temp_ret\n"                        \
+    "MOVE LF@%temp_ret int@\n"                     \
+    "DEFVAR LF@%param1\n"                          \
+    "MOVE LF@%param1 LF@%1\n"                      \
+    "DEFVAR LF@%param2\n"                          \
+    "MOVE LF@%param2 LF@%2\n"                      \
+    "DEFVAR LF@%len"                               \
+    "STRLEN LF@%len LF@%param1\n"                  \
+    "DEFVAR LF@%len\n"                             \
+    "STRLEN LF@%len LF@%param1\n"                  \
+    "SUB LF@%len LF@%len int@1\n"                  \
+    "DEFVAR LF@%len$check\n"                       \
+    "LT LF@%len$check LF@%param2 int@0\n"          \
+    "JUMPIFEQ ord$end LF@%len$check bool@true\n"   \
+    "GT LF@%len$check LF@%param2 LF@%len\n"        \
+    "JUMPIFEQ ord$end LF@%len$check bool@true\n"   \
+    "STR2INT LF@%temp_ret LF@%param1 LF@%param2\n" \
+    "LABEL ord$end\n"                              \
+    "POPFRAME\n"                                   \
+    "RETURN\n\n"
+
+#define CHR_FUNC                                       \
+    "\nLABEL chr\n"                                    \
+    "PUSHFRAME\n"                                      \
+    "DEFVAR LF@%temp_ret\n"                            \
+    "MOVE LF@%temp_ret nil@nil\n"                      \
+    "DEFVAR LF@%param1\n"                              \
+    "MOVE LF@%param1 LF@%1\n"                          \
+    "DEFVAR LF@%len"                                   \
+    "STRLEN LF@%len LF@%param1\n"                      \
+    "DEFVAR LF@%len$check\n"                           \
+    "LT LF@%len$check LF@%param1 int@0\n"              \
+    "JUMPIFNEQ chr$check255 LF@%len$check bool@true\n" \
+    "EXIT 3\n"                                         \
+    "LABEL chr$check255\n"                             \
+    "GT LF@%len$check LF@%param1 int@255\n"            \
+    "JUMPIFNEQ chr$conv LF@%len$check bool@true\n"     \
+    "EXIT 3\n"                                         \
+    "LABEL chr$conv\n"                                 \
+    "INT2CHAR LF@%temp_ret LF@%param1\n"               \
+    "POPFRAME\n"                                       \
+    "RETURN\n\n"
 
 extern frame_t CURRENT_FRAME;
 
