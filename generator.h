@@ -13,7 +13,7 @@
 #include "gen_frame_tables.h"
 
 #define INPUTS_FUNC                       \
-    "\nLABEL $inputs\n"                   \
+    "\nLABEL inputs\n"                    \
     "PUSHFRAME\n"                         \
     "DEFVAR LF@%temp_ret\n"               \
     "MOVE LF@%temp_ret nil@nil\n"         \
@@ -24,7 +24,7 @@
     "RETURN\n\n"
 
 #define INPUTI_FUNC                    \
-    "\nLABEL $inputi\n"                \
+    "\nLABEL inputi\n"                 \
     "PUSHFRAME\n"                      \
     "DEFVAR LF@%temp_ret\n"            \
     "MOVE LF@%temp_ret nil@nil\n"      \
@@ -35,7 +35,7 @@
     "RETURN\n\n"
 
 #define INPUTF_FUNC                      \
-    "\nLABEL $inputf\n"                  \
+    "\nLABEL inputf\n"                   \
     "PUSHFRAME\n"                        \
     "DEFVAR LF@%temp_ret\n"              \
     "MOVE LF@%temp_ret nil@nil\n"        \
@@ -46,14 +46,26 @@
     "RETURN\n\n"
 
 #define LEN_FUNC                  \
-    "\nLABEL $len\n"              \
+    "\nLABEL len\n"               \
     "PUSHFRAME\n"                 \
     "DEFVAR LF@%temp_ret\n"       \
     "MOVE LF@%temp_ret nil@nil\n" \
     "DEFVAR LF@%param1\n"         \
     "MOVE LF@%param1 LF@%1\n"     \
+    "DEFVAR LF@%len"              \
     "STRLEN LF@%len LF@%param1\n" \
     "MOVE LF@%temp_ret LF@%len\n" \
+    "POPFRAME\n"                  \
+    "RETURN\n\n"
+
+#define PRINT_FUNC                \
+    "\nLABEL print\n"             \
+    "PUSHFRAME\n"                 \
+    "DEFVAR LF@%temp_ret\n"       \
+    "MOVE LF@%temp_ret nil@nil\n" \
+    "DEFVAR LF@%param1\n"         \
+    "MOVE LF@%param1 LF@%1\n"     \
+    "WRITE LF@%param1\n"          \
     "POPFRAME\n"                  \
     "RETURN\n\n"
 
