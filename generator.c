@@ -416,10 +416,10 @@ char *write_check_and_define(Token *token)
         return "";
     }
 
-    if (compare_string(token->str, "temp_ret\001") || compare_string(token->str, "temp_ret"))
+    if (compare_string(token->str, "temp_ret"))
     {
-        free_cstring(token->str);
-        token->str = init_cstring("%temp_ret");
+        // free_cstring(token->str);
+        // token->str = init_cstring("%temp_ret");
         return "TF";
     }
 

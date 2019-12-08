@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "../../lib/dynamic_string.h"
+#include "../../dynamic_string.h"
 #include <string.h>
 
 void print_state(cstring *cstr, char result_char)
@@ -119,10 +119,10 @@ void test_dynamic_string()
 
     cstring *second_cstr = init_cstring("ab");
 
-    printf("[-] compare_cstring(second_cstr, \"ab\")\n");
-    if (compare_cstring(first_cstr, second_cstr))
+    printf("[-] compare_string(second_cstr, \"ab\")\n");
+    if (compare_string(first_cstr, second_cstr->str))
     {
-        printf("[N] ERROR compare_cstring(second_cstr, \"ab\") cstrings are equal (\"%s\")\n", second_cstr->str);
+        printf("[N] ERROR compare_string(second_cstr, \"ab\") cstrings are equal (\"%s\")\n", second_cstr->str);
 
         printf("[Y] first_cstr\n");
         print_state(first_cstr, 'N');
@@ -133,7 +133,7 @@ void test_dynamic_string()
         exit(1);
     }
 
-    printf("[Y] compare_cstring(second_cstr, \"ab\") test passed (not equal)\n\n");
+    printf("[Y] compare_string(second_cstr, \"ab\") test passed (not equal)\n\n");
 
     printf("[Y] first_cstr\n");
     print_state(first_cstr, 'Y');
@@ -206,7 +206,7 @@ void test_dynamic_string()
 
     printf("[-] free_cstring(second_cstr)\n");
     free_cstring(second_cstr);
-    printf("[Y] free_cstring(second_cstr) test passed\n");
+    printf("[Y] free_cstring(second_cstr) test passed\n\n");
 
     // ****************************************************************************//
     // ****************** free test 02 ********************************************//
