@@ -18,5 +18,7 @@
 **/*.ic19
 **/*.py
 
+**/*.synctex.gz
+
 #trash from hojkas stack testing
 indent_stack
