@@ -19,6 +19,7 @@
       global id existuje, pouzito local, pak local redef -> chyba
       DEDENT EOFILE furt blbne, to same co pro EOL udelat i pro DEDENT?
       jde to? nebo scanner work?
+      kde neni na zacatku meol? kam ho muzu narvat, aniz by mi to posralo tabulku?
  *
  *
  */
@@ -229,6 +230,8 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     //                      non_empty_prog_body dedent prog_body_with_def
 
     //def
+    go_in_local(); //vytvori loc tabulku symbolu
+
     can_continue = terminal(DEF);
     heavy_check(PBWD_r2e1);
     if(!kill_after_analysis) {
@@ -308,6 +311,8 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     curr_token = fake_token();
     heavy_check(PBWD_r2e2);
 
+    go_in_global(); //vráti se zpět do globalní tabulky, lokalni checkne a zrusi
+
     //mEOL
     can_continue = more_EOL();
     heavy_check(PBWD_r2e2);
@@ -329,6 +334,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
       goto PBWD_r2rp2;
     PBWD_r2e2:
       //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"indent program_body_with_definition dedent\".\n");
+      go_in_global();
       can_continue = flush_until(DEDENT);
       return can_continue;
   }

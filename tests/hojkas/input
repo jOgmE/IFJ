@@ -1,7 +1,8 @@
 def i() :
   pass
-i(hi)
-def print() :
+i()
+pri()
+def pri() :
   pass
 
 pass

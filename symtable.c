@@ -250,11 +250,7 @@ void go_in_local()
 
 void go_in_global()
 {
-  //TODO just placeholder, this should NOT happen
-  if(in_global == true) {
-    fprintf(stderr, "[hojkas] symtable.c: go_in_global(): snaha vyskocit z funkce kdyz nejsme ve funkci\n");
-    return;
-  }
+  if(in_global == true) return;
   in_global = true;
   local_check_def();
   destroy_symtable(&local_st);
@@ -466,12 +462,12 @@ void uni_check_def(STable *st)
 
 void global_check_def()
 {
-  uni_check_def(global_st);
+  //uni_check_def(global_st);
 }
 
 void local_check_def()
 {
-  uni_check_def(local_st);
+  //uni_check_def(local_st);
 }
 
 void clean_all_symtables()
