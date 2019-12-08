@@ -623,6 +623,8 @@ void write_call(char *label)
         //switch_frame(LOCAL_FRAME);
         //CURRENT_BLOCK = result_main_function_code;
 
+        switch_frame(GLOBAL_FRAME);
+
         param_counter = 0;
     }
     else
