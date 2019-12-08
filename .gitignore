@@ -16,6 +16,7 @@
 **/ifj19
 **/*.exe
 **/*.ic19
+**/*.py
 
 #trash from hojkas stack testing
 indent_stack

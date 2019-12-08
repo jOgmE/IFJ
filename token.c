@@ -124,10 +124,12 @@ cstring *getTokenStrValue(Token *token){
     return NULL;
 }
 
+//used for testing
+/*
 Token **initTokenArr(size_t size){
     Token **token_arr;
     if((token_arr = (Token**)calloc(size, sizeof(Token*))) == NULL) return NULL;
-    /*for(size_t i = 0; i<size; i++){
+    for(size_t i = 0; i<size; i++){
         if(!(token_arr[i] = init_token())){
             //if error happened
             for(size_t j = 0; j<=i; j++){
@@ -137,7 +139,7 @@ Token **initTokenArr(size_t size){
             free(token_arr);
             return NULL;
         }
-    }*/
+    }
     return token_arr;
 }
 
@@ -170,6 +172,7 @@ void freeTokenArr(Token **token_arr, size_t size){
     }
     free(token_arr);
 }
+*/
 
 void free_token(Token *token){
     if(token->str){ //not NULL

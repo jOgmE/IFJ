@@ -12,50 +12,50 @@
 #include "adress_code.h"
 #include "gen_frame_tables.h"
 
-#define INPUTS_FUNC                     \
-    "LABEL $inputs\n"                   \
-    "PUSHFRAME\n"                       \
-    "DEFVAR LF@%retval\n"               \
-    "MOVE LF@%retval nil@nil\n"         \
-    "DEFVAR LF@%input\n"                \
-    "READ LF@%inputstring string\n"     \
-    "MOVE LF@%retval LF@%inputstring\n" \
-    "POPFRAME\n"                        \
-    "RETURN\n"
+#define INPUTS_FUNC                       \
+    "\nLABEL $inputs\n"                   \
+    "PUSHFRAME\n"                         \
+    "DEFVAR LF@%temp_ret\n"               \
+    "MOVE LF@%temp_ret nil@nil\n"         \
+    "DEFVAR LF@%input\n"                  \
+    "READ LF@%inputstring string\n"       \
+    "MOVE LF@%temp_ret LF@%inputstring\n" \
+    "POPFRAME\n"                          \
+    "RETURN\n\n"
 
-#define INPUTI_FUNC                  \
-    "LABEL $inputi\n"                \
-    "PUSHFRAME\n"                    \
-    "DEFVAR LF@%retval\n"            \
-    "MOVE LF@%retval nil@nil\n"      \
-    "DEFVAR LF@%input\n"             \
-    "READ LF@%inputint int\n"        \
-    "MOVE LF@%retval LF@%inputint\n" \
-    "POPFRAME\n"                     \
-    "RETURN\n"
-
-#define INPUTF_FUNC                    \
-    "LABEL $inputf\n"                  \
+#define INPUTI_FUNC                    \
+    "\nLABEL $inputi\n"                \
     "PUSHFRAME\n"                      \
-    "DEFVAR LF@%retval\n"              \
-    "MOVE LF@%retval nil@nil\n"        \
+    "DEFVAR LF@%temp_ret\n"            \
+    "MOVE LF@%temp_ret nil@nil\n"      \
     "DEFVAR LF@%input\n"               \
-    "READ LF@%inputfloat float\n"      \
-    "MOVE LF@%retval LF@%inputfloat\n" \
+    "READ LF@%inputint int\n"          \
+    "MOVE LF@%temp_ret LF@%inputint\n" \
     "POPFRAME\n"                       \
-    "RETURN\n"
+    "RETURN\n\n"
+
+#define INPUTF_FUNC                      \
+    "\nLABEL $inputf\n"                  \
+    "PUSHFRAME\n"                        \
+    "DEFVAR LF@%temp_ret\n"              \
+    "MOVE LF@%temp_ret nil@nil\n"        \
+    "DEFVAR LF@%input\n"                 \
+    "READ LF@%inputfloat float\n"        \
+    "MOVE LF@%temp_ret LF@%inputfloat\n" \
+    "POPFRAME\n"                         \
+    "RETURN\n\n"
 
 #define LEN_FUNC                  \
-    "LABEL $len\n"                \
+    "\nLABEL $len\n"              \
     "PUSHFRAME\n"                 \
-    "DEFVAR LF@%retval\n"         \
-    "MOVE LF@%retval nil@nil\n"   \
+    "DEFVAR LF@%temp_ret\n"       \
+    "MOVE LF@%temp_ret nil@nil\n" \
     "DEFVAR LF@%param1\n"         \
     "MOVE LF@%param1 LF@%1\n"     \
     "STRLEN LF@%len LF@%param1\n" \
-    "MOVE LF@%retval LF@%len\n"   \
+    "MOVE LF@%temp_ret LF@%len\n" \
     "POPFRAME\n"                  \
-    "RETURN\n"
+    "RETURN\n\n"
 
 #define SUBSTR_FUNC
 #define ORD_FUNC

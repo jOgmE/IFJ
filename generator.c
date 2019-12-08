@@ -7,6 +7,8 @@
 
 #include "generator.h"
 
+#define DEBUG
+
 //******************************************************************************************//
 //******************************************************************************************//
 //********************                 Globalni promenne                      **************//
@@ -33,15 +35,26 @@ bool inputf_appended = false;
 bool inputs_appended = false;
 bool len_appended = false;
 
+bool createframe_written = false;
+
 size_t tmp_if_counter = 0;
 size_t tmp_var_counter = 0;
+
 size_t param_counter = 0;
+
+#ifdef DEBUG
+
+bool just_type = false;
+
+#endif
 
 //******************************************************************************************//
 //******************************************************************************************//
 //********************                   Inicializace                         **************//
 //******************************************************************************************//
 //******************************************************************************************//
+
+#ifdef DEBUG
 
 void init_gen_test(char *filename)
 {
@@ -62,6 +75,8 @@ void init_gen_test(char *filename)
 
     init_gen();
 }
+
+#endif
 
 void init_gen()
 {
@@ -180,6 +195,7 @@ char *get_table_key_from_token(Token *token)
     {
     case STR:
     case ID:
+    case TEMP_ID:
         return token->str->str;
     case INT:
         return convert_int_to_string(token->i);
@@ -258,12 +274,13 @@ void definition_start()
 
 void definition_end()
 {
-    append_string(CURRENT_BLOCK, "POPFRAME\nRETURN\n");
+    append_string(CURRENT_BLOCK, "POPFRAME\nRETURN\n\n");
 
-    CURRENT_BLOCK = result_functions_code;
+    CURRENT_BLOCK = result_main_function_code;
     frame_t temp_frame_var = CURRENT_FRAME;
     switch_frame(PREVIOUS_FRAME);
     PREVIOUS_FRAME = temp_frame_var;
+    param_counter = 0;
     function_definition = false;
 }
 
@@ -313,7 +330,7 @@ void write_symbol_type(Token *symb, bool skip_space)
 
 void write_symbol(Token *symb, char *symb_frame, bool skip_space)
 {
-    if (symb->type == ID)
+    if (symb->type == ID || symb->type == TEMP_ID)
     {
         write_symbol_id(symb, symb_frame, skip_space);
     }
@@ -381,20 +398,39 @@ void write_label(char *label)
     if (function_definition)
     {
         append_string(CURRENT_BLOCK, "PUSHFRAME\n");
-        append_string(CURRENT_BLOCK, "DEFVAR LF@%retval\n");
-        append_string(CURRENT_BLOCK, "MOVE LF@%retval nil@nil\n");
+        append_string(CURRENT_BLOCK, "DEFVAR LF@%temp_ret\n");
+        append_string(CURRENT_BLOCK, "MOVE LF@%temp_ret nil@nil\n");
     }
 }
 
 char *write_check_and_define(Token *token)
 {
-    if (token->type != ID)
+    //likely an error somewhere
+    if (token == NULL)
     {
         return "";
     }
 
-    // char *token_key = get_table_key_from_token(token);
+    if (token->type != ID && token->type != TEMP_ID)
+    {
+        return "";
+    }
+
+    if (compare_string(token->str, "temp_ret\001") || compare_string(token->str, "temp_ret"))
+    {
+        free_cstring(token->str);
+        token->str = init_cstring("%temp_ret");
+        return "TF";
+    }
+
     char *token_key = token->str->str;
+
+#ifdef DEBUG
+    if (CURRENT_FRAME == LOCAL_FRAME && strcmp(token_key, "a") == 0)
+    {
+        int _a = 0;
+    }
+#endif
 
     bool token_exists_global = item_exists_table(token_key, GLOBAL_FRAME);
 
@@ -426,18 +462,19 @@ char *write_check_and_define(Token *token)
     return token_frame_str;
 }
 
-void write_create_frame()
+void write_createframe()
 {
-    append_string(CURRENT_BLOCK, "CREATE FRAME\n");
+    createframe_written = true;
+    append_string(CURRENT_BLOCK, "CREATEFRAME\n");
     switch_frame(TEMP_FRAME);
 }
 
 void write_param(Token *res)
 {
-    if (param_counter == 0)
+    if (param_counter == 0 && !function_definition)
     {
         function_call_assign = true;
-        write_create_frame();
+        write_createframe();
     }
 
     ++param_counter;
@@ -454,31 +491,32 @@ void write_param(Token *res)
         //     switch_frame(TEMP_FRAME);
         // }
 
-        append_string(CURRENT_BLOCK, "DEFVAR TF@%");
-        append_string(CURRENT_BLOCK, param_counter_str);
-        append_string(CURRENT_BLOCK, "\n");
+        // append_string(CURRENT_BLOCK, "DEFVAR TF@%");
+        // append_string(CURRENT_BLOCK, param_counter_str);
+        // append_string(CURRENT_BLOCK, "\n");
 
         append_string(CURRENT_BLOCK, "MOVE TF@%");
         append_string(CURRENT_BLOCK, param_counter_str);
-        write_symbol(res, res_frame_str, true);
-        append_string(CURRENT_BLOCK, "\n");
+        append_string(CURRENT_BLOCK, " ");
+        write_symbol(res, res_frame_str, false);
     }
     else
     {
-        append_string(CURRENT_BLOCK, "DEFVAR ");
-        append_string(CURRENT_BLOCK, res_frame_str);
-        append_string(CURRENT_BLOCK, "\n");
+        // append_string(CURRENT_BLOCK, "DEFVAR ");
+        // append_string(CURRENT_BLOCK, res_frame_str);
+        // append_string(CURRENT_BLOCK, "\n");
 
         append_string(CURRENT_BLOCK, "MOVE ");
         write_symbol(res, res_frame_str, false);
-        append_string(CURRENT_BLOCK, " LF@%\n");
+        append_string(CURRENT_BLOCK, "LF@%");
         append_string(CURRENT_BLOCK, param_counter_str);
     }
+    append_string(CURRENT_BLOCK, "\n");
 }
 
 void write_return(Token *res)
 {
-    append_string(CURRENT_BLOCK, "MOVE LF@%retval ");
+    append_string(CURRENT_BLOCK, "MOVE LF@%temp_ret ");
 
     char *res_frame_str = write_check_and_define(res);
 
@@ -495,13 +533,17 @@ void check_and_define_while()
 
     Token *op1 = NULL, *op2 = NULL, *res = NULL;
 
+#ifdef DEBUG
+    append_string(CURRENT_BLOCK, "\n#while start\n");
+#endif
+
     while (isACActive() && type != WHILE_END)
     {
-        if (type == WHILE_START)
-        {
-            setACAct();
-            check_and_define_while();
-        }
+        // if (type == WHILE_START)
+        // {
+        //     setACAct();
+        //     check_and_define_while();
+        // }
 
         op1 = readACop1();
         op2 = readACop2();
@@ -512,6 +554,8 @@ void check_and_define_while()
         write_check_and_define(res);
 
         type = readACtype();
+
+        actAC();
     }
 
     goto_ac_breakpoint();
@@ -523,11 +567,18 @@ void write_call(char *label)
 
     if (label_exists)
     {
+        if (!createframe_written)
+        {
+            write_createframe();
+            createframe_written = false;
+        }
+
         append_string(CURRENT_BLOCK, "CALL ");
         append_string(CURRENT_BLOCK, label);
+        append_string(CURRENT_BLOCK, "\n");
 
-        switch_frame(LOCAL_FRAME);
-        CURRENT_BLOCK = result_main_function_code;
+        //switch_frame(LOCAL_FRAME);
+        //CURRENT_BLOCK = result_main_function_code;
 
         param_counter = 0;
     }
@@ -535,22 +586,22 @@ void write_call(char *label)
     {
         if (strcmp(label, "inputi") == 0 && !inputi_appended)
         {
-            append_string(result_main_function_code, INPUTI_FUNC);
+            append_string(result_functions_code, INPUTI_FUNC);
             inputi_appended = true;
         }
         else if (strcmp(label, "inputs") == 0 && !inputs_appended)
         {
-            append_string(result_main_function_code, INPUTS_FUNC);
+            append_string(result_functions_code, INPUTS_FUNC);
             inputs_appended = true;
         }
         else if (strcmp(label, "inputf") == 0 && !inputf_appended)
         {
-            append_string(result_main_function_code, INPUTF_FUNC);
+            append_string(result_functions_code, INPUTF_FUNC);
             inputf_appended = true;
         }
         else if (strcmp(label, "len") == 0 && !len_appended)
         {
-            append_string(result_main_function_code, LEN_FUNC);
+            append_string(result_functions_code, LEN_FUNC);
             len_appended = true;
         }
         else
@@ -566,7 +617,10 @@ void write_call(char *label)
             print_compile_error(4, ERROR, 0, error_string->str);
 
             free_cstring(error_string);
+            return;
         }
+        insert_table_item(label, GLOBAL_FRAME);
+        write_call(label);
     }
 }
 
@@ -999,8 +1053,158 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
 //******************************************************************************************//
 //******************************************************************************************//
 
+#ifdef DEBUG
+
+void print_type(ac_type type)
+{
+    switch (type)
+    {
+    case LABEL:
+        printf("LABEL");
+        break;
+    case RET:
+        printf("RET");
+        break;
+    case CALL:
+        printf("CALL");
+        break;
+    case JUMP:
+        printf("JUMP");
+        break;
+    case COND_JUMP:
+        printf("COND_JUMP");
+        break;
+    case ADD:
+        printf("ADD");
+        break;
+    case SUB:
+        printf("SUB");
+        break;
+    case MUL:
+        printf("MUL");
+        break;
+    case DIV:
+        printf("DIV");
+        break;
+    case DIVINT:
+        printf("DIVINT");
+        break;
+    case ASSIGN:
+        printf("ASSIGN");
+        break;
+    case EQUAL:
+        printf("EQUAL");
+        break;
+    case NOT_EQUAL:
+        printf("NOT_EQUAL");
+        break;
+    case GREATER:
+        printf("GREATER");
+        break;
+    case GE:
+        printf("GE");
+        break;
+    case LESS:
+        printf("LESS");
+        break;
+    case LE:
+        printf("LE");
+        break;
+    case DEF_START:
+        printf("DEF_START");
+        break;
+    case DEF_END:
+        printf("DEF_END");
+        break;
+    case PARAM:
+        printf("PARAM");
+        break;
+    case WHILE_START:
+        printf("WHILE_START");
+        break;
+    case WHILE_END:
+        printf("WHILE_END");
+        break;
+    case UNDEFINED:
+        printf("UNDEFINED");
+        break;
+    }
+}
+
+void print_ac(tAC *ac)
+{
+    if (just_type)
+    {
+        printf("AC: ");
+        print_type(ac->type);
+        printf("\n");
+        if (ac->op1 != NULL)
+            printf("  1 %s\n", get_cstring_string(ac->op1->str));
+        if (ac->op2 != NULL)
+            printf("  2 %s\n", get_cstring_string(ac->op2->str));
+        if (ac->res != NULL)
+            printf("  r %s\n", get_cstring_string(ac->res->str));
+        return;
+    }
+    printf("Adress code struct\n    type - %d\n", ac->type);
+    printf("    Token op1 - %p\n", (void *)ac->op1);
+    if (ac->op1 != NULL)
+    {
+        printf("          dbl - %f\n          int - %d\n          typ - %d\n", ac->op1->dec, ac->op1->i, ac->op1->type);
+        if (ac->op1->str != NULL)
+        {
+            const char *str = get_cstring_string(ac->op1->str);
+            printf("          str - %s\n", str);
+        }
+        else
+            printf("          str - not\n");
+    }
+    printf("    Token op2 - %p\n", (void *)ac->op2);
+    if (ac->op2 != NULL)
+    {
+        printf("          dbl - %f\n          int - %d\n          typ - %d\n", ac->op2->dec, ac->op2->i, ac->op2->type);
+        if (ac->op2->str != NULL)
+        {
+            const char *str = get_cstring_string(ac->op2->str);
+            printf("          str - %s\n", str);
+        }
+        else
+            printf("          str - not\n");
+    }
+    printf("    Token op1 - %p\n", (void *)ac->res);
+    if (ac->res != NULL)
+    {
+        printf("          dbl - %f\n          int - %d\n          typ - %d\n", ac->res->dec, ac->res->i, ac->res->type);
+        if (ac->res->str != NULL)
+        {
+            const char *str = get_cstring_string(ac->res->str);
+            printf("          str - %s\n", str);
+        }
+        else
+            printf("          str - not\n");
+    }
+}
+
+#endif
+
 void generate_code()
 {
+
+#ifdef DEBUG
+
+    just_type = true;
+
+    setACAct();
+    while (isACActive())
+    {
+        print_ac(readAC());
+        actAC();
+    }
+
+    printf("\n\n");
+
+#endif
+
     setACAct();
 
     ac_type type;
@@ -1034,7 +1238,7 @@ void generate_code()
             write_comparison(type, op1, op2, res);
             break;
         case LABEL:
-            write_label(op1->str->str);
+            write_label(res->str->str);
             break;
         case JUMP:
             write_jump(res);
@@ -1056,9 +1260,12 @@ void generate_code()
             check_and_define_while();
             break;
         case WHILE_END:
-            continue;
+            break;
         case PARAM:
             write_param(res);
+            break;
+        case RET:
+            write_return(res);
             break;
         default:
             break;
@@ -1066,7 +1273,11 @@ void generate_code()
 
         actAC();
     }
+
+    print_gen_all();
 }
+
+#ifdef DEBUG
 
 //******************************************************************************************//
 //******************************************************************************************//
@@ -1134,3 +1345,5 @@ int main(int argc, char const *argv[])
     return 0;
 }
 */
+
+#endif
