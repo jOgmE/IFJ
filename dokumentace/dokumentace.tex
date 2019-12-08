@@ -9,6 +9,9 @@
 \usepackage[left=2cm,top=3cm,text={17cm, 24cm}]{geometry}
 \begin{document}
 
+\setlength{\tabcolsep}{0.6em}
+\renewcommand{\arraystretch}{1.5}
+
 \begin{titlepage}
     \begin{center}
         \textsc{\Huge Vysoké učení technické v Brně \medskip}\\
@@ -30,6 +33,9 @@
         \end{table}
     \end{center}
 \end{titlepage}
+
+\setlength{\tabcolsep}{0.8em}
+\renewcommand{\arraystretch}{1.7}
 
 \section{Generátor výsledného kódu}
 
@@ -101,5 +107,25 @@ na které se chyba vyskytuje.
 Pro jednodušší práci s řetězci v programovacím jazyce C jsme vytvořili knihovnu \texttt{dynamic\_string}.
 Knihovna nám umožnuje vytvořit nový řetězec, rozšířit ho připsáním nového řetězce na konec stávajícího,
 nebo ho skrátit na požadovanou délku.
+
+\section{Práce v týmu}
+
+Pro jednoduchou práci v týmu jsme zvolili verzovací systém Git a náš repozitář umístili na server GitHub.
+Každý z nás měl vlastní větev, ve které psal svůj kód a dle potřeby ji sloučil s hlavní větví.
+Komunikace probíhala osobně v podobě schůzek v prostrách fakulty, nebo online před komunikační 
+kanál Discord.
+
+\subsection{Rozdělení}
+
+\begin{table}[h]
+    \large
+    \begin{tabularx}{\textwidth}{l|X|r}
+        \textbf{Student} & \textbf{Práce} & \textbf{\%} \\ \hline
+        Jaroslav Hort & Generátor kódu, rozhraní, knihovny pro dynamický řetězec, chyby, tabulky rámců, dokumentace, prezentace & 25\% \\ 
+        Filip Dráber & Precedenční analýza, dokumentace & 25\%  \\ 
+        Iveta Strnadová & Parser, LL tabulka, tabulka symbolů, tří adresný kód, knihovna pro pro praci s \texttt{indent\_stack}, dokumentace & 25\% \\ 
+        Norbert Pócs & Lexikální analyzátor, knihovna pro token, dokumentace & 25\% \\ 
+    \end{tabularx}
+\end{table}
 
 \end{document}
