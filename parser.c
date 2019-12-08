@@ -7,13 +7,13 @@
  *
  * IMPORTANT: z nejakeho duvodu se stringy vypisuji v synt erroru jen par znaku,
  * proverit TODO
- * bacha na print funkci
- * IMPORTANT: na konci souboru nemusí být EOL EOF, ale jen EOF, ale
- * já asi počítám s EOL EOF
- * IMPORTANT: jsem kkt, po dedentu nemusi byt eol, command s tim ale pocita,
- * mozne reseni: prepsat commandy krome techto, aby za sebou ocekavaly eol
- * projit vsude, kde je init_token, pridat heavy checkk!
+ * bacha na
+ * TODO: vsude, kde muze byt EOL, pridat moznost pro EOF
  *
+ another work:
+      pridat checky pro return v global (symtable)
+      id stuff check (bacha, ruzne pro id a funkci)
+      errory! jak je psat atd
  *
  * NOTE: problem multi-hlaseni -> staci nehlasit kdekoliv, kde se zanoruji
  */
@@ -21,7 +21,7 @@
 #include "parser.h"
 
 //TODO delete, just for debug
-//#include "tests/hojkas/st_debug.c"
+#include "tests/hojkas/st_debug.c"
 
 Token *curr_token = NULL;
 Token *last_token = NULL;
@@ -158,7 +158,7 @@ cstring* create_label(label_enum type, int number)
 
 void stderr_print_token_info();
 
-//-----ROZKLADY-------------------          // 11 / 15
+//-----ROZKLADY-------------------          // 15 / 17
 bool prog();                                //done
 bool non_empty_prog_body();                 //done
 bool prog_body();                           //done
@@ -166,10 +166,12 @@ bool prog_body_with_def();                  //done
 bool more_EOL();                            //done
 bool command();                             //done
 bool not_sure1();                           //done
-bool not_sure2(); //started
-bool not_sure3(); //started
+bool not_sure2();                           //done
+bool not_sure3();                           //done
 bool param_list(int*);                      //done
 bool more_params(int*);                     //done
+bool print_param_list();                    //done
+bool print_more_params();                   //done
 bool param_item();                          //done
 bool terminal(e_type type);                 //done
 bool work_out_fce_id(Token*, int, bool); //started
@@ -956,6 +958,101 @@ bool more_params(int* param_count) //---MORE_PARAMS---
 }
 
 
+
+bool print_param_list() //---PRINT_PARAM_LIST----
+{
+  //param_list -> item more_params
+  //param_list -> epsilon
+  bool can_continue = true;
+
+  if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID)) {
+    //param_list -> item more_params
+    //item
+    can_continue = param_item();
+    heavy_check(PPL_r1e1);
+
+    //vytvori volani za kazdym parametrem
+    if(!kill_after_analysis) {
+      Token *param = init_token();
+      heavy_check(PPL_r1e1);
+      add_id(param, init_cstring("print"));
+      appendAC(CALL, NULL, NULL, param);
+      heavy_check(PPL_r1e1);
+    }
+
+    can_continue = print_more_params();
+    heavy_check(PPL_r1e1);
+
+    return true;
+
+    //ERROR
+    PPL_r1e1:
+      return false;
+  }
+  else if(Tis(RPA)) {
+    //param_list -> epsilon
+    //proste jen skonci uspesne
+    return true;
+  }
+  else {
+    syntax_err("Placeholder: print_param_list: Token ", " nebyl okay.\n");
+    return false;
+  }
+}
+
+
+
+bool print_more_params() //---PRINT_MORE_PARAMS---
+{
+  bool can_continue = true;
+  //more_params -> epsilon
+  //more_params -> , param_item more_params
+
+  if(Tis(COM)) {
+    //more_params -> , param_item more_params
+    //,
+    //neni treba overovat COM, jinak bychom sem nedosli
+    free_token(curr_token);
+    curr_token = fake_token();
+    heavy_check(PMP_r1e1);
+
+    //item
+    can_continue = param_item();
+    heavy_check(PMP_r1e1);
+
+    if(!kill_after_analysis) {
+      Token *param = init_token();
+      heavy_check(PMP_r1e1);
+      add_id(param, init_cstring("print"));
+      appendAC(CALL, NULL, NULL, param);
+      heavy_check(PMP_r1e1);
+    }
+
+    //more_params
+    can_continue = print_more_params();
+    heavy_check(PMP_r1e1);
+
+    return true;
+
+    //ERROR
+    PMP_r1e1:
+      return false;
+  }
+  else if(Tis(RPA)) {
+    //param_list -> epsilon
+    //proste jen skonci uspesne
+    return true;
+  }
+  else {
+    syntax_err("Placeholder: print_smore_params: Token ", " nebyl okay.\n");
+    return false;
+  }
+}
+
+
+
+
+
 bool more_EOL() //---MORE_EOL---
 {
   //more_EOL -> epsilon
@@ -1005,12 +1102,20 @@ bool not_sure1()
     curr_token = fake_token();
     heavy_check(NS1_r1e1);
 
-    //TODO pokud print, jinak!!!
-
-    //param_list
     int param_count = 0;
-    can_continue = param_list(&param_count);
-    heavy_check(NS1_r1e1);
+    //ulozi se, jestli jde o funkci print nebo ne
+    bool is_print = compare_string(getTokenStrValue(last_token), "print");
+
+    if(is_print) {
+      //pokud je id funkce print, resim jinak
+      can_continue = print_param_list();
+      heavy_check(NS1_r1e1);
+    }
+    else {
+      //param_list obyč
+      can_continue = param_list(&param_count);
+      heavy_check(NS1_r1e1);
+    }
 
     NS1_r1rp1:
     //)
@@ -1020,13 +1125,18 @@ bool not_sure1()
     curr_token = fake_token();
     heavy_check(NS1_r1e1);
 
-    //zpracovat id
-    work_out_fce_id(last_token, param_count, false);
-    if(!kill_after_analysis) {
-      appendAC(CALL, NULL, NULL, last_token);
-      heavy_check(NS1_r1e1);
+    if(is_print) {
+      free_token(last_token);
     }
-    else free_token(last_token);
+    else {
+      //zpracovat id
+      work_out_fce_id(last_token, param_count, false);
+      if(!kill_after_analysis) {
+        appendAC(CALL, NULL, NULL, last_token);
+        heavy_check(NS1_r1e1);
+      }
+      else free_token(last_token);
+    }
 
     return true;
     //errors
@@ -1068,7 +1178,7 @@ bool not_sure1()
       //afaik nepotrebne, tam jde jen o aloc checky
       return false;
   }
-  else if(Tis(EOL)) {
+  else if(Tis(EOL) || Tis(EOFILE)) {
     //epsilon
     work_out_val_id(last_token, false);
     return true;
@@ -1143,12 +1253,19 @@ bool not_sure3()
     curr_token = fake_token();
     heavy_check(NS3_r1e1);
 
-    //TODO pokud print, jinak!!!
-
-    //param_list
     int param_count = 0;
-    can_continue = param_list(&param_count);
-    heavy_check(NS3_r1e1);
+    bool is_print = compare_string(getTokenStrValue(last_token), "print");
+
+    if(is_print) {
+      //funkce je print vip zachazeni
+      can_continue = print_param_list();
+      heavy_check(NS3_r1e1);
+    }
+    else {
+      //param_list
+      can_continue = param_list(&param_count);
+      heavy_check(NS3_r1e1);
+    }
 
     NS3_r1rp1:
     //)
@@ -1158,8 +1275,23 @@ bool not_sure3()
     curr_token = fake_token();
     heavy_check(NS3_r1e1);
 
+    if(is_print) {
+      //TODO ma se nejak resit ret value?
+      //tu jsme v "a = print()"
+      free_token(last_token);
+    }
+    else {
+      //zpracovat id
+      work_out_fce_id(last_token, param_count, false);
+      if(!kill_after_analysis) {
+        appendAC(CALL, NULL, NULL, last_token);
+        heavy_check(NS3_r1e2);
+      }
+      else free_token(last_token);
+    }
+
     //nastvit ret value
-    Token *ret_id; //stejne jako vzdy u return, dulezite
+    Token *ret_id; //stejne jmeno (cstring uvnitr) jako vzdy u return, dulezite
     if(!kill_after_analysis) {
       ret_id = init_token();
       heavy_check(NS3_r1e2);
@@ -1167,20 +1299,13 @@ bool not_sure3()
       heavy_check(NS3_r1e2);
     }
 
-    //zpracovat id
-    work_out_fce_id(last_token, param_count, false);
-    if(!kill_after_analysis) {
-      appendAC(CALL, NULL, NULL, last_token);
-      heavy_check(NS3_r1e2);
-    }
-    else free_token(last_token);
-
     if(!kill_after_analysis) {
       appendAC(ASSIGN, ret_id, NULL, id_to_assign);
     }
     else {
       free_token(id_to_assign);
     }
+
 
     id_to_assign = NULL;
     last_token = NULL;
@@ -1302,6 +1427,8 @@ bool terminal(e_type type)
   if(type == getTokenType(curr_token));
   else {
     //neni to terminal, ktery v tomto momente musime pro spravnou syntaxi dostat
+    if(Tis(EOFILE) && type == EOL) return can_continue; //vip vyjimka
+    //pro chybejici eol na konci
     syntax_err("Token ", " je v dane konstrukci chybny (nebo je chyba v tom, co mu predchazelo).");
     fprintf(stderr, " Byl ocekavan token: ");
     if(type == INDENT) fprintf(stderr, "INDENT.\n");
@@ -1337,19 +1464,19 @@ void parser_do_magic()
    //nacte prvni token
    curr_token = fake_token();
 
-   /*bool overall = */prog();
+   /*bool overall = *///prog();
    //prog <- pocatecni nonterminal, cely program
    //TODO delete this (but keep prog() calling)
-   /*bool overall = prog();
+   bool overall = prog();
    printf("______________________________________\n");
-   //print_all_ac_by_f(true);
+   print_all_ac_by_f(true);
    printf("_______________________________________\n");
    printf("Analysis complete?      ");
    if(overall) printf("YES\n");
    else printf("NO\n");
    printf("Analysis without error?");
    if(!kill_after_analysis) printf(" YES\n");
-   else printf(" ERROR n. %d\n", global_error_code);*/
+   else printf(" ERROR n. %d\n", global_error_code);
 
 
    //TODO

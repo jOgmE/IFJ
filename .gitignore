@@ -17,6 +17,7 @@
 **/*.exe
 **/*.ic19
 **/*.py
+tests/hojkas/input
 
 **/*.synctex.gz
 
