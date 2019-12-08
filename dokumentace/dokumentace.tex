@@ -1,4 +1,4 @@
-\documentclass[a4paper,11pt]{article}
+\documentclass[a4paper,12pt]{article}
 \usepackage{tabularx}
 \usepackage{times}
 \usepackage[hidelinks]{hyperref}
@@ -19,9 +19,9 @@
         {\Large Tým 052, varianta II}
         \vspace{\stretch{0.618}}
         \begin{table}[b]
-            \Large
+            \large
             \begin{tabularx}{\textwidth}{l X r l l}
-                Vedoucí: &  & Jaroslav Hort & (xhortj04) & 25\% \\ 
+                \textbf{Vedoucí:} &  & \textbf{Jaroslav Hort} & \textbf{(xhortj04)} & \textbf{25\%} \\ 
                 &  & Filip Dráber & (xdrabe09) & 25\% \\ 
                 &  & Iveta Strnadová & (xstrna14) & 25\% \\ 
                 &  & Norbert Pócs & (xpocsn00) & 25\% \\ 
@@ -30,5 +30,76 @@
         \end{table}
     \end{center}
 \end{titlepage}
+
+\section{Generátor výsledného kódu}
+
+Po úspěsňé analýze je inicializován generátor výsledného kódu. Součástí inicializace 
+je vyvtoření tabulek s rozptýlenými položkami pro ukládání názvu vytvořených
+proměnných a labelů pro funkce. Vlastní spuštění generátoru spočívá ve volání
+funkce \texttt{generate\_code}.
+
+\subsection{Tří adresný kód}
+
+Tří adresný kód je generován na úrovni parseru a precedenční analýzy. Jeho struktura
+obsahuje v typ kódu, \texttt{ac\_type}, a tři operandy typu \texttt{Token}, \texttt{op1}, \texttt{op2}, \texttt{res}.
+Výsledná struktura kódu je uložena do seznamu kódu, který je využit v generátoru. Hlavními funkcemi
+seznamu jsou funkce \texttt{setACAct}, která nastaví aktivitu seznamu na první položku,
+\texttt{actAC}, pro nastavení aktivity na následující položku a \texttt{isACActive} pro
+zjištení, zda je v seznamu aktivní prvek.
+
+\subsection{Průběh generování}
+
+Ze seznamu tři adresných kódu jsou postupně brány položky a podle typu kódu je
+rozhodnuto jaká instrukce bude zapsána do výsledného kódu. Výsledný kód je v 
+průběhu generování rozdělen na dva bloky, kód hlavního programu (main) a kód funkcí a
+ukládán do dynamicého řetězce pro tyto bloky.
+
+Tento způsob implementace byl zvolen z důvodu, že volání funkcí je realizováno pomocí
+skoku na návěští, pokud by byly funkce zapsány uvnitř hlavního kódu, bylo by nutné
+je přeskakovat, dokud nebudou volány, což by bylo horší na implementaci a výsledný kód
+by byl méně přehledný.
+
+Po přečtení všech kódu a vygenerován instrukcí je výsledek vypsán na standardní výstup,
+nejprve kód funkci a poté kód hlavního bloku programu.
+
+\subsection{Vestavěné funkce}
+
+Vestavěné funkce jsou definovány v hlavičkovém souboru generátoru. V případě, že program poprvé volá
+jednu z těchto funkcí, jsou zapsnány do bloku funkcí a funkce je volána jako obyčejné uživatelské 
+funkce. Výsledný kód tedy obsahuje pouze ty funkce, které jsou využívány, tímto rešením udržíme kód 
+relativně čistý.
+
+\subsection{Generování identifikátorů}
+
+Při generování instrukcí pracujících s identifikátory je nejprve prohledána tabulka,
+zda nebyl identifikátor generován již dříve. Identifikátory z hlavního bloku programu,
+takzvané globání identifikátory, mají přednost před identifikátory uvnitř funkcí, nebo-li lokálními
+identifikátory. Pokud nebyl nalezen, je zapsána insturkce do kódu a do příslušné tabulky je 
+vloženo jméno identifikátoru
+
+\subsection{Problém generování cyklu}
+
+U generování cyklu \texttt{while} byl zjištěn problém možné definice identifikátoru. Tuto možnost
+jsme ošetřili tak, že parser vygeneruje tří adresný kód \texttt{WHILE\_START} pro označení začátku cyklu
+a \texttt{WHILE\_END} pro konec cyklu. Když generátor narazí na začátek cyklu, projde všechny kódy
+uvnitř cyklu, provede kontrolu definice identifikátorů a případně identifikátory nadefinuje předem,
+než cyklus začne.
+
+\section{Pomocné knihovny}
+
+\subsection{Knihovna chyb \texttt{errors}}
+
+Knihovna obsahuje výčet kódu všech možných chyb, které mohou nastat při překladu programu, globání
+proměnnou \texttt{global\_error\_code}, kterou jednotlivé moduly nastavují na jeden z typu chyby 
+v případě, že někde nastala. Na této proměnné zavisí spuštění generátoru. Dále máme dvě funkce
+pro výpis chyby na standardní chybový výstup \texttt{stderr}, první pro výpis interní chyby a druhá
+pro kompilační chyby, která tiskne navíc název souboru a číslo řádku zdrojového programu 
+na které se chyba vyskytuje.
+
+\subsection{Dynamický řetězec}
+
+Pro jednodušší práci s řetězci v programovacím jazyce C jsme vytvořili knihovnu \texttt{dynamic\_string}.
+Knihovna nám umožnuje vytvořit nový řetězec, rozšířit ho připsáním nového řetězce na konec stávajícího,
+nebo ho skrátit na požadovanou délku.
 
 \end{document}
