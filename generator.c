@@ -34,6 +34,7 @@ bool inputi_appended = false;
 bool inputf_appended = false;
 bool inputs_appended = false;
 bool len_appended = false;
+bool print_appended = false;
 
 bool createframe_written = false;
 
@@ -505,15 +506,18 @@ void write_param(Token *res)
 {
     if (param_counter == 0 && !function_definition)
     {
-        if (!check_and_write_print(res))
-        {
-            function_call_assign = true;
-            write_createframe();
-        }
-        else
-        {
-            return;
-        }
+        // if (!check_and_write_print(res))
+        // {
+        //     function_call_assign = true;
+        //     write_createframe();
+        // }
+        // else
+        // {
+        //     return;
+        // }
+
+        function_call_assign = true;
+        write_createframe();
     }
 
     ++param_counter;
@@ -642,6 +646,11 @@ void write_call(char *label)
         {
             append_string(result_functions_code, LEN_FUNC);
             len_appended = true;
+        }
+        else if (strcmp(label, "print") == 0 && !print_appended)
+        {
+            append_string(result_functions_code, PRINT_FUNC);
+            print_appended = true;
         }
         else
         {
