@@ -14,8 +14,7 @@
 #include "dynamic_string.h"
 #include <stdbool.h>
 #include <stdint.h> //potřeba pro hash funkci
-//TODO delete this, should be probably linked in parser anyway
-#include "scanner.h"
+#include "scanner.h" //kvůli line count
 
 typedef enum
 {
@@ -57,8 +56,11 @@ st_type get_id_type(Token *token);
 void global_check_def();
 void local_check_def();
 
+bool work_out_fce_id(Token*, int, bool); //done
+bool work_out_val_id(Token*, bool); //started
+
 //TODO delete vv from here
-void no_check_def(cstring *key, st_type type, int param_count);
+void create_item(cstring *key, st_type type, int param_count, bool defined);
 void destroy_symtable(STable **st);
 unsigned hashCode(cstring *key);
 void create_symtable(STable **st, size_t size);

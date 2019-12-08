@@ -2,8 +2,10 @@
  * Syntakticka analyza rekurzivnim sestupem vseho krom vyrazu
  *
  * @author xstrna14
- * @version 1.0
- * @date 27.11.2019
+ * @version 2.0
+ * @date 8.12.2019
+ *
+ * 2.0 - Syntax errors funguji
  *
  * IMPORTANT: z nejakeho duvodu se stringy vypisuji v synt erroru jen par znaku,
  * proverit TODO
@@ -14,8 +16,11 @@
       pridat checky pro return v global (symtable)
       id stuff check (bacha, ruzne pro id a funkci)
       errory! jak je psat atd
+      global id existuje, pouzito local, pak local redef -> chyba
+      DEDENT EOFILE furt blbne, to same co pro EOL udelat i pro DEDENT?
+      jde to? nebo scanner work?
  *
- * NOTE: problem multi-hlaseni -> staci nehlasit kdekoliv, kde se zanoruji
+ *
  */
 
 #include "parser.h"
@@ -98,15 +103,17 @@ if(global_error_code == SUCCESS) global_error_code = SYNTAX_ANALYSIS_ERROR
 
 //zkontroluje pritomnost fatalni chyby a pokud predchozi stav failnul,
 //skoci na zotaveni
-#define heavy_check(label) if(global_error_code == INTERNAL_ERROR) return false;\
+#define heavy_check(label) if(global_error_code == INTERNAL_ERROR || global_error_code == LEXICAL_ANALYSIS_ERROR || curr_token == NULL) return false;\
 if(can_continue != true) goto label
 
 //----------POMOCNE FCE---------------
 bool flush_until(e_type token_type)
 {
+  if(curr_token == NULL) return false;
   if(Tis(token_type)) return true;
   while(getTokenType(curr_token) != EOFILE) {
     curr_token = fake_token();
+    if(curr_token == NULL) return false;
     if(Tis(token_type)) return true;
     if(Tis(EOFILE)) return false;
   }
@@ -158,7 +165,7 @@ cstring* create_label(label_enum type, int number)
 
 void stderr_print_token_info();
 
-//-----ROZKLADY-------------------          // 15 / 17
+//-----ROZKLADY-------------------          // 15 / 15
 bool prog();                                //done
 bool non_empty_prog_body();                 //done
 bool prog_body();                           //done
@@ -174,8 +181,6 @@ bool print_param_list();                    //done
 bool print_more_params();                   //done
 bool param_item();                          //done
 bool terminal(e_type type);                 //done
-bool work_out_fce_id(Token*, int, bool); //started
-bool work_out_val_id(Token*, bool); //started
 
 
 bool prog() //---PROG---
@@ -437,6 +442,7 @@ bool command() //---COMMAND---
     //nemusím kontrolovat pass, jinak by to sem nedoslo
     free(curr_token);
     curr_token = fake_token();
+    heavy_check(C_r1e1);
 
     C_r1rp1:
     //EOL
@@ -1065,6 +1071,7 @@ bool more_EOL() //---MORE_EOL---
     //neni treba overovat, ze mame EOL, jinak bychom sem nedosli
     free_token(curr_token);
     curr_token = fake_token();
+    heavy_check(MEOL_r1e1);
 
     //more_EOL
     can_continue = more_EOL();
@@ -1149,6 +1156,7 @@ bool not_sure1()
     //nemusim checkovat ass
     free(curr_token);
     curr_token = fake_token();
+    heavy_check(NS1_r2e1);
 
     //ulozim last token do id to assing
     id_to_assign = last_token;
@@ -1161,6 +1169,8 @@ bool not_sure1()
     if(!can_continue || global_error_code != SUCCESS) return false;
 
     return true;
+    NS1_r2e1:
+      return false;
   }
   else if(Tis_op) {
     Token *ret_id;
@@ -1199,6 +1209,7 @@ bool not_sure2()
     //id not_sure3
     last_token = curr_token;
     curr_token = fake_token();
+    heavy_check(NS2_r1e1);
 
     can_continue = not_sure3();
     heavy_check(NS2_r1e1);
@@ -1341,7 +1352,7 @@ bool not_sure3()
     NS3_r2e1:
       return false;
   }
-  else if(Tis(EOL)) {
+  else if(Tis(EOL) || Tis(EOFILE)) {
     //epsilon
     //aka bylo to id1 = id2, id1 - id_to_assign, id2 - last_token
     can_continue = work_out_val_id(last_token, false);
@@ -1371,32 +1382,9 @@ bool not_sure3()
 
 
 
-
-//funguje pro: ID
-bool work_out_fce_id(Token* token, int param_count, bool define)
-{
-  bool can_continue = true;
-  //nakopirovat ten token!
-
-  return can_continue;
-}
-
-
-bool work_out_val_id(Token *token, bool define)
-{
-  bool can_continue = true;
-  //nakopirovat ten token!
-  //check definition, define
-  //or just check type
-  return can_continue;
-}
-
-
-
-
-
 bool param_item()
 {
+  bool can_continue = true;
   if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID)) {
     if(Tis(ID)) {
       work_out_val_id(curr_token, false);
@@ -1408,7 +1396,10 @@ bool param_item()
       free_token(curr_token);
     }
     curr_token = fake_token();
+    heavy_check(PI_r1e1);
     return true;
+    PI_r1e1:
+      return false;
   }
   else {
     /*fprintf(stderr, "[hojkas] parser.c: param_item(): skoncilo v zakazanem stavu\n");*/
@@ -1463,6 +1454,7 @@ void parser_do_magic()
 
    //nacte prvni token
    curr_token = fake_token();
+   if(global_error_code != SUCCESS) return;
 
    /*bool overall = *///prog();
    //prog <- pocatecni nonterminal, cely program
@@ -1474,8 +1466,11 @@ void parser_do_magic()
    printf("Analysis complete?      ");
    if(overall) printf("YES\n");
    else printf("NO\n");
+   printf("Kill after analysis?    ");
+   if(kill_after_analysis) printf("YES\n");
+   else printf("NO\n");
    printf("Analysis without error?");
-   if(!kill_after_analysis) printf(" YES\n");
+   if(global_error_code == 0) printf(" YES\n");
    else printf(" ERROR n. %d\n", global_error_code);
 
 

@@ -144,6 +144,7 @@ bool search_st(STable *st, cstring *key)
   while(curr != NULL) {
     if(compare_string(key, (char *) get_cstring_string(curr->key))) {
       found = true;
+      act_item = curr;
       break;
     }
     curr = curr->next;
@@ -151,15 +152,16 @@ bool search_st(STable *st, cstring *key)
   return found;
 }
 
-void no_check_def(cstring *key, st_type type, int param_count)
+void create_item(cstring *key, st_type type, int param_count, bool defined)
 {
   STItem *new = init_st_item();
   if(new == NULL) return;
   new->key = key;
   new->type = type;
-  new->first_occur_line = 0;
+  new->first_occur_line = line_count;
   if(type == ST_FUNCTION) new->number_of_params = param_count;
-  new->defined = true;
+  else new->number_of_params = -1;
+  new->defined = defined;
   append_item(new);
 }
 
@@ -218,21 +220,21 @@ void start_symtable_with_functions()
   create_symtable(&global_st, GLOBAL_ST_SIZE);
   if(global_st == NULL) return; //error vyřešen ve volání create_symtable
 
-  no_check_def(init_cstring("inputs"), ST_FUNCTION, 0);
+  create_item(init_cstring("inputs"), ST_FUNCTION, 0, true);
   if(global_error_code == INTERNAL_ERROR) return;
-  no_check_def(init_cstring("inputi"), ST_FUNCTION, 0);
+  create_item(init_cstring("inputi"), ST_FUNCTION, 0, true);
   if(global_error_code == INTERNAL_ERROR) return;
-  no_check_def(init_cstring("inputf"), ST_FUNCTION, 0);
+  create_item(init_cstring("inputf"), ST_FUNCTION, 0, true);
   if(global_error_code == INTERNAL_ERROR) return;
-  no_check_def(init_cstring("print"), ST_FUNCTION, -1);
+  create_item(init_cstring("print"), ST_FUNCTION, -1, true);
   if(global_error_code == INTERNAL_ERROR) return;
-  no_check_def(init_cstring("len"), ST_FUNCTION, 1);
+  create_item(init_cstring("len"), ST_FUNCTION, 1, true);
   if(global_error_code == INTERNAL_ERROR) return;
-  no_check_def(init_cstring("substr"), ST_FUNCTION, 3);
+  create_item(init_cstring("substr"), ST_FUNCTION, 3, true);
   if(global_error_code == INTERNAL_ERROR) return;
-  no_check_def(init_cstring("ord"), ST_FUNCTION, 2);
+  create_item(init_cstring("ord"), ST_FUNCTION, 2, true);
   if(global_error_code == INTERNAL_ERROR) return;
-  no_check_def(init_cstring("chr"), ST_FUNCTION, 1);
+  create_item(init_cstring("chr"), ST_FUNCTION, 1, true);
 }
 
 void go_in_local()
@@ -257,14 +259,13 @@ void go_in_global()
   local_check_def();
   destroy_symtable(&local_st);
 }
-
+/**
 void define_id_from_info(cstring *key, st_type type, int param_count)
 {
   //something that shouldn't but could go wrong?
   //search in local and global, if it is not already defined
   //if not, define it
   //if yes, error, print it, set stop after analysis, continue
-  printf("am I in global? %d\n", in_global);
   unsigned line;
   STItem *curr;
 
@@ -361,7 +362,7 @@ void define_id_from_token(Token *token, st_type type, int param_count)
   add_undef_id_from_info(key, ST_UNDEFINED); //TODO fix with correct type
 
   define_id_from_info(key, type, param_count);
-}
+}*/
 
 void add_undef_id_from_info(cstring *key, st_type type)
 {
@@ -386,12 +387,66 @@ void add_undef_id_from_token(Token *token, st_type type)
   add_undef_id_from_info(key, ST_UNDEFINED); //TODO fix with correct type
 }
 
+
+//up there delete TODO just redirect flippz
+
 st_type get_id_type(Token *token)
 {
-  //TODO
-  //get type of id in token
-  return ST_UNDEFINED;
+  bool found = false;
+  if(!in_global) found = search_st(local_st, getTokenStrValue(token));
+  if(!found) found = search_st(global_st, getTokenStrValue(token));
+  if(!found) return ST_UNDEFINED; //nenalezeno
+  return act_item->type;
 }
+
+
+bool work_out_fce_id(Token* token, int param_count, bool define)
+{
+  //nakopirovat ten token!
+  if(search_st(global_st, getTokenStrValue(token))) {
+    //existuje tam uz zaznam s timto id
+    if(act_item->type != ST_FUNCTION) {
+      //error, spatny typ polozky, redefinice
+      fprintf(stderr, "placeholder: work_out_fce_id: Snaha definovat %s, co bylo definovano jako id (SEMANTIC_DEFINITION_ERROR)\n", get_cstring_string(getTokenStrValue(token)));
+      if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
+      return false;
+    }
+    if(define && act_item->defined == true) {
+      //error, redefinice
+      fprintf(stderr, "placeholder: work_out_fce_id: Snaha redefinovat funknci %s (SEMANTIC_DEFINITION_ERROR)\n", get_cstring_string(getTokenStrValue(token)));
+      if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
+      return false;
+    }
+    if(act_item->number_of_params != param_count) {
+      //spatny pocet parametru
+      fprintf(stderr, "placeholder: work_out_fce_id: Nesedi pocet argumentu u %s (SEMANTIC_PARAMETER_ERROR)\n", get_cstring_string(getTokenStrValue(token)));
+      if(global_error_code == SUCCESS) global_error_code = SEMANTIC_PARAMETER_ERROR;
+      return false;
+    }
+    if(act_item->defined == false) {
+      act_item->defined = define; //nechá false nebo definuje, podle "define"
+      return true;
+    }
+    //jestli jsme tu, je zaroven mod false, takze vse sedi a proste se vracime
+    return true;
+  }
+  else {
+    //zaznam zatim neexistuje
+    cstring* key = init_cstring(get_cstring_string(getTokenStrValue(token)));
+    create_item(key, ST_FUNCTION, param_count, define);
+    return true;
+  }
+}
+
+
+bool work_out_val_id(Token *token, bool define)
+{
+  bool can_continue = true;
+  //nakopirovat ten token!
+
+  return can_continue;
+}
+
 
 void uni_check_def(STable *st)
 {

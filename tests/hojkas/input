@@ -1,8 +1,7 @@
-while 1 :
+def i() :
+  pass
+i(hi)
+def print() :
   pass
 
-id()
-print()
-id(5,3)
-print(5,3)
-a = print(5)
+pass
