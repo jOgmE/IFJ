@@ -21,7 +21,7 @@ int main(int argc, char const *argv[])
     if (source_file == NULL)
     {
         perror("Vstupní soubor se nepodařilo otevřít.");
-        return 1;
+        return INTERNAL_ERROR;
     }
 
     //For errors.h
