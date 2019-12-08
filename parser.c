@@ -7,14 +7,13 @@
  *
  * IMPORTANT: z nejakeho duvodu se stringy vypisuji v synt erroru jen par znaku,
  * proverit TODO
- * bacha na print funkci
- * IMPORTANT: na konci souboru nemusí být EOL EOF, ale jen EOF, ale
- * já asi počítám s EOL EOF
- * IMPORTANT: jsem kkt, po dedentu nemusi byt eol, command s tim ale pocita,
- * mozne reseni: prepsat commandy krome techto, aby za sebou ocekavaly eol
- * projit vsude, kde je init_token, pridat heavy checkk!
+ * bacha na
  * TODO: vsude, kde muze byt EOL, pridat moznost pro EOF
  *
+ another work:
+      pridat checky pro return v global (symtable)
+      id stuff check (bacha, ruzne pro id a funkci)
+      errory! jak je psat atd
  *
  * NOTE: problem multi-hlaseni -> staci nehlasit kdekoliv, kde se zanoruji
  */
@@ -1280,18 +1279,8 @@ bool not_sure3()
       //TODO ma se nejak resit ret value?
       //tu jsme v "a = print()"
       free_token(last_token);
-      free_token(id_to_assign);
     }
     else {
-      //nastvit ret value
-      Token *ret_id; //stejne jako vzdy u return, dulezite
-      if(!kill_after_analysis) {
-        ret_id = init_token();
-        heavy_check(NS3_r1e2);
-        add_temp_id(ret_id, init_cstring("temp_ret"));
-        heavy_check(NS3_r1e2);
-      }
-
       //zpracovat id
       work_out_fce_id(last_token, param_count, false);
       if(!kill_after_analysis) {
@@ -1299,14 +1288,24 @@ bool not_sure3()
         heavy_check(NS3_r1e2);
       }
       else free_token(last_token);
-
-      if(!kill_after_analysis) {
-        appendAC(ASSIGN, ret_id, NULL, id_to_assign);
-      }
-      else {
-        free_token(id_to_assign);
-      }
     }
+
+    //nastvit ret value
+    Token *ret_id; //stejne jmeno (cstring uvnitr) jako vzdy u return, dulezite
+    if(!kill_after_analysis) {
+      ret_id = init_token();
+      heavy_check(NS3_r1e2);
+      add_temp_id(ret_id, init_cstring("temp_ret"));
+      heavy_check(NS3_r1e2);
+    }
+
+    if(!kill_after_analysis) {
+      appendAC(ASSIGN, ret_id, NULL, id_to_assign);
+    }
+    else {
+      free_token(id_to_assign);
+    }
+
 
     id_to_assign = NULL;
     last_token = NULL;
