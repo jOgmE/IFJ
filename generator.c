@@ -487,6 +487,8 @@ bool check_and_write_print(Token *res)
                 goto_ac_breakpoint();
                 return false;
             }
+
+            res = next_res;
         }
     }
 
