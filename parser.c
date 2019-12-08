@@ -159,7 +159,7 @@ cstring* create_label(label_enum type, int number)
 
 void stderr_print_token_info();
 
-//-----ROZKLADY-------------------          // 11 / 15
+//-----ROZKLADY-------------------          // 15 / 17
 bool prog();                                //done
 bool non_empty_prog_body();                 //done
 bool prog_body();                           //done
@@ -167,10 +167,12 @@ bool prog_body_with_def();                  //done
 bool more_EOL();                            //done
 bool command();                             //done
 bool not_sure1();                           //done
-bool not_sure2(); //started
-bool not_sure3(); //started
+bool not_sure2();                           //done
+bool not_sure3();                           //done
 bool param_list(int*);                      //done
 bool more_params(int*);                     //done
+bool print_param_list();                    //done
+bool print_more_params();                   //done
 bool param_item();                          //done
 bool terminal(e_type type);                 //done
 bool work_out_fce_id(Token*, int, bool); //started
@@ -958,7 +960,7 @@ bool more_params(int* param_count) //---MORE_PARAMS---
 
 
 
-bool param_list(int* param_count) //---PARAM_LIST----
+bool print_param_list() //---PRINT_PARAM_LIST----
 {
   //param_list -> item more_params
   //param_list -> epsilon
@@ -968,17 +970,24 @@ bool param_list(int* param_count) //---PARAM_LIST----
     //param_list -> item more_params
     //item
     can_continue = param_item();
-    heavy_check(PL_r1e1);
-    (*param_count)++;
+    heavy_check(PPL_r1e1);
 
-    can_continue = more_params(param_count);
-    heavy_check(PL_r1e1);
+    //vytvori volani za kazdym parametrem
+    if(!kill_after_analysis) {
+      Token *param = init_token();
+      heavy_check(PPL_r1e1);
+      add_id(param, init_cstring("print"));
+      appendAC(CALL, NULL, NULL, param);
+      heavy_check(PPL_r1e1);
+    }
+
+    can_continue = print_more_params();
+    heavy_check(PPL_r1e1);
 
     return true;
 
     //ERROR
-    PL_r1e1:
-      //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"item more_params\".\n");
+    PPL_r1e1:
       return false;
   }
   else if(Tis(RPA)) {
@@ -987,9 +996,7 @@ bool param_list(int* param_count) //---PARAM_LIST----
     return true;
   }
   else {
-    //sem by se to nemělo při dobré implementaci dostat
-    /*fprintf(stderr, "[hojkas] parser.c: param_list(): skoncilo v zakazanem stavu\n");*/
-    syntax_err("Placeholder: param_list: Token ", " nebyl okay.\n");
+    syntax_err("Placeholder: print_param_list: Token ", " nebyl okay.\n");
     return false;
   }
 }

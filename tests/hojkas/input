@@ -3,3 +3,5 @@ while 1 :
 
 id()
 print()
+id(5,3)
+print(5,3)
