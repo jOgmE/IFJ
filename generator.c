@@ -35,6 +35,9 @@ bool inputf_appended = false;
 bool inputs_appended = false;
 bool len_appended = false;
 bool print_appended = false;
+bool substr_appended = false;
+bool chr_appended = false;
+bool ord_appended = false;
 
 bool createframe_written = false;
 
@@ -653,6 +656,21 @@ void write_call(char *label)
         {
             append_string(result_functions_code, PRINT_FUNC);
             print_appended = true;
+        }
+        else if (strcmp(label, "substr") == 0 && !substr_appended)
+        {
+            append_string(result_functions_code, SUBSTR_FUNC);
+            substr_appended = true;
+        }
+        else if (strcmp(label, "ord") == 0 && !ord_appended)
+        {
+            append_string(result_functions_code, ORD_FUNC);
+            ord_appended = true;
+        }
+        else if (strcmp(label, "chr") == 0 && !chr_appended)
+        {
+            append_string(result_functions_code, CHR_FUNC);
+            chr_appended = true;
         }
         else
         {
