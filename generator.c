@@ -419,8 +419,8 @@ char *check_and_write_define(Token *token)
 
     if (compare_string(token->str, "temp_ret"))
     {
-        // free_cstring(token->str);
-        // token->str = init_cstring("%temp_ret");
+        free_cstring(token->str);
+        token->str = init_cstring("%temp_ret");
         return "TF";
     }
 
