@@ -44,7 +44,7 @@ size_t param_counter = 0;
 
 #ifdef DEBUG
 
-bool just_type = false;
+bool gen_just_type = false;
 
 #endif
 
@@ -1055,7 +1055,7 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
 
 #ifdef DEBUG
 
-void print_type(ac_type type)
+void gen_print_type(ac_type type)
 {
     switch (type)
     {
@@ -1131,12 +1131,12 @@ void print_type(ac_type type)
     }
 }
 
-void print_ac(tAC *ac)
+void gen_print_ac(tAC *ac)
 {
-    if (just_type)
+    if (gen_just_type)
     {
         printf("AC: ");
-        print_type(ac->type);
+        gen_print_type(ac->type);
         printf("\n");
         if (ac->op1 != NULL)
             printf("  1 %s\n", get_cstring_string(ac->op1->str));
@@ -1192,12 +1192,12 @@ void generate_code()
 
 #ifdef DEBUG
 
-    just_type = true;
+    gen_just_type = true;
 
     setACAct();
     while (isACActive())
     {
-        print_ac(readAC());
+        gen_print_ac(readAC());
         actAC();
     }
 
