@@ -403,7 +403,7 @@ void write_label(char *label)
     }
 }
 
-char *write_check_and_define(Token *token)
+char *check_and_write_define(Token *token)
 {
     //likely an error somewhere
     if (token == NULL)
@@ -469,19 +469,56 @@ void write_createframe()
     switch_frame(TEMP_FRAME);
 }
 
+bool check_and_write_print(Token *res)
+{
+    if (res->type == PARAM)
+    {
+        set_ac_breakpoint();
+        actAC();
+
+        ac_type next_type = readACtype();
+
+        if (next_type == CALL)
+        {
+            Token *next_res = readACres();
+
+            if (!compare_string(next_res->str, "print"))
+            {
+                goto_ac_breakpoint();
+                return false;
+            }
+        }
+    }
+
+    char *res_frame_str = check_and_write_define(res);
+
+    append_string(CURRENT_BLOCK, "WRITE ");
+    write_symbol(res, res_frame_str, true);
+    append_string(CURRENT_BLOCK, "\n");
+
+    return true;
+}
+
 void write_param(Token *res)
 {
     if (param_counter == 0 && !function_definition)
     {
-        function_call_assign = true;
-        write_createframe();
+        if (!check_and_write_print(res))
+        {
+            function_call_assign = true;
+            write_createframe();
+        }
+        else
+        {
+            return;
+        }
     }
 
     ++param_counter;
 
     char *param_counter_str = convert_int_to_string((int)param_counter);
 
-    char *res_frame_str = write_check_and_define(res);
+    char *res_frame_str = check_and_write_define(res);
 
     if (function_call_assign)
     {
@@ -518,7 +555,7 @@ void write_return(Token *res)
 {
     append_string(CURRENT_BLOCK, "MOVE LF@%temp_ret ");
 
-    char *res_frame_str = write_check_and_define(res);
+    char *res_frame_str = check_and_write_define(res);
 
     write_symbol(res, res_frame_str, false);
 
@@ -549,9 +586,9 @@ void check_and_define_while()
         op2 = readACop2();
         res = readACres();
 
-        write_check_and_define(op1);
-        write_check_and_define(op2);
-        write_check_and_define(res);
+        check_and_write_define(op1);
+        check_and_write_define(op2);
+        check_and_write_define(res);
 
         type = readACtype();
 
@@ -622,15 +659,6 @@ void write_call(char *label)
         insert_table_item(label, GLOBAL_FRAME);
         write_call(label);
     }
-}
-
-void write_print(Token *res)
-{
-    char *res_frame_str = write_check_and_define(res);
-
-    append_string(CURRENT_BLOCK, "WRITE ");
-    write_symbol(res, res_frame_str, true);
-    append_string(CURRENT_BLOCK, "\n");
 }
 
 //******************************************************************************************//
@@ -742,9 +770,9 @@ void write_convert_type(Token *token, char *frame_str, e_type destType)
 
 void write_assign(Token *op1, Token *res)
 {
-    char *res_frame_str = write_check_and_define(res);
+    char *res_frame_str = check_and_write_define(res);
 
-    char *op1_frame_str = write_check_and_define(op1);
+    char *op1_frame_str = check_and_write_define(op1);
 
     write_move(op1, op1_frame_str, res, res_frame_str);
 }
@@ -758,7 +786,7 @@ void write_jump(Token *res)
 
 void write_cond_jump(Token *op1, Token *res)
 {
-    char *op1_frame_str = write_check_and_define(op1);
+    char *op1_frame_str = check_and_write_define(op1);
 
     append_string(CURRENT_BLOCK, "JUMPIFEQ ");
     append_string(CURRENT_BLOCK, res->str->str);
@@ -769,9 +797,9 @@ void write_cond_jump(Token *op1, Token *res)
 
 void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
 {
-    char *op1_frame_str = write_check_and_define(op1);
-    char *op2_frame_str = write_check_and_define(op2);
-    char *res_frame_str = write_check_and_define(res);
+    char *op1_frame_str = check_and_write_define(op1);
+    char *op2_frame_str = check_and_write_define(op2);
+    char *res_frame_str = check_and_write_define(res);
 
     e_type arithmetic_type = compare_symbol_types_and_convert(op1, op2);
 
@@ -953,9 +981,9 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
 
 void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
 {
-    char *op1_frame_str = write_check_and_define(op1);
-    char *op2_frame_str = write_check_and_define(op2);
-    char *res_frame_str = write_check_and_define(res);
+    char *op1_frame_str = check_and_write_define(op1);
+    char *op2_frame_str = check_and_write_define(op2);
+    char *res_frame_str = check_and_write_define(res);
 
     e_type arithmetic_type = INT;
 
