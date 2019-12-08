@@ -29,24 +29,12 @@ int main(int argc, char const *argv[])
 
     parser_do_magic();
 
-    if (global_error_code == INTERNAL_ERROR)
-    {
-        fclose(source_file);
-        return INTERNAL_ERROR;
-    }
-
     if (global_error_code == SUCCESS)
     {
         init_gen();
         generate_code();
     }
-
-    if (global_error_code == INTERNAL_ERROR)
-    {
-        fclose(source_file);
-        return INTERNAL_ERROR;
-    }
-
+    
     free_gen();
 
     fclose(source_file);
