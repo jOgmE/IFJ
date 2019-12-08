@@ -10,7 +10,7 @@
 cstring *init_cstring_size(size_t size)
 {
 
-    cstring *cstr = (cstring *)malloc(sizeof(cstring));
+    cstring *cstr = (cstring *)calloc(1, sizeof(cstring));
 
     // Check if cstring struct was allocated succesfully
     if (cstr == NULL)
@@ -19,7 +19,7 @@ cstring *init_cstring_size(size_t size)
         return NULL;
     }
 
-    cstr->str = (char *)malloc(size + 1); //include '\0' at the end
+    cstr->str = (char *)calloc(1, size + 1); //include '\0' at the end
 
     // Check if string was allocated succesfully
     if (cstr->str == NULL)
@@ -41,7 +41,8 @@ cstring *init_cstring(const char *str)
 
     cstring *cstr = init_cstring_size(size);
 
-    memcpy(cstr->str, str, size);
+    strcpy(cstr->str, str);
+    //memcpy(cstr->str, str, size);
 
     cstr->length = strlen(str);
 

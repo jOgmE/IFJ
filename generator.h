@@ -211,7 +211,7 @@ void write_label(char *label);
  * @param token Token kontrolu a definici
  * @returns Rámec tokenu
  */
-char *write_check_and_define(Token *token);
+char *check_and_write_define(Token *token);
 
 /**
  * Zpracuje převod typu proměnných
