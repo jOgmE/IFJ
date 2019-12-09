@@ -1,7 +1,6 @@
-def i() :
-  pass
-i()
-pri()
-def pri() :
-  pass
-(id + 5)
+a = 5
+def id() :
+  b = a
+def dva() :
+  a = 3
+pass

@@ -76,4 +76,6 @@ void st_next(STable *st);
 bool is_act_defined();
 void deact_st();
 
+void clean_bad_boys();
+
 #endif //_SYMTABLE_H_

@@ -255,6 +255,7 @@ void go_in_global()
 {
   if(in_global == true) return;
   in_global = true;
+  clean_bad_boys();
   local_check_def();
   destroy_symtable(&local_st);
 }
@@ -362,7 +363,7 @@ void define_id_from_token(Token *token, st_type type, int param_count)
 
   define_id_from_info(key, type, param_count);
 }*/
-
+/*
 void add_undef_id_from_info(cstring *key, st_type type)
 {
   //TODO ověř i typ!!!
@@ -378,12 +379,14 @@ void add_undef_id_from_info(cstring *key, st_type type)
   new->key = key;
   new->first_occur_line = line_count;
   append_item(new);
-}
+}*/
 
 void add_undef_id_from_token(Token *token, st_type type)
 {
-  cstring *key = init_cstring(get_cstring_string(token->str)); //kopie token str
-  add_undef_id_from_info(key, ST_UNDEFINED); //TODO fix with correct type
+  //toto je hovadina, spravne bych tu funkci nemela mit uz,
+  //ale radsi ji presmeruji nez nutit teammata, aby znova menil jeji
+  //pouziti
+  work_out_val_id(token, false);
 }
 
 
@@ -546,12 +549,10 @@ void clean_all_symtables()
 }
 
 void clean_bad_boys()
-{/*
+{
   set_st_act(global_st);
   while(st_is_active()) {
-    if(!is_act_defined()) {
-      printf("Polozka neni definovana\n");
-    }
-    st_next(st);
-  }*/
+    if(act_item->bad_boy) act_item->bad_boy = false;
+    st_next(global_st);
+  }
 }
