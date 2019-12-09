@@ -14,11 +14,8 @@
  *
  another work:
       pridat checky pro return v global (symtable)
-      id stuff check (bacha, ruzne pro id a funkci)
+      def check na konci (aka dopis def check)
       errory! jak je psat atd
-      global id existuje, pouzito local, pak local redef -> chyba
-      DEDENT EOFILE furt blbne, to same co pro EOL udelat i pro DEDENT?
-      jde to? nebo scanner work?
       kde neni na zacatku meol? kam ho muzu narvat, aniz by mi to posralo tabulku?
  *
  *
