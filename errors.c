@@ -12,7 +12,7 @@ error_type global_error_code = SUCCESS;
 
 bool kill_after_analysis = false;
 
-char *file_name = NULL;
+const char *file_name = NULL;
 
 char *error_type_names[] = {
     "SUCCESS",

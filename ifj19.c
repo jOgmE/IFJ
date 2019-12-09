@@ -9,31 +9,21 @@
 
 FILE *source_file = NULL;
 
-int main(int argc, char const *argv[])
+int main()
 {
-    if (argc < 2)
-    {
-        perror("Nebyla zadana cesta ke vstupnimu souboru.");
-    }
-
-    source_file = fopen(argv[1], "r");
+    source_file = stdin;
 
     if (source_file == NULL)
     {
         perror("Vstupní soubor se nepodařilo otevřít.");
-        return 1;
+        return INTERNAL_ERROR;
     }
 
     //For errors.h
-    file_name = argv[1];
+    //TODO get and set file name
+    file_name = "input.py";
 
     parser_do_magic();
-
-    if (global_error_code == INTERNAL_ERROR)
-    {
-        fclose(source_file);
-        return INTERNAL_ERROR;
-    }
 
     if (global_error_code == SUCCESS)
     {
@@ -41,15 +31,7 @@ int main(int argc, char const *argv[])
         generate_code();
     }
 
-    if (global_error_code == INTERNAL_ERROR)
-    {
-        fclose(source_file);
-        return INTERNAL_ERROR;
-    }
-
     free_gen();
 
-    fclose(source_file);
-
-    return 0;
+    return global_error_code;
 }

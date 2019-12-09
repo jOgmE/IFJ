@@ -27,6 +27,7 @@ Token *getToken()
 {
     if(!source_file){
         global_error_code = 99;
+		kill_after_analysis = true;
         return NULL;
     }
 
@@ -115,6 +116,7 @@ Token *getToken()
                 if ((our_string = init_cstring_size(256)) == NULL)
                 {
                     global_error_code = INTERNAL_ERROR;
+		    		kill_after_analysis = true;
                     return NULL;
                 }
                 append_char(our_string, c);
@@ -133,6 +135,7 @@ Token *getToken()
                 if ((our_string = init_cstring_size(32)) == NULL)
                 {
                     global_error_code = INTERNAL_ERROR;
+					kill_after_analysis = true;
                     return NULL;
                 }
                 append_char(our_string, c);
@@ -145,6 +148,7 @@ Token *getToken()
                 if ((our_string = init_cstring_size(256)) == NULL)
                 {
                     global_error_code = INTERNAL_ERROR;
+					kill_after_analysis = true;
                     return NULL;
                 }
                 present_state = Q2;
@@ -201,6 +205,7 @@ Token *getToken()
                 if ((our_string = init_cstring_size(2)) == NULL)
                 {
                     global_error_code = INTERNAL_ERROR;
+					kill_after_analysis = true;
                     return NULL; //wihtout \0
                 }
                 append_char(our_string, c);
@@ -217,6 +222,7 @@ Token *getToken()
             }
             //error
             global_error_code = LEXICAL_ANALYSIS_ERROR;
+			kill_after_analysis = true;
             return NULL;
         //--------------------------------STATES--------------------------------
         case Q1:
@@ -236,6 +242,7 @@ Token *getToken()
             free_cstring(our_string);
             indentStackDestroy(stack);
             global_error_code = LEXICAL_ANALYSIS_ERROR;
+			kill_after_analysis = true;
             return NULL;
         case Q2: //raw string processsing - KEEPING ESC CHAR
             if (c == 92)
@@ -258,6 +265,7 @@ Token *getToken()
             free_cstring(our_string);
             indentStackDestroy(stack);
             global_error_code = LEXICAL_ANALYSIS_ERROR;
+			kill_after_analysis = true;
             return NULL;
         case Q3:
             if (c == 34)
@@ -268,6 +276,7 @@ Token *getToken()
             //error
             indentStackDestroy(stack);
             global_error_code = LEXICAL_ANALYSIS_ERROR;
+			kill_after_analysis = true;
             return NULL;
         case Q4:
             if (c == 34)
@@ -276,6 +285,7 @@ Token *getToken()
                 if ((our_string = init_cstring_size(256)) == NULL)
                 {
                     global_error_code = INTERNAL_ERROR;
+					kill_after_analysis = true;
                     return NULL;
                 }
                 present_state = Q5;
@@ -284,6 +294,7 @@ Token *getToken()
             //error
             indentStackDestroy(stack);
             global_error_code = LEXICAL_ANALYSIS_ERROR;
+			kill_after_analysis = true;
             return NULL;
         case Q5:
             if (c == EOF)
@@ -291,6 +302,7 @@ Token *getToken()
                 indentStackDestroy(stack);
                 free_cstring(our_string);
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
+				kill_after_analysis = true;
                 return NULL;
             }
             //center state of docstring
@@ -308,6 +320,7 @@ Token *getToken()
                 indentStackDestroy(stack);
                 free_cstring(our_string);
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
+				kill_after_analysis = true;
                 return NULL;
             }
             if (c == 34)
@@ -323,6 +336,7 @@ Token *getToken()
                 indentStackDestroy(stack);
                 free_cstring(our_string);
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
+				kill_after_analysis = true;
                 return NULL;
             }
             if (c == 34)
@@ -353,6 +367,7 @@ Token *getToken()
             free_cstring(our_string);
             indentStackDestroy(stack);
             global_error_code = LEXICAL_ANALYSIS_ERROR;
+			kill_after_analysis = true;
             return NULL;
         case Q10:
             if (is09num(c))
@@ -364,6 +379,7 @@ Token *getToken()
             free_cstring(our_string);
             indentStackDestroy(stack);
             global_error_code = LEXICAL_ANALYSIS_ERROR;
+			kill_after_analysis = true;
             return NULL;
         case Q11:
             if (is09num(c))
@@ -375,6 +391,7 @@ Token *getToken()
             free_cstring(our_string);
             indentStackDestroy(stack);
             global_error_code = LEXICAL_ANALYSIS_ERROR;
+			kill_after_analysis = true;
             return NULL;
         case Q12:
             if (isPrintChar(c))
@@ -386,6 +403,7 @@ Token *getToken()
             free_cstring(our_string);
             indentStackDestroy(stack);
             global_error_code = LEXICAL_ANALYSIS_ERROR;
+			kill_after_analysis = true;
             return NULL;
         //-------------------------FINAL STATES----------------------------------
         case F1:
@@ -517,6 +535,8 @@ Token *getToken()
             ungetc(c, source_file);
             if (cstrToInt(our_string, token))
             { //checking return value
+				global_error_code = INTERNAL_ERROR;
+				kill_after_analysis = true;
                 return NULL;
             }
             return token;
@@ -537,6 +557,8 @@ Token *getToken()
             ungetc(c, source_file);
             if (cstrToDec(our_string, token))
             {
+				global_error_code = INTERNAL_ERROR;
+				kill_after_analysis = true;
                 return NULL;
             }
             return token;
@@ -551,6 +573,8 @@ Token *getToken()
             ungetc(c, source_file);
             if (cstrToDec(our_string, token))
             {
+				global_error_code = INTERNAL_ERROR;
+				kill_after_analysis = true;
                 return NULL;
             }
             return token;
@@ -563,6 +587,7 @@ Token *getToken()
                 if ((our_string = init_cstring_size(256)) == NULL)
                 {
                     global_error_code = INTERNAL_ERROR;
+					kill_after_analysis = true;
                     return NULL;
                 }
                 append_char(our_string, '0');
@@ -576,6 +601,7 @@ Token *getToken()
                 //error
                 indentStackDestroy(stack);
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
+				kill_after_analysis = true;
                 return NULL;
             }
 
@@ -657,6 +683,7 @@ Token *getToken()
         }
     }
     global_error_code = LEXICAL_ANALYSIS_ERROR;
+	kill_after_analysis = true;
     return NULL; //only for compiling NOT SURE for this line tbh
 }
 
@@ -666,6 +693,7 @@ int cstrToInt(cstring *our_string, Token *token)
     if (sscanf(get_cstring_string(our_string), "%i", &tmp) == EOF)
     {
         global_error_code = INTERNAL_ERROR;
+		kill_after_analysis = true;
         return INTERNAL_ERROR;
     }
     add_int(token, tmp);
@@ -680,6 +708,7 @@ int cstrToDec(cstring *our_string, Token *token)
     if (sscanf(get_cstring_string(our_string), "%lf", &tmp) == EOF)
     {
         global_error_code = INTERNAL_ERROR;
+		kill_after_analysis = true;
         return INTERNAL_ERROR;
     }
     add_dec(token, tmp);
