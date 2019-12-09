@@ -23,12 +23,11 @@ STItem* act_item = NULL;
 extern size_t line_count;
 extern bool kill_after_analysis;
 
-//TODO what values are optimal? I have no clue
-#define LOCAL_ST_SIZE 5
-#define GLOBAL_ST_SIZE 10
+#define LOCAL_ST_SIZE 89
+#define GLOBAL_ST_SIZE 911
+//aby bylo prvocislo a rozumna hodnota
 
-//TODO uncomment
-//extern size_t line_count;
+extern size_t line_count;
 
 //*******************************
 // TVORBA, ZMĚNA, ZÁNÍK TABULKY
@@ -256,7 +255,6 @@ void go_in_global()
   if(in_global == true) return;
   in_global = true;
   clean_bad_boys();
-  local_check_def();
   destroy_symtable(&local_st);
 }
 /**
@@ -389,9 +387,6 @@ void add_undef_id_from_token(Token *token, st_type type)
   work_out_val_id(token, false);
 }
 
-
-//up there delete TODO just redirect flippz
-
 st_type get_id_type(Token *token)
 {
   bool found = false;
@@ -400,7 +395,6 @@ st_type get_id_type(Token *token)
   if(!found || act_item == NULL) return ST_UNDEFINED; //nenalezeno
   return act_item->type;
 }
-
 
 bool work_out_fce_id(Token* token, int param_count, bool define)
 {
@@ -436,7 +430,12 @@ bool work_out_fce_id(Token* token, int param_count, bool define)
   else {
     //zaznam zatim neexistuje
     cstring* key = init_cstring(get_cstring_string(getTokenStrValue(token)));
-    create_item(key, ST_FUNCTION, param_count, define);
+    if(!in_global) {
+      in_global = true;
+      create_item(key, ST_FUNCTION, param_count, define);
+      in_global = false;
+    }
+    else create_item(key, ST_FUNCTION, param_count, define);
     return true;
   }
 }
@@ -514,31 +513,33 @@ bool work_out_val_id(Token *token, bool define)
   }
 }
 
-
-void uni_check_def(STable *st)
+void global_check_def()
 {
-  //TODO
   //provede semantickou kontrolu, aka projde symbol po symbolu
   //checkne, jestli je definovany, pokud ne, vypise chybu, nastavi
   //flag, kill_after_analysis, takhle vsechny
 
-  set_st_act(st);
+  set_st_act(global_st);
   while(st_is_active()) {
     if(!is_act_defined()) {
-      printf("Polozka neni definovana\n");
+      kill_after_analysis = true;
+      if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
+      fprintf(stderr, "Semantic error: Funkce %s (poprve pouzita na radku %ld) nebyla definovana\n",
+              get_cstring_string(act_item->key), act_item->first_occur_line);
     }
-    st_next(st);
+    st_next(global_st);
   }
 }
 
-void global_check_def()
+bool is_this_ret_okay()
 {
-  //uni_check_def(global_st);
-}
-
-void local_check_def()
-{
-  //uni_check_def(local_st);
+  if(in_global) {
+    fprintf(stderr, "Syntax error l. %4ld: Return v hlavnim tele programu.\n", line_count);
+    kill_after_analysis = true;
+    if(global_error_code == SUCCESS) global_error_code = SYNTAX_ANALYSIS_ERROR;
+    return false;
+  }
+  return true;
 }
 
 void clean_all_symtables()

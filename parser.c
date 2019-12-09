@@ -2,19 +2,14 @@
  * Syntakticka analyza rekurzivnim sestupem vseho krom vyrazu
  *
  * @author xstrna14
- * @version 2.0
- * @date 8.12.2019
+ * @version 3.0
+ * @date 9.12.2019
  *
  * 2.0 - Syntax errors funguji
+ * 3.0 - Semantika funguje
  *
- * IMPORTANT: z nejakeho duvodu se stringy vypisuji v synt erroru jen par znaku,
- * proverit TODO
- * bacha na
- * TODO: vsude, kde muze byt EOL, pridat moznost pro EOF
  *
  another work:
-      pridat checky pro return v global (symtable)
-      def check na konci (aka dopis def check)
       errory! jak je psat atd
       kde neni na zacatku meol? kam ho muzu narvat, aniz by mi to posralo tabulku?
  *
@@ -173,11 +168,11 @@ bool command();                             //done
 bool not_sure1();                           //done
 bool not_sure2();                           //done
 bool not_sure3();                           //done
-bool param_list(int*);                      //done
-bool more_params(int*);                     //done
+bool param_list(int*, bool);                //done
+bool more_params(int*, bool);               //done
 bool print_param_list();                    //done
 bool print_more_params();                   //done
-bool param_item();                          //done
+bool param_item(bool in_def);               //done
 bool terminal(e_type type);                 //done
 
 
@@ -257,7 +252,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
 
     //param_list
     int param_count = 0;
-    can_continue = param_list(&param_count);
+    can_continue = param_list(&param_count, true);
     heavy_check(PBWD_r2e1_1);
 
     can_continue = work_out_fce_id(def_id, param_count, true); //will also define
@@ -472,6 +467,9 @@ bool command() //---COMMAND---
     //nemusím kontrolovat return, jinak by to sem nedoslo
     free(curr_token);
     curr_token = fake_token();
+
+    can_continue = is_this_ret_okay();
+    heavy_check(C_r2e1);
 
     Token *ret_id; //musi byt stejne jako u volani fce, dulezite
     if(!kill_after_analysis) {
@@ -886,7 +884,7 @@ bool command() //---COMMAND---
 
 
 
-bool param_list(int* param_count) //---PARAM_LIST----
+bool param_list(int* param_count, bool in_def) //---PARAM_LIST----
 {
   //param_list -> item more_params
   //param_list -> epsilon
@@ -895,11 +893,11 @@ bool param_list(int* param_count) //---PARAM_LIST----
   if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID)) {
     //param_list -> item more_params
     //item
-    can_continue = param_item();
+    can_continue = param_item(in_def);
     heavy_check(PL_r1e1);
     (*param_count)++;
 
-    can_continue = more_params(param_count);
+    can_continue = more_params(param_count, in_def);
     heavy_check(PL_r1e1);
 
     return true;
@@ -924,7 +922,7 @@ bool param_list(int* param_count) //---PARAM_LIST----
 
 
 
-bool more_params(int* param_count) //---MORE_PARAMS---
+bool more_params(int* param_count, bool in_def) //---MORE_PARAMS---
 {
   bool can_continue = true;
   //more_params -> epsilon
@@ -939,12 +937,12 @@ bool more_params(int* param_count) //---MORE_PARAMS---
     heavy_check(MP_r1e1);
 
     //item
-    can_continue = param_item();
+    can_continue = param_item(in_def);
     heavy_check(MP_r1e1);
     (*param_count)++;
 
     //more_params
-    can_continue = more_params(param_count);
+    can_continue = more_params(param_count, in_def);
     heavy_check(MP_r1e1);
 
     return true;
@@ -970,14 +968,14 @@ bool more_params(int* param_count) //---MORE_PARAMS---
 
 bool print_param_list() //---PRINT_PARAM_LIST----
 {
-  //param_list -> item more_params
+  //param_list -> item
   //param_list -> epsilon
   bool can_continue = true;
 
   if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID)) {
     //param_list -> item more_params
     //item
-    can_continue = param_item();
+    can_continue = param_item(false); //print nikdy nemuze byt def
     heavy_check(PPL_r1e1);
 
     //vytvori volani za kazdym parametrem
@@ -1026,7 +1024,7 @@ bool print_more_params() //---PRINT_MORE_PARAMS---
     heavy_check(PMP_r1e1);
 
     //item
-    can_continue = param_item();
+    can_continue = param_item(false);
     heavy_check(PMP_r1e1);
 
     if(!kill_after_analysis) {
@@ -1123,7 +1121,7 @@ bool not_sure1()
     }
     else {
       //param_list obyč
-      can_continue = param_list(&param_count);
+      can_continue = param_list(&param_count, false);
       heavy_check(NS1_r1e1);
     }
 
@@ -1277,7 +1275,7 @@ bool not_sure3()
     }
     else {
       //param_list
-      can_continue = param_list(&param_count);
+      can_continue = param_list(&param_count, false);
       heavy_check(NS3_r1e1);
     }
 
@@ -1385,12 +1383,12 @@ bool not_sure3()
 
 
 
-bool param_item()
+bool param_item(bool in_def)
 {
   bool can_continue = true;
   if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID)) {
     if(Tis(ID)) {
-      work_out_val_id(curr_token, false);
+      work_out_val_id(curr_token, in_def);
     }
     if(!kill_after_analysis) {
       appendAC(PARAM, NULL, NULL, curr_token);
@@ -1463,6 +1461,7 @@ void parser_do_magic()
    //prog <- pocatecni nonterminal, cely program
    //TODO delete this (but keep prog() calling)
    bool overall = prog();
+   global_check_def();
    printf("______________________________________\n");
    print_all_ac_by_f(true);
    printf("_______________________________________\n");

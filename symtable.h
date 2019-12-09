@@ -44,38 +44,16 @@ typedef struct
   STItem **item_array;
 } STable;
 
-//TODO keep here, usable from outside
-void define_id_from_info(cstring *key, st_type type, int param_count);
-void define_id_from_token(Token *token, st_type type, int param_count); //not yet
 void go_in_global();
 void go_in_local();
 void start_symtable_with_functions();
 void clean_all_symtables();
-void add_undef_id_from_info(cstring *key, st_type type);
 void add_undef_id_from_token(Token *token, st_type type);
 st_type get_id_type(Token *token);
-
 void global_check_def();
-void local_check_def();
-
-bool work_out_fce_id(Token*, int, bool); //done
-bool work_out_val_id(Token*, bool); //started
-
-//TODO delete vv from here
-void create_item(cstring *key, st_type type, int param_count, bool defined);
-void destroy_symtable(STable **st);
-unsigned hashCode(cstring *key);
-void create_symtable(STable **st, size_t size);
-void append_item(STItem *item);
-STItem *init_st_item();
-bool search_st(STable *st, cstring *key);
-
-bool st_is_active();
-void set_st_act(STable *st);
-void st_next(STable *st);
-bool is_act_defined();
-void deact_st();
-
+bool is_this_ret_okay();
+bool work_out_fce_id(Token*, int, bool);
+bool work_out_val_id(Token*, bool);
 void clean_bad_boys();
 
 #endif //_SYMTABLE_H_
