@@ -44,4 +44,6 @@ void PAPop(PAStack *s);
 
 void PAYeet(PAStack *s);
 
+void PAPrint(PAStack *s);
+
 #endif

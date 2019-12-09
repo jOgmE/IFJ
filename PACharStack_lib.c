@@ -72,6 +72,8 @@ void PAPush ( PAStack *s, Token *content )
 	newElem->belowPtr = s->top;
 
 	s->top = newElem;
+
+	printf("Pushed %c\n", c);
 }
 
 
@@ -91,6 +93,7 @@ void PAPushE ( PAStack *s, Token *content)
 
 	newElem->belowPtr = s->top;
 	s->top = newElem;
+	printf("Pushed E\n");
 }
 
 
@@ -272,7 +275,7 @@ int PACodeRule2 ( PAStack *s, Token *E1, Token *op, Token *E2, Token *res, int *
 {
 	Token *result = init_token();
 
-	// TODO give em names!
+	// TODO give em namesV!
 
 	cstring *tempName = init_cstring("temp_");
 
@@ -280,7 +283,7 @@ int PACodeRule2 ( PAStack *s, Token *E1, Token *op, Token *E2, Token *res, int *
 
 	add_temp_id(result, tempName);
 
-	printf("owo im a cute widdwe pwint\n");
+	//printf("owo im a cute widdwe pwint\n");
 
 	appendAC(getACOP(op->type), E1, E2, copy_token(result));
 
@@ -301,56 +304,18 @@ int PACodeRule2 ( PAStack *s, Token *E1, Token *op, Token *E2, Token *res, int *
 // provede zpetnou derivaci E->(E)
 int PACodeRule3 ( PAStack *s )
 {
+	printf("Did we even get here\n");
 	PAPop(s); // popne ')'
 
-	Token *tmp = copy_token(s->top->content);
+	Token *tmp = s->top->content;
+	
+	PAPop(s); // popne 'E'
+	PAPop(s); // popne '('
+	PAPop(s); // popne '['
 
-	switch (s->top->content->type) {
+	PAPushE(s, tmp); // vrati 'E'
 
-		case ID:
-			add_undef_id_from_token(s->top->content, ST_VALUE);
-			switch (get_id_type(s->top->content)) {
-				case ST_VALUE:
-				case ST_UNDEFINED:
-									
-					PAPop(s);	// popne 'E'
-					PAPop(s);	// popne '('
-					PAPop(s);	// popne '['
-
-					PAPushE(s, tmp);		
-
-					return 0;
-					break;
-				case ST_LABEL:
-				case ST_FUNCTION:
-					kill_after_analysis = true;
-					global_error_code = SEMANTIC_DEFINITION_ERROR;
-					print_compile_error(SEMANTIC_DEFINITION_ERROR, ERROR, line_count, "Spatny identifikator ve vyrazu.");
-				default:
-					break; // projde na return 1;
-				
-			}
-			break;
-		case INT:
-		case STR:
-		case DEC:
-				
-			PAPop(s);	// popne 'E'
-			PAPop(s);	// popne '('
-			PAPop(s);	// popne '['
-
-			PAPushE(s, tmp);	
-
-			return 0;
-			break;
-		default:
-			break; // projde na return 1
-	}
-
-	free_token(tmp);
-	printf("[filip] Typ tokenu propadl switchem.");
-	return 1;
-
+	return 0;
 }
 
 
@@ -371,7 +336,7 @@ int PAApplyRule ( PAStack *s, Token *res, int *tempInt)
 		}
 
 		tempStack[3-i] = ptr;
-		//printf("tempStack[%d] = %c\n", 3-i, tempStack[3-i]->c);
+		printf("tempStack[%d] = %c\n", 3-i, tempStack[3-i]->c);
 		
 		if ( ptr->c == '$' || ptr->c == '[' ) break;
 		// ^ skonci pri nalezeni '[' (OK) nebo '$' (Uh oh)
@@ -452,6 +417,35 @@ void PAYeet ( PAStack *s )
 	}
 
 	free(s);
+}
+
+// vypise charactery na stacku
+void PAPrint ( PAStack *s )
+{
+	if (s->top == NULL ) return;
+
+	PAStack *temp;
+	PAInit(&temp);
+
+
+	PAStackElem *s_ptr = s->top;
+
+	printf("Print.\n");
+	while ( s_ptr != NULL ) {
+		printf("(%c)", s_ptr->c);
+		if ( s_ptr->c == '$' ) { PAPushFin(temp); }
+		else PAPush(temp, s_ptr->content);
+		s_ptr = s_ptr->belowPtr;
+	}
+
+	printf("STACK: >");
+	while ( temp->top != NULL ) {
+		printf(" %c", temp->top->c);
+		PAPop(temp);
+	}
+	printf("\n");
+
+	PAYeet(temp);
 }
 
 

@@ -1,7 +1,7 @@
 #include "precAnalysis_lib.h"
 
-#define getToken() fake_token()
 extern Token *fake_token();
+#define getToken() fake_token()
 
 // struktura prec analyzy je v podstate totozna s jejim popisem v prezentaci
 // (dokonce i zasobnik pouziva znakove reprezentace 'E', 'i', '+' za operatory, '$' atd)
@@ -35,6 +35,7 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 
 
 	do {
+		printf("Now watch.\n");
 		// F L U S H
 		if (kill_after_analysis == true) {
 			
@@ -55,6 +56,8 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 		// vybere z tabulky PA prislusny symbol
 			
 		char switchC = getFromTable(PATopTerm(s)->content, curToken, &isFin);
+		//PAPrint(s);
+		
 		switch (switchC) {
 
 			case '=':
@@ -95,7 +98,6 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 	} while ( !(PAEndAtTop(s) && isFin) );
 
 
-	// uvolneni -- NECO V YEETU TROPI POTIZE, TODO vyresit to
 	PAYeet(socket);
 	PAYeet(s);
 
