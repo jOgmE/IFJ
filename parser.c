@@ -11,7 +11,6 @@
  *
  another work:
       errory! jak je psat atd
-      kde neni na zacatku meol? kam ho muzu narvat, aniz by mi to posralo tabulku?
  *
  *
  */
@@ -181,8 +180,12 @@ bool prog() //---PROG---
   //prog -> prog_body_with_def EOF
   bool can_continue = true;
 
-  if(Tis(EOFILE) || Tis(DEF) || Tis(STR) || Tis(ID) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
-    //prog -> prog_body_with_def EOF
+  if(Tis(EOL) || Tis(EOFILE) || Tis(DEF) || Tis(STR) || Tis(ID) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
+    //prog -> more_EOL prog_body_with_def EOF
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(prog_error);
+
     can_continue = prog_body_with_def();
     heavy_check(prog_error);
     can_continue = terminal(EOFILE);
@@ -1457,8 +1460,6 @@ void parser_do_magic()
    curr_token = fake_token();
    if(global_error_code != SUCCESS) return;
 
-   /*bool overall = *///prog();
-   //prog <- pocatecni nonterminal, cely program
    //TODO delete this (but keep prog() calling)
    bool overall = prog();
    global_check_def();
