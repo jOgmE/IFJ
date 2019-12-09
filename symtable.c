@@ -107,6 +107,7 @@ STItem* init_st_item()
   new->key = NULL;
   new->first_occur_line = 0;
   new->number_of_params = 0;
+  new->bad_boy = false;
   new->next = NULL;
   return new;
 }
@@ -159,6 +160,7 @@ void create_item(cstring *key, st_type type, int param_count, bool defined)
   new->key = key;
   new->type = type;
   new->first_occur_line = line_count;
+  new->bad_boy = false;
   if(type == ST_FUNCTION) new->number_of_params = param_count;
   else new->number_of_params = -1;
   new->defined = defined;
@@ -180,6 +182,7 @@ void set_st_act(STable *st)
       return;
     }
   }
+  act_item = NULL;
 }
 
 void st_next(STable *st)
@@ -391,7 +394,7 @@ st_type get_id_type(Token *token)
   bool found = false;
   if(!in_global) found = search_st(local_st, getTokenStrValue(token));
   if(!found) found = search_st(global_st, getTokenStrValue(token));
-  if(!found) return ST_UNDEFINED; //nenalezeno
+  if(!found || act_item == NULL) return ST_UNDEFINED; //nenalezeno
   return act_item->type;
 }
 
@@ -399,6 +402,7 @@ st_type get_id_type(Token *token)
 bool work_out_fce_id(Token* token, int param_count, bool define)
 {
   //nakopirovat ten token!
+  deact_st();
   if(search_st(global_st, getTokenStrValue(token))) {
     //existuje tam uz zaznam s timto id
     if(act_item->type != ST_FUNCTION) {
@@ -437,10 +441,74 @@ bool work_out_fce_id(Token* token, int param_count, bool define)
 
 bool work_out_val_id(Token *token, bool define)
 {
-  bool can_continue = true;
   //nakopirovat ten token!
+  deact_st();
+  //prvne prohleda, jestli zaznam existuje, zaroven jestli neni funkce stejneho
+  //jmena
+  bool found_local = false;
+  bool found_global = false;
+  if(!in_global) found_local = search_st(local_st, getTokenStrValue(token));
+  if(found_local == false) found_global = search_st(global_st, getTokenStrValue(token));
 
-  return can_continue;
+  //nyni je v found_local, found_global zda jsme ho nasli a act_item je pripadne
+  //ten nalezeny
+  if(!found_local && !found_global) {
+    //prvek tam vubec neni
+    if(define == false) {
+      //chyba, pouziti nedefinovaneho id
+      fprintf(stderr, "placeholder: work_out_val_id: Pouziti nedefinovaneho id %s (SEMANTIC_DEFINITION_ERROR)\n", get_cstring_string(getTokenStrValue(token)));
+      if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
+      return false;
+    }
+    else {
+      //id neni v seznamu ale chceme ho definovat
+      cstring *key = init_cstring(get_cstring_string(getTokenStrValue(token)));
+      create_item(key, ST_VALUE, 0, true);
+      return true;
+    }
+  }
+
+  if(act_item == NULL) {
+    fprintf(stderr, "[hojkas] Tohle se stat nemelo... work_out_val_id\n");
+    return false;
+  }
+
+  //prvek tam je, v act_item je odkaz na něj
+  //chyba, pokud je to typ ST_FUNCTION
+  if(act_item->type != ST_VALUE) {
+    fprintf(stderr, "placeholder: work_out_val_id: Snaha pouzit %s jako id, ale bylo to uz pouzito jako funkce (SEMANTIC_DEFINITION_ERROR)\n", get_cstring_string(getTokenStrValue(token)));
+    if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
+    return false;
+  }
+
+  //ze to doslo sem, znamena, ze je vse ok, neni treba redefinovat
+  if(in_global) return true;
+  //jsme v local, id je v local - vse ok, netreba nic delat
+  if(found_local) return true;
+
+  //dosli jsme sem - jsme v local, promenna je v global
+  if(define == false) {
+    //jsme v local, chceme pouzit globalni - to je ok, ale pokud by pozdeji
+    //byla snaha definovat v local tu samou, je to chyba, proto
+    //nastavim v global bad_boy flag
+    act_item->bad_boy = true;
+    return true;
+  }
+  else {
+    //jsme v local, chceme definovat neco, co zastini globalni
+    //to je ok, pokud u globalni (v act_item) neni nastaven bad_boy flag
+    if(act_item->bad_boy == true) {
+      //error
+      fprintf(stderr, "placeholder: work_out_val_id: Definovani id %s, ktere by zastinilo globalni, ale uz bylo ve funkci pouzito jako globalni (SEMANTIC_DEFINITION_ERROR)\n", get_cstring_string(getTokenStrValue(token)));
+      if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
+      return false;
+    }
+
+    //vse ok, vytvori polozku v loc
+    cstring *key = init_cstring(get_cstring_string(getTokenStrValue(token)));
+    create_item(key, ST_VALUE, 0, true);
+    return true;
+  }
 }
 
 
@@ -475,4 +543,15 @@ void clean_all_symtables()
   if(!in_global) destroy_symtable(&local_st);
   in_global = true;
   destroy_symtable(&global_st);
+}
+
+void clean_bad_boys()
+{
+  set_st_act(global_st);
+  while(st_is_active()) {
+    if(!is_act_defined()) {
+      printf("Polozka neni definovana\n");
+    }
+    st_next(st);
+  }
 }

@@ -4,5 +4,4 @@ i()
 pri()
 def pri() :
   pass
-
-pass
+(id + 5)
