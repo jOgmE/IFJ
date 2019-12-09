@@ -27,6 +27,8 @@ frame_t PREVIOUS_FRAME;
 frame_t CURRENT_FRAME = GLOBAL_FRAME;
 char *CURRENT_FRAME_STRING;
 
+bool gen_initialized = false;
+
 bool function_call_assign = false;
 bool function_definition = false;
 
@@ -89,6 +91,8 @@ void init_gen()
     init_table(32, GLOBAL_FRAME);
     init_table(16, LOCAL_FRAME);
     init_table(16, TEMP_FRAME);
+
+    gen_initialized = true;
 }
 
 void print_gen_all()
@@ -116,7 +120,7 @@ void print_gen_all()
 
 void free_gen()
 {
-    if (out_stream == NULL)
+    if (!gen_initialized)
     {
         return;
     }
@@ -558,9 +562,16 @@ void write_return(Token *res)
 {
     append_string(CURRENT_BLOCK, "MOVE LF@%temp_ret ");
 
-    char *res_frame_str = check_and_write_define(res);
+    if (res != NULL)
+    {
+        char *res_frame_str = check_and_write_define(res);
 
-    write_symbol(res, res_frame_str, false);
+        write_symbol(res, res_frame_str, false);
+    }
+    else
+    {
+        append_string(CURRENT_BLOCK, "nil@nil");
+    }
 
     append_string(CURRENT_BLOCK, "\n");
 }
