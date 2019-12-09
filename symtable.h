@@ -28,6 +28,8 @@ typedef struct STItem
 {
   st_type type;            //Typ položky
   bool defined;            //True, byla-li už definovaná, jinak false
+  bool bad_boy;            //flag na overeni, zda v local nedoslo k zastineni
+                           //zastineni global promene az po jejim pouziti
   cstring *key;            //Identifikátor typu cstring (dynamický string)
   size_t first_occur_line; //Číslo řádku, na němž se poprvé objevila, pro
                            //případ, že by nastala chyba nedefinování

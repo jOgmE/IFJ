@@ -546,12 +546,12 @@ void clean_all_symtables()
 }
 
 void clean_bad_boys()
-{
+{/*
   set_st_act(global_st);
   while(st_is_active()) {
     if(!is_act_defined()) {
       printf("Polozka neni definovana\n");
     }
     st_next(st);
-  }
+  }*/
 }
