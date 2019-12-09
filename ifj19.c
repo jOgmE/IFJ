@@ -9,7 +9,7 @@
 
 FILE *source_file = NULL;
 
-int main(int argc, char const *argv[])
+int main()
 {
     source_file = stdin;
 
