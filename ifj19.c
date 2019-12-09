@@ -11,13 +11,7 @@ FILE *source_file = NULL;
 
 int main(int argc, char const *argv[])
 {
-    if (argc < 2)
-    {
-	//if no argument reading from stdin
-        source_file = stdin; //perror("Nebyla zadana cesta ke vstupnimu souboru.");
-    }
-
-    source_file = fopen(argv[1], "r");
+    source_file = stdin;
 
     if (source_file == NULL)
     {
@@ -26,7 +20,8 @@ int main(int argc, char const *argv[])
     }
 
     //For errors.h
-    file_name = argv[1];
+    //TODO get and set file name
+    file_name = "input.py";
 
     parser_do_magic();
 
@@ -35,10 +30,8 @@ int main(int argc, char const *argv[])
         init_gen();
         generate_code();
     }
-    
-    free_gen();
 
-    fclose(source_file);
+    free_gen();
 
     return global_error_code;
 }
