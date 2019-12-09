@@ -213,6 +213,15 @@ void deact_st()
   act_item = NULL;
 }
 
+void clean_bad_boys()
+{
+  set_st_act(global_st);
+  while(st_is_active()) {
+    if(act_item->bad_boy) act_item->bad_boy = false;
+    st_next(global_st);
+  }
+}
+
 //**************************
 // PRÁCE SE SYMBOLY ZVNĚJŠÍ
 //*************************
@@ -257,127 +266,6 @@ void go_in_global()
   clean_bad_boys();
   destroy_symtable(&local_st);
 }
-/**
-void define_id_from_info(cstring *key, st_type type, int param_count)
-{
-  //something that shouldn't but could go wrong?
-  //search in local and global, if it is not already defined
-  //if not, define it
-  //if yes, error, print it, set stop after analysis, continue
-  unsigned line;
-  STItem *curr;
-
-  if(!in_global) {
-    //prohledat lokální i globální
-    if(local_st == NULL) fprintf(stderr, "[hojkas] symtable.c: define_id_from_info(): Tabulka neexistuje\n");
-
-    line = hashCode(key) % local_st->size;
-    curr = local_st->item_array[line];
-
-    while(curr != NULL) {
-      if(compare_string(key, (char*) get_cstring_string(curr->key))) {
-        //nalezen key
-        if(curr->defined == true) {
-          //TODO
-          kill_after_analysis = true;
-          if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
-          fprintf(stderr, "placeholder: redefinition of local id with key %s\n", get_cstring_string(key));
-          return;
-        }
-
-        //nalezen key ale neni definovan
-        curr->defined = true;
-        curr->type = type;
-        curr->number_of_params = param_count;
-
-        return;
-      }
-      curr = curr->next;
-    }
-
-    //dostali jsme-li se sem, polozka neni v loc, ale jeste muze byt koflikt s global
-    //pokud je toto id v global, je to chyba
-    if(search_st(global_st, key)) {
-      //pruser, id v global je (:
-      //TODO placeholder
-      kill_after_analysis = true;
-      if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
-      fprintf(stderr, "placeholder: redefinition of global id with key %s\n", get_cstring_string(key));
-      return;
-    }
-    //pokud to nenaslo ani v local ani global, spadne to do vytvor id
-  }
-  else {
-    //prohledat globalni
-    //dostali-li jsme se sem, neexistuje loc tabulka, jsme v global
-    if(global_st == NULL) fprintf(stderr, "[hojkas] symtable.c: define_id_from_info(): Tabulka neexistuje\n");
-
-    line = hashCode(key) % global_st->size;
-    curr = global_st->item_array[line];
-
-    while(curr != NULL) {
-      if(compare_string(key, (char*) get_cstring_string(curr->key))) {
-        //nalezen key
-        if(curr->defined == true) {
-          //TODO
-          //chyba, symbol jiz definovan
-          //zahlasit semantickou chybu, nastavit kill, global error je-li potreba
-          kill_after_analysis = true;
-          if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
-          fprintf(stderr, "placeholder: redefinition of global id with key %s\n", get_cstring_string(key));
-          return;
-        }
-
-        //nalezen key ale neni definovana
-        curr->defined = true;
-        curr->type = type;
-        curr->number_of_params = param_count;
-        return;
-      }
-      curr = curr->next;
-    }
-  }
-
-  STItem *new = init_st_item();
-  if(new == NULL) return;
-  new->key = key;
-  new->type = type;
-  new->first_occur_line = line_count;
-  if(type == ST_FUNCTION) new->number_of_params = param_count;
-  new->defined = true;
-  append_item(new);
-}
-
-void define_id_from_token(Token *token, st_type type, int param_count)
-{
-  //TODO
-  if(token == NULL) {
-    fprintf(stderr, "[hojkas] symtable.c: define_id_from_token(): dostal empty token\n");
-    return;
-  }
-
-  cstring *key = init_cstring(get_cstring_string(token->str)); //kopie token str
-  add_undef_id_from_info(key, ST_UNDEFINED); //TODO fix with correct type
-
-  define_id_from_info(key, type, param_count);
-}*/
-/*
-void add_undef_id_from_info(cstring *key, st_type type)
-{
-  //TODO ověř i typ!!!
-  if(!in_global) {
-    //potrebujeme prohledat i local
-    if(search_st(local_st, key)) return; //už info o nem existuje, okay, end
-  }
-  if(search_st(global_st, key)) return;
-
-  //neni v tabulce ani jedne
-  STItem *new = init_st_item();
-  if(new == NULL) return;
-  new->key = key;
-  new->first_occur_line = line_count;
-  append_item(new);
-}*/
 
 void add_undef_id_from_token(Token *token, st_type type)
 {
@@ -547,13 +435,4 @@ void clean_all_symtables()
   if(!in_global) destroy_symtable(&local_st);
   in_global = true;
   destroy_symtable(&global_st);
-}
-
-void clean_bad_boys()
-{
-  set_st_act(global_st);
-  while(st_is_active()) {
-    if(act_item->bad_boy) act_item->bad_boy = false;
-    st_next(global_st);
-  }
 }

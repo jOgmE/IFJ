@@ -44,16 +44,42 @@ typedef struct
   STItem **item_array;
 } STable;
 
+//nastavi tabulku na globalni, znici lokalni, vola se, kdyz
+//se ukonci definovani funkce
 void go_in_global();
+
+//nastavi aktualni tabulku na lokalni, vytvori ji, vola se na zacatku
+//definice funkce, aby jeji id byly na lokalni tabulku vytvareny
 void go_in_local();
+
+//vola se na zacatku parseru, vytvori globalni tabulku a nacpe do ni
+//vestavene funkce (aby nebyla snaha je redefinovat)
 void start_symtable_with_functions();
+
+//vycisti globalni tabulku a lokalni, existuje-li
 void clean_all_symtables();
+
+//pozustatek predchoziho reseni, zavola work_out_val_id s parametrem false,
+//je tu kvuli kompatibilitě se syntaktickou analyzou vyrazu
 void add_undef_id_from_token(Token *token, st_type type);
+
+//vrati typ id daneho tokenu (najde v tabulce polozku s danym klicem a vrati typ)
 st_type get_id_type(Token *token);
+
+//projede globalni tabulku, pokud najde funkci, co nebyla definovana,
+//zahlasi chybu
 void global_check_def();
+
+//volano pri narazeni na ret, checkne, jestli nahodou nejsme v global,
+//pokud jo, je to syntax error
 bool is_this_ret_okay();
+
+//zpracuje id funkce z tokenu, jeho parametry (int) a zda-li ho ma definovat
+//nebo ne (bool), nalezite to zpracuje, pripadne vyhodi chybu
 bool work_out_fce_id(Token*, int, bool);
+
+//zpracuje id z tokenu a zda-li ho ma definovat
+//nebo ne (bool), nalezite to zpracuje, pripadne vyhodi chybu
 bool work_out_val_id(Token*, bool);
-void clean_bad_boys();
 
 #endif //_SYMTABLE_H_
