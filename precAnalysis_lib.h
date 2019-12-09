@@ -1,6 +1,7 @@
 #include "PATable.h"
 #include "PACharStack_lib.h"
 #include "token.h"
+#include "scanner.h"
 
 #ifndef _PREC_AN_
 #define _PREC_AN_
