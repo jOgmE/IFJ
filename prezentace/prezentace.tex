@@ -1,0 +1,169 @@
+% ----------------------------------------------------------------------
+% Authors:     Tomas Fryza, Wykys
+%              Dept. of Radio Electronics, Brno Univ. of Technology
+% Created:     2018-05-22
+% Last update: 2019-07-24
+% Description: Template using official colors of Brno University of 
+% Technology defined by graphical manual in 2015.
+% ----------------------------------------------------------------------
+% License:     CC BY-NC-SA 4.0
+% Keep the name of the authors. You may not use the template for 
+% commercial purposes. Share and modify as you like under the same 
+% license as the original. 
+%
+% https://creativecommons.org/licenses/by-nc-sa/4.0/
+% ----------------------------------------------------------------------
+
+% ----------------------------------------------------------------------
+% PACKAGES
+% ----------------------------------------------------------------------
+
+%% Sets aspect ratio to 16:10, and frame size to 160mm by 100mm
+% Please, do not use old-school 4:3 ratio anymore:)
+\documentclass[aspectratio=1610]{beamer}
+
+%% Select your favorite language
+\usepackage[czech]{babel}
+
+\usepackage[utf8]{inputenc} % Accept different input encodings
+\usepackage{ucs} % Extended UTF-8 input encoding support for LaTeX
+\usepackage{graphicx} % Enhanced support for graphics
+\usepackage{listings} % Typeset source code listings using LaTeX
+\usepackage{color} % Colour control for LaTeX documents
+
+
+\usepackage[FIT]{themevut}
+
+% ----------------------------------------------------------------------
+% TITLE PAGE
+% ----------------------------------------------------------------------
+
+% The short title appears at the bottom of every slide, the full title
+% is only on the title page.
+\title[Překladač imperativního jazyka IFJ19]
+{Překladač imperativního jazyka IFJ19}
+
+% Type of project, i.e. Bachelor, Master, PhD, etc.
+\subtitle
+{Tým 052, varianta II}
+
+% Your name
+\author[Tým 052]{Jaroslav Hort \hfill Filip Dráber \hfill Iveta Strnadová \hfill Norbert Pócs}
+
+% Your institution
+\institute
+{Fakulta informačních technologií \\
+Vysoké učení technické v Brně
+}
+
+% Date, can be changed to a custom date
+\date{\today}
+
+% Logo on title page
+\titlegraphic{\includegraphics[height=.15\textheight]{img/logo.png}}
+
+\begin{document}
+
+% ----------------------------------------------------------------------
+% PRESENTATION SLIDES
+% ----------------------------------------------------------------------
+
+\begin{frame}
+    % Print the title page as the first slide
+    \titlepage
+\end{frame}
+
+\begin{frame}{Obsah}
+    \tableofcontents
+\end{frame}
+
+% ----------------------------------------------------------------------
+\section{Práce v týmu}
+\begin{frame}{Lists}
+    \textbf{Unordered lists}
+    \begin{itemize}
+        \item Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+        \item Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante.
+        \item Aliquam erat volutpat.
+        \item Integer lacinia.
+        \item Cras pede libero, dapibus nec, pretium sit amet, tempor quis.
+    \end{itemize}
+\end{frame}
+
+% ----------------------------------------------------------------------
+\section{Struktura projektu}
+\begin{frame}{Diagram}
+    \begin{center}
+        \begin{figure}
+            \includegraphics[width=0.75\textwidth]{img/diagram.pdf}
+        \end{figure}
+    \end{center}
+\end{frame}
+
+% ----------------------------------------------------------------------
+\begin{frame}{Lexikální analýza}
+    \begin{center}
+        \begin{figure}
+            \includegraphics[width=0.5\textwidth]{img/diagram_lexikalni_analyza.pdf}
+        \end{figure}
+    \end{center}
+    \begin{itemize}
+        \item Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+        \item Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante.
+        \item Aliquam erat volutpat.
+    \end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------
+
+% ----------------------------------------------------------------------
+\begin{frame}{Sémantická analýza}
+    \begin{center}
+        \begin{figure}
+            \includegraphics[width=0.5\textwidth]{img/diagram_semanticka_analyza.pdf}
+        \end{figure}
+    \end{center}
+    \begin{itemize}
+        \item Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+        \item Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante.
+        \item Aliquam erat volutpat.
+    \end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------
+
+% ----------------------------------------------------------------------
+\begin{frame}{Syntaktická analýza}
+    \begin{center}
+        \begin{figure}
+            \includegraphics[width=0.6\textwidth]{img/diagram_syntakticka_analyza.pdf}
+        \end{figure}
+    \end{center}
+    \begin{itemize}
+        \item Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+        \item Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante.
+        \item Aliquam erat volutpat.
+    \end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------
+
+% ----------------------------------------------------------------------
+\begin{frame}{Generátor kódu}
+    \begin{center}
+        \begin{figure}
+            \includegraphics[width=0.5\textwidth]{img/diagram_generator_kodu.pdf}
+        \end{figure}
+    \end{center}
+    \begin{itemize}
+        \item Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+        \item Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante.
+        \item Aliquam erat volutpat.
+    \end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------
+
+\begin{frame}{}
+    \begin{center}
+        \Huge Děkujeme za pozornost.
+    \end{center}
+\end{frame}
+
+\end{document}
