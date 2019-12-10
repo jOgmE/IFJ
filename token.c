@@ -192,7 +192,7 @@ Token *copy_token(Token *token){
   new->dec = token->dec;
   new->i = token->i;
   new->type = token->type;
-  if(token->str == NULL) new->str == NULL;
+  if(token->str == NULL) new->str = NULL;
   else {
     cstring *str = init_cstring(get_cstring_string(token->str));
     new->str = str;
