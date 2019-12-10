@@ -499,6 +499,7 @@ bool command() //---COMMAND---
     //zavola analyzu vyrazu
     Token *check = curr_token;
     curr_token = fake_analysis(curr_token, NULL, ret_id);
+    heavy_check(C_r2e1);
     if(check == curr_token) {
       if(!kill_after_analysis) free_token(ret_id);
       ret_id = NULL; //nebyl tam expr, nic se nevraci
@@ -573,6 +574,7 @@ bool command() //---COMMAND---
 
     Token *check = curr_token;
     curr_token = fake_analysis(curr_token, NULL, cond);
+    heavy_check(C_r3e1);
     if(curr_token == check) {
       syntax_err("Pred tokenem ", " nebyl expression ale byt mel.\n");
       goto C_r3e1;
@@ -691,6 +693,7 @@ bool command() //---COMMAND---
 
     Token *check = curr_token;
     curr_token = fake_analysis(curr_token, NULL, cond);
+    heavy_check(C_r4e1);
     if(curr_token == check) {
       syntax_err("Pred tokenem ", " nebyl expression ale byt mel.\n");
       goto C_r4e1;
@@ -908,7 +911,7 @@ bool param_list(int* param_count, bool in_def) //---PARAM_LIST----
   //param_list -> epsilon
   bool can_continue = true;
 
-  if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID)) {
+  if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID) || Tis(NONE)) {
     //param_list -> item more_params
     //item
     can_continue = param_item(in_def);
@@ -990,7 +993,7 @@ bool print_param_list() //---PRINT_PARAM_LIST----
   //param_list -> epsilon
   bool can_continue = true;
 
-  if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID)) {
+  if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID) || Tis(NONE)) {
     //param_list -> item more_params
     //item
     can_continue = param_item(false); //print nikdy nemuze byt def
@@ -1200,6 +1203,7 @@ bool not_sure1()
       heavy_check(NS1_r3e1);
     }
     curr_token = fake_analysis(last_token, curr_token, ret_id);
+    heavy_check(NS1_r3e1);
     if(!kill_after_analysis) free_token(ret_id); //nikam vysledek neukladam
 
     return true;
@@ -1404,7 +1408,10 @@ bool not_sure3()
 bool param_item(bool in_def)
 {
   bool can_continue = true;
-  if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID)) {
+  if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID) || Tis(NONE)) {
+    if(Tis(NONE) && in_def == true) {
+      syntax_err("Placeholder: param_item: None (",") nemuze byt v definici funkce\n");
+    }
     if(Tis(ID)) {
       work_out_val_id(curr_token, in_def);
     }
