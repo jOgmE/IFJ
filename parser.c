@@ -2,20 +2,17 @@
  * Syntakticka analyza rekurzivnim sestupem vseho krom vyrazu
  *
  * @author xstrna14
- * @version 1.0
- * @date 27.11.2019
+ * @version 3.0
+ * @date 9.12.2019
  *
- * IMPORTANT: z nejakeho duvodu se stringy vypisuji v synt erroru jen par znaku,
- * proverit TODO
- * bacha na
- * TODO: vsude, kde muze byt EOL, pridat moznost pro EOF
+ * 2.0 - Syntax errors funguji
+ * 3.0 - Semantika funguje
+ *
  *
  another work:
-      pridat checky pro return v global (symtable)
-      id stuff check (bacha, ruzne pro id a funkci)
       errory! jak je psat atd
  *
- * NOTE: problem multi-hlaseni -> staci nehlasit kdekoliv, kde se zanoruji
+ *
  */
 
 #include "parser.h"
@@ -79,7 +76,7 @@ Token *fake_analysis(Token *op1, Token *op2, Token *res)
 }
 
 //SA vyrazu
-//#define fake_analysis(a, b, c) expressionAnalysis(a, b, c)
+#define fake_analysis(a, b, c) expressionAnalysis(a, b, c)
 
 //------MAKRA---------------------
 //vypíše chybové hlášení a nastaví global_error_code na error pokud už není
@@ -98,15 +95,17 @@ if(global_error_code == SUCCESS) global_error_code = SYNTAX_ANALYSIS_ERROR
 
 //zkontroluje pritomnost fatalni chyby a pokud predchozi stav failnul,
 //skoci na zotaveni
-#define heavy_check(label) if(global_error_code == INTERNAL_ERROR) return false;\
+#define heavy_check(label) if(global_error_code == INTERNAL_ERROR || global_error_code == LEXICAL_ANALYSIS_ERROR || curr_token == NULL) return false;\
 if(can_continue != true) goto label
 
 //----------POMOCNE FCE---------------
 bool flush_until(e_type token_type)
 {
+  if(curr_token == NULL) return false;
   if(Tis(token_type)) return true;
   while(getTokenType(curr_token) != EOFILE) {
     curr_token = fake_token();
+    if(curr_token == NULL) return false;
     if(Tis(token_type)) return true;
     if(Tis(EOFILE)) return false;
   }
@@ -158,7 +157,7 @@ cstring* create_label(label_enum type, int number)
 
 void stderr_print_token_info();
 
-//-----ROZKLADY-------------------          // 15 / 17
+//-----ROZKLADY-------------------          // 15 / 15
 bool prog();                                //done
 bool non_empty_prog_body();                 //done
 bool prog_body();                           //done
@@ -168,14 +167,12 @@ bool command();                             //done
 bool not_sure1();                           //done
 bool not_sure2();                           //done
 bool not_sure3();                           //done
-bool param_list(int*);                      //done
-bool more_params(int*);                     //done
+bool param_list(int*, bool);                //done
+bool more_params(int*, bool);               //done
 bool print_param_list();                    //done
 bool print_more_params();                   //done
-bool param_item();                          //done
+bool param_item(bool in_def);               //done
 bool terminal(e_type type);                 //done
-bool work_out_fce_id(Token*, int, bool); //started
-bool work_out_val_id(Token*, bool); //started
 
 
 bool prog() //---PROG---
@@ -183,8 +180,12 @@ bool prog() //---PROG---
   //prog -> prog_body_with_def EOF
   bool can_continue = true;
 
-  if(Tis(EOFILE) || Tis(DEF) || Tis(STR) || Tis(ID) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
-    //prog -> prog_body_with_def EOF
+  if(Tis(EOL) || Tis(EOFILE) || Tis(DEF) || Tis(STR) || Tis(ID) || Tis(LPA) || Tis(IF) || Tis(PASS) || Tis(RETURN) || Tis(WHILE) || Tis(INT) || Tis(DEC)) {
+    //prog -> more_EOL prog_body_with_def EOF
+    //more_EOL
+    can_continue = more_EOL();
+    heavy_check(prog_error);
+
     can_continue = prog_body_with_def();
     heavy_check(prog_error);
     can_continue = terminal(EOFILE);
@@ -224,6 +225,8 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     //                      non_empty_prog_body dedent prog_body_with_def
 
     //def
+    go_in_local(); //vytvori loc tabulku symbolu
+
     can_continue = terminal(DEF);
     heavy_check(PBWD_r2e1);
     if(!kill_after_analysis) {
@@ -235,6 +238,10 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     heavy_check(PBWD_r2e1); //co kdyby selhala alokace...
 
     //id
+    if(!(Tis(ID))) {
+      syntax_err("Token ", " je na tomto miste nespravny, ma zde byt id.\n");
+      goto PBWD_r2e1;
+    }
     Token *def_id = copy_token(curr_token); //ulozi id pro budouci overeni semantikou
     if(!kill_after_analysis) {
       //generate label of fce
@@ -252,7 +259,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
 
     //param_list
     int param_count = 0;
-    can_continue = param_list(&param_count);
+    can_continue = param_list(&param_count, true);
     heavy_check(PBWD_r2e1_1);
 
     can_continue = work_out_fce_id(def_id, param_count, true); //will also define
@@ -303,6 +310,8 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     curr_token = fake_token();
     heavy_check(PBWD_r2e2);
 
+    go_in_global(); //vráti se zpět do globalní tabulky, lokalni checkne a zrusi
+
     //mEOL
     can_continue = more_EOL();
     heavy_check(PBWD_r2e2);
@@ -324,6 +333,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
       goto PBWD_r2rp2;
     PBWD_r2e2:
       //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"indent program_body_with_definition dedent\".\n");
+      go_in_global();
       can_continue = flush_until(DEDENT);
       return can_continue;
   }
@@ -437,6 +447,7 @@ bool command() //---COMMAND---
     //nemusím kontrolovat pass, jinak by to sem nedoslo
     free(curr_token);
     curr_token = fake_token();
+    heavy_check(C_r1e1);
 
     C_r1rp1:
     //EOL
@@ -463,6 +474,9 @@ bool command() //---COMMAND---
     //nemusím kontrolovat return, jinak by to sem nedoslo
     free(curr_token);
     curr_token = fake_token();
+
+    can_continue = is_this_ret_okay();
+    heavy_check(C_r2e1);
 
     Token *ret_id; //musi byt stejne jako u volani fce, dulezite
     if(!kill_after_analysis) {
@@ -877,7 +891,7 @@ bool command() //---COMMAND---
 
 
 
-bool param_list(int* param_count) //---PARAM_LIST----
+bool param_list(int* param_count, bool in_def) //---PARAM_LIST----
 {
   //param_list -> item more_params
   //param_list -> epsilon
@@ -886,11 +900,11 @@ bool param_list(int* param_count) //---PARAM_LIST----
   if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID)) {
     //param_list -> item more_params
     //item
-    can_continue = param_item();
+    can_continue = param_item(in_def);
     heavy_check(PL_r1e1);
     (*param_count)++;
 
-    can_continue = more_params(param_count);
+    can_continue = more_params(param_count, in_def);
     heavy_check(PL_r1e1);
 
     return true;
@@ -915,7 +929,7 @@ bool param_list(int* param_count) //---PARAM_LIST----
 
 
 
-bool more_params(int* param_count) //---MORE_PARAMS---
+bool more_params(int* param_count, bool in_def) //---MORE_PARAMS---
 {
   bool can_continue = true;
   //more_params -> epsilon
@@ -930,12 +944,12 @@ bool more_params(int* param_count) //---MORE_PARAMS---
     heavy_check(MP_r1e1);
 
     //item
-    can_continue = param_item();
+    can_continue = param_item(in_def);
     heavy_check(MP_r1e1);
     (*param_count)++;
 
     //more_params
-    can_continue = more_params(param_count);
+    can_continue = more_params(param_count, in_def);
     heavy_check(MP_r1e1);
 
     return true;
@@ -961,14 +975,14 @@ bool more_params(int* param_count) //---MORE_PARAMS---
 
 bool print_param_list() //---PRINT_PARAM_LIST----
 {
-  //param_list -> item more_params
+  //param_list -> item
   //param_list -> epsilon
   bool can_continue = true;
 
   if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID)) {
     //param_list -> item more_params
     //item
-    can_continue = param_item();
+    can_continue = param_item(false); //print nikdy nemuze byt def
     heavy_check(PPL_r1e1);
 
     //vytvori volani za kazdym parametrem
@@ -1017,7 +1031,7 @@ bool print_more_params() //---PRINT_MORE_PARAMS---
     heavy_check(PMP_r1e1);
 
     //item
-    can_continue = param_item();
+    can_continue = param_item(false);
     heavy_check(PMP_r1e1);
 
     if(!kill_after_analysis) {
@@ -1065,6 +1079,7 @@ bool more_EOL() //---MORE_EOL---
     //neni treba overovat, ze mame EOL, jinak bychom sem nedosli
     free_token(curr_token);
     curr_token = fake_token();
+    heavy_check(MEOL_r1e1);
 
     //more_EOL
     can_continue = more_EOL();
@@ -1113,7 +1128,7 @@ bool not_sure1()
     }
     else {
       //param_list obyč
-      can_continue = param_list(&param_count);
+      can_continue = param_list(&param_count, false);
       heavy_check(NS1_r1e1);
     }
 
@@ -1149,6 +1164,7 @@ bool not_sure1()
     //nemusim checkovat ass
     free(curr_token);
     curr_token = fake_token();
+    heavy_check(NS1_r2e1);
 
     //ulozim last token do id to assing
     id_to_assign = last_token;
@@ -1161,6 +1177,8 @@ bool not_sure1()
     if(!can_continue || global_error_code != SUCCESS) return false;
 
     return true;
+    NS1_r2e1:
+      return false;
   }
   else if(Tis_op) {
     Token *ret_id;
@@ -1199,6 +1217,7 @@ bool not_sure2()
     //id not_sure3
     last_token = curr_token;
     curr_token = fake_token();
+    heavy_check(NS2_r1e1);
 
     can_continue = not_sure3();
     heavy_check(NS2_r1e1);
@@ -1263,7 +1282,7 @@ bool not_sure3()
     }
     else {
       //param_list
-      can_continue = param_list(&param_count);
+      can_continue = param_list(&param_count, false);
       heavy_check(NS3_r1e1);
     }
 
@@ -1341,7 +1360,7 @@ bool not_sure3()
     NS3_r2e1:
       return false;
   }
-  else if(Tis(EOL)) {
+  else if(Tis(EOL) || Tis(EOFILE)) {
     //epsilon
     //aka bylo to id1 = id2, id1 - id_to_assign, id2 - last_token
     can_continue = work_out_val_id(last_token, false);
@@ -1371,35 +1390,12 @@ bool not_sure3()
 
 
 
-
-//funguje pro: ID
-bool work_out_fce_id(Token* token, int param_count, bool define)
+bool param_item(bool in_def)
 {
   bool can_continue = true;
-  //nakopirovat ten token!
-
-  return can_continue;
-}
-
-
-bool work_out_val_id(Token *token, bool define)
-{
-  bool can_continue = true;
-  //nakopirovat ten token!
-  //check definition, define
-  //or just check type
-  return can_continue;
-}
-
-
-
-
-
-bool param_item()
-{
   if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID)) {
     if(Tis(ID)) {
-      work_out_val_id(curr_token, false);
+      work_out_val_id(curr_token, in_def);
     }
     if(!kill_after_analysis) {
       appendAC(PARAM, NULL, NULL, curr_token);
@@ -1408,7 +1404,10 @@ bool param_item()
       free_token(curr_token);
     }
     curr_token = fake_token();
+    heavy_check(PI_r1e1);
     return true;
+    PI_r1e1:
+      return false;
   }
   else {
     /*fprintf(stderr, "[hojkas] parser.c: param_item(): skoncilo v zakazanem stavu\n");*/
@@ -1463,19 +1462,22 @@ void parser_do_magic()
 
    //nacte prvni token
    curr_token = fake_token();
+   if(global_error_code != SUCCESS) return;
 
-   /*bool overall = *///prog();
-   //prog <- pocatecni nonterminal, cely program
    //TODO delete this (but keep prog() calling)
    bool overall = prog();
+   global_check_def();
    printf("______________________________________\n");
    print_all_ac_by_f(true);
    printf("_______________________________________\n");
    printf("Analysis complete?      ");
    if(overall) printf("YES\n");
    else printf("NO\n");
+   printf("Kill after analysis?    ");
+   if(kill_after_analysis) printf("YES\n");
+   else printf("NO\n");
    printf("Analysis without error?");
-   if(!kill_after_analysis) printf(" YES\n");
+   if(global_error_code == 0) printf(" YES\n");
    else printf(" ERROR n. %d\n", global_error_code);
 
 

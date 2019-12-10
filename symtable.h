@@ -14,8 +14,7 @@
 #include "dynamic_string.h"
 #include <stdbool.h>
 #include <stdint.h> //potřeba pro hash funkci
-//TODO delete this, should be probably linked in parser anyway
-#include "scanner.h"
+#include "scanner.h" //kvůli line count
 
 typedef enum
 {
@@ -29,6 +28,8 @@ typedef struct STItem
 {
   st_type type;            //Typ položky
   bool defined;            //True, byla-li už definovaná, jinak false
+  bool bad_boy;            //flag na overeni, zda v local nedoslo k zastineni
+                           //zastineni global promene az po jejim pouziti
   cstring *key;            //Identifikátor typu cstring (dynamický string)
   size_t first_occur_line; //Číslo řádku, na němž se poprvé objevila, pro
                            //případ, že by nastala chyba nedefinování
@@ -43,33 +44,42 @@ typedef struct
   STItem **item_array;
 } STable;
 
-//TODO keep here, usable from outside
-void define_id_from_info(cstring *key, st_type type, int param_count);
-void define_id_from_token(Token *token, st_type type, int param_count); //not yet
+//nastavi tabulku na globalni, znici lokalni, vola se, kdyz
+//se ukonci definovani funkce
 void go_in_global();
+
+//nastavi aktualni tabulku na lokalni, vytvori ji, vola se na zacatku
+//definice funkce, aby jeji id byly na lokalni tabulku vytvareny
 void go_in_local();
+
+//vola se na zacatku parseru, vytvori globalni tabulku a nacpe do ni
+//vestavene funkce (aby nebyla snaha je redefinovat)
 void start_symtable_with_functions();
+
+//vycisti globalni tabulku a lokalni, existuje-li
 void clean_all_symtables();
-void add_undef_id_from_info(cstring *key, st_type type);
+
+//pozustatek predchoziho reseni, zavola work_out_val_id s parametrem false,
+//je tu kvuli kompatibilitě se syntaktickou analyzou vyrazu
 void add_undef_id_from_token(Token *token, st_type type);
+
+//vrati typ id daneho tokenu (najde v tabulce polozku s danym klicem a vrati typ)
 st_type get_id_type(Token *token);
 
+//projede globalni tabulku, pokud najde funkci, co nebyla definovana,
+//zahlasi chybu
 void global_check_def();
-void local_check_def();
 
-//TODO delete vv from here
-void no_check_def(cstring *key, st_type type, int param_count);
-void destroy_symtable(STable **st);
-unsigned hashCode(cstring *key);
-void create_symtable(STable **st, size_t size);
-void append_item(STItem *item);
-STItem *init_st_item();
-bool search_st(STable *st, cstring *key);
+//volano pri narazeni na ret, checkne, jestli nahodou nejsme v global,
+//pokud jo, je to syntax error
+bool is_this_ret_okay();
 
-bool st_is_active();
-void set_st_act(STable *st);
-void st_next(STable *st);
-bool is_act_defined();
-void deact_st();
+//zpracuje id funkce z tokenu, jeho parametry (int) a zda-li ho ma definovat
+//nebo ne (bool), nalezite to zpracuje, pripadne vyhodi chybu
+bool work_out_fce_id(Token*, int, bool);
+
+//zpracuje id z tokenu a zda-li ho ma definovat
+//nebo ne (bool), nalezite to zpracuje, pripadne vyhodi chybu
+bool work_out_val_id(Token*, bool);
 
 #endif //_SYMTABLE_H_
