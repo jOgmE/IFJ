@@ -16,8 +16,8 @@ e_type faking[100] = {
   //Sem vypises po rade typy tokenu, co chces simulovat (pokazde,
   //kdyz zavolas fake token, vytvori ti to token o tomto typu
   //a vrati ti ho, priste dalsi v rade, atd.)
-  INT, PLUS, LPA, INT, PLUS, INT, RPA, EOL,
-  EOFILE
+  	INT, PLUS, INT, PLUS, INT,
+	EOFILE
 };
 
 //deklarace funkcí, co jsou dole, tyhle neřeš, jen používej

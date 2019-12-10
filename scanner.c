@@ -22,6 +22,7 @@ static tIndentStack *stack;
 //If the line is in indent, checking takes places at every first state
 //from S that dedent happened or not.
 //static bool indent = false;
+static bool eol_before_eof = true;
 
 Token *getToken()
 {
@@ -45,7 +46,7 @@ Token *getToken()
     //used in F1 for decision (indent/dedent)
     bool dedent = false;
     //initialize it where needed
-    cstring *our_string;
+    cstring *our_string = NULL;
     //our_string is initialized in the (first from S) states:
     //F4
     //F5
@@ -70,6 +71,17 @@ Token *getToken()
     {
         if ((c = fgetc(source_file)) == EOF)
         {
+            if(eol_before_eof){
+                eol_before_eof = false;
+                add_simple_data(token, EOL);
+                return token;
+            }
+            if(our_string){
+                free_cstring(our_string);
+                global_error_code = LEXICAL_ANALYSIS_ERROR;
+                kill_after_analysis = true;
+                return NULL;
+            }
             if (checkDedent(stack, c, token))
                 return token;
             add_simple_data(token, EOFILE);
@@ -294,40 +306,42 @@ Token *getToken()
             //error
             indentStackDestroy(stack);
             global_error_code = LEXICAL_ANALYSIS_ERROR;
-			kill_after_analysis = true;
+	        kill_after_analysis = true;
             return NULL;
         case Q5:
-            if (c == EOF)
-            {
+            if (c == EOF){
                 indentStackDestroy(stack);
                 free_cstring(our_string);
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
-				kill_after_analysis = true;
+		        kill_after_analysis = true;
                 return NULL;
             }
             //center state of docstring
-            if (c == 34)
-            {
+            if (c == 34){
                 present_state = Q6;
                 break;
             } //"
+            if(c == 92){ // backslash
+                present_state = Q13;
+                break;
+            }
             //saving the string
             append_char(our_string, c);
             break;
         case Q6:
-            if (c == EOF)
-            {
+            if (c == EOF){
                 indentStackDestroy(stack);
                 free_cstring(our_string);
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
 				kill_after_analysis = true;
                 return NULL;
             }
-            if (c == 34)
-            {
+            if (c == 34){
                 present_state = Q7;
                 break;
             } //"
+            ungetc(c, source_file);
+            append_string(our_string, "\"");
             present_state = Q5;
             break;
         case Q7:
@@ -344,6 +358,8 @@ Token *getToken()
                 present_state = F19;
                 break;
             } //"
+            ungetc(c, source_file);
+            append_string(our_string, "\"");
             present_state = Q5;
             break;
         case Q8:
@@ -405,6 +421,10 @@ Token *getToken()
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 			kill_after_analysis = true;
             return NULL;
+        case Q13:
+            append_char(our_string, c);
+            present_state = Q5;
+            break;
         //-------------------------FINAL STATES----------------------------------
         case F1:
             //counting the ws

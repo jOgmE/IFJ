@@ -125,6 +125,7 @@ cstring *getTokenStrValue(Token *token){
 }
 
 //used for testing
+//if this is not commented, everything return 1!!!!!!!!!!!!!!!
 /*
 Token **initTokenArr(size_t size){
     Token **token_arr;

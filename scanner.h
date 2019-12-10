@@ -35,6 +35,7 @@
 #define Q10 11
 #define Q11 36
 #define Q12 37
+#define Q13 39
 
 //Final states F
 #define F1 12
@@ -61,7 +62,7 @@
 #define F23 34
 //#define F24 35
 //#define F25 38
-//the last number is 38 - F25
+//the last number is 39 - Q13
 
 //---------------------------------------------------------
 //                    GLOBAL VARIABES
