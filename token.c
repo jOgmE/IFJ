@@ -125,7 +125,8 @@ cstring *getTokenStrValue(Token *token){
 }
 
 //used for testing
-
+//if this is not commented, everything return 1!!!!!!!!!!!!!!!
+/*
 Token **initTokenArr(size_t size){
     Token **token_arr;
     if((token_arr = (Token**)calloc(size, sizeof(Token*))) == NULL) return NULL;
@@ -172,7 +173,7 @@ void freeTokenArr(Token **token_arr, size_t size){
     }
     free(token_arr);
 }
-
+*/
 
 void free_token(Token *token){
     if(token->str){ //not NULL

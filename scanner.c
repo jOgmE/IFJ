@@ -22,6 +22,7 @@ static tIndentStack *stack;
 //If the line is in indent, checking takes places at every first state
 //from S that dedent happened or not.
 //static bool indent = false;
+static bool eol_before_eof = true;
 
 Token *getToken()
 {
@@ -70,6 +71,17 @@ Token *getToken()
     {
         if ((c = fgetc(source_file)) == EOF)
         {
+            if(eol_before_eof){
+                eol_before_eof = false;
+                add_simple_data(token, EOL);
+                return token;
+            }
+            if(our_string){
+                free_cstring(our_string);
+                global_error_code = LEXICAL_ANALYSIS_ERROR;
+                kill_after_analysis = true;
+                return NULL;
+            }
             if (checkDedent(stack, c, token))
                 return token;
             add_simple_data(token, EOFILE);
@@ -328,6 +340,8 @@ Token *getToken()
                 present_state = Q7;
                 break;
             } //"
+            ungetc(c, source_file);
+            append_string(our_string, "\"");
             present_state = Q5;
             break;
         case Q7:
@@ -344,6 +358,8 @@ Token *getToken()
                 present_state = F19;
                 break;
             } //"
+            ungetc(c, source_file);
+            append_string(our_string, "\"");
             present_state = Q5;
             break;
         case Q8:
