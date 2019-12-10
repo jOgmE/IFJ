@@ -238,7 +238,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     heavy_check(PBWD_r2e1); //co kdyby selhala alokace...
 
     //id
-    if(!Tis(ID)) {
+    if(!(Tis(ID))) {
       syntax_err("Token ", " je na tomto miste nespravny, ma zde byt id.\n");
       goto PBWD_r2e1;
     }
