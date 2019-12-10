@@ -187,14 +187,27 @@ void PAAddBracket ( PAStack *s )
 }
 
 
+// pripne to k cstringu cislo, ktero zvysi
+void appendNumber ( cstring *str, int *i ) {
+	int j = *i;
+	*i = *i + 1;
+	do {
+		append_char(str, (char)(j % 10) + '0');
+		j = j / 10;
+	} while ( j > 0 );
+}
+
 
 
 // funkce PACODERULE# jsou pouze vynaty z funkce ApplyRule, ktera uz je i tak dlouha
 
 // provede zpetnou derivaci E->i
-int PACodeRule1 ( PAStack *s )
+int PACodeRule1 ( PAStack *s, int *tempInt)
 {
-	Token *tmp = copy_token(s->top->content);
+	Token *tmp = init_token(); // kopie 'i'
+	cstring *tempName = init_cstring("temp_");
+	appendNumber(tempName, tempInt);
+	add_temp_id(tmp, tempName);	
 
 	switch (s->top->content->type) {
 
@@ -207,7 +220,7 @@ int PACodeRule1 ( PAStack *s )
 					PAPop(s);	// popne 'i'
 					PAPop(s);	// popne '['
 
-					PAPushE(s, tmp);		
+					PAPushE(s, tmp);
 				
 					return 0;
 					break;
@@ -216,6 +229,7 @@ int PACodeRule1 ( PAStack *s )
 					kill_after_analysis = true;
 					global_error_code = SEMANTIC_DEFINITION_ERROR;
 					print_compile_error(SEMANTIC_DEFINITION_ERROR, ERROR, line_count, "Spatny identifikator ve vyrazu.");
+					return 0;
 				default:
 					break; // projde na return 1;
 				
@@ -225,10 +239,13 @@ int PACodeRule1 ( PAStack *s )
 		case STR:
 		case DEC:
 			
+			appendAC(ASSIGN,copy_token(s->top->content),NULL,copy_token(tmp));
+			
 			PAPop(s);	// popne 'i'
 			PAPop(s);	// popne '['
 
 			PAPushE(s, tmp);
+					
 
 			return 0;
 			break;
@@ -260,22 +277,10 @@ ac_type getACOP ( e_type op )
 	}
 }
 
-void appendNumber ( cstring *str, int *i ) {
-	int j = *i;
-	*i = *i + 1;
-	do {
-		append_char(str, (char)(j % 10) + '0');
-		j = j / 10;
-	} while ( j > 0 );
-}
-
-
 // provede zpetnou derivaci E->E+E
 int PACodeRule2 ( PAStack *s, Token *E1, Token *op, Token *E2, Token *res, int *tempInt )
 {
 	Token *result = init_token();
-
-	// TODO give em namesV!
 
 	cstring *tempName = init_cstring("temp_");
 
@@ -283,9 +288,7 @@ int PACodeRule2 ( PAStack *s, Token *E1, Token *op, Token *E2, Token *res, int *
 
 	add_temp_id(result, tempName);
 
-	//printf("owo im a cute widdwe pwint\n");
-
-	appendAC(getACOP(op->type), E1, E2, copy_token(result));
+	appendAC(getACOP(op->type), copy_token(E1), copy_token(E2), copy_token(result));
 
 
 	PAPop(s);
@@ -295,8 +298,6 @@ int PACodeRule2 ( PAStack *s, Token *E1, Token *op, Token *E2, Token *res, int *
 
 
 	PAPushE(s, result);
-
-	changeLastRes(res);
 
 	return 0;	
 }
@@ -350,7 +351,8 @@ int PAApplyRule ( PAStack *s, Token *res, int *tempInt)
 			
 			// PROVEDENI E->i
 			
-			PACodeRule1(s);
+			PACodeRule1(s, tempInt);
+			printf("Rule one done.\n");
 			return 0;
 			
 
@@ -369,12 +371,14 @@ int PAApplyRule ( PAStack *s, Token *res, int *tempInt)
 
 				// PROVEDENI E->E+E
 				PACodeRule2(s, tempStack[1]->content, tempStack[2]->content, tempStack[3]->content, res, tempInt);
+				printf("Rule two done.\n");
 				return 0;
 				
 			} else if ( tempStack[1]->c == '(' && tempStack[2]->c == 'E' && tempStack[3]->c == ')' ) {
 
 				// PROVEDENI E->(E)
 				PACodeRule3(s);
+				printf("Rule three done.\n");
 				return 0;
 
 			} else {
