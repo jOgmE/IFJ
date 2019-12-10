@@ -1,3 +1,5 @@
 def id (a) :
   pass
 id(None)
+print(a)
+print(None)
