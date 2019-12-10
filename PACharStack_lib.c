@@ -73,7 +73,6 @@ void PAPush ( PAStack *s, Token *content )
 
 	s->top = newElem;
 
-	printf("Pushed %c\n", c);
 }
 
 
@@ -93,7 +92,6 @@ void PAPushE ( PAStack *s, Token *content)
 
 	newElem->belowPtr = s->top;
 	s->top = newElem;
-	printf("Pushed E\n");
 }
 
 
@@ -113,8 +111,7 @@ PAStackElem *PATopTerm ( PAStack *s )
 
 	}
 
-
-	// TODO ERROR HERE
+	printf("[filip] Funkce PATopTerm nevraci hodnotu.\n");
 	return 0;
 }
 
@@ -203,15 +200,16 @@ void appendNumber ( cstring *str, int *i ) {
 
 // provede zpetnou derivaci E->i
 int PACodeRule1 ( PAStack *s, int *tempInt)
-{
-	Token *tmp = init_token(); // kopie 'i'
+{	
+	Token *tmp = (s->top->content->type == ID) ? copy_token(s->top->content) : init_token();
 	cstring *tempName = init_cstring("temp_");
-	appendNumber(tempName, tempInt);
-	add_temp_id(tmp, tempName);	
+
+	// kopie 'i'
 
 	switch (s->top->content->type) {
 
 		case ID:
+			free_cstring(tempName);
 			add_undef_id_from_token(s->top->content, ST_VALUE);
 			switch (get_id_type(s->top->content)) {
 				case ST_VALUE:
@@ -221,7 +219,7 @@ int PACodeRule1 ( PAStack *s, int *tempInt)
 					PAPop(s);	// popne '['
 
 					PAPushE(s, tmp);
-				
+
 					return 0;
 					break;
 				case ST_LABEL:
@@ -239,6 +237,9 @@ int PACodeRule1 ( PAStack *s, int *tempInt)
 		case STR:
 		case DEC:
 			
+			appendNumber(tempName, tempInt);
+			add_temp_id(tmp, tempName);	
+			
 			appendAC(ASSIGN,copy_token(s->top->content),NULL,copy_token(tmp));
 			
 			PAPop(s);	// popne 'i'
@@ -253,6 +254,7 @@ int PACodeRule1 ( PAStack *s, int *tempInt)
 			break; // projde na return 1
 	}
 	
+	free_cstring(tempName);
 	free_token(tmp);
 	printf("[filip] Typ tokenu propadl switchem.\n");
 	return 1;
@@ -281,14 +283,18 @@ ac_type getACOP ( e_type op )
 int PACodeRule2 ( PAStack *s, Token *E1, Token *op, Token *E2, Token *res, int *tempInt )
 {
 	Token *result = init_token();
+	//printf("PRE: E1: %s .. E2: %s\n", get_cstring_string(E1->str), get_cstring_string(E2->str));
 
 	cstring *tempName = init_cstring("temp_");
 
 	appendNumber(tempName, tempInt);
+	//printf("tempName for result: %s\n", get_cstring_string(tempName));
 
 	add_temp_id(result, tempName);
 
+	//printf("MED: E1: %s .. E2: %s\n", get_cstring_string(E1->str), get_cstring_string(E2->str));
 	appendAC(getACOP(op->type), copy_token(E1), copy_token(E2), copy_token(result));
+	//printf("POST: E1: %s .. E2: %s\n", get_cstring_string(E1->str), get_cstring_string(E2->str));
 
 
 	PAPop(s);
@@ -299,22 +305,24 @@ int PACodeRule2 ( PAStack *s, Token *E1, Token *op, Token *E2, Token *res, int *
 
 	PAPushE(s, result);
 
+	//printf("Name at top: %s\n", get_cstring_string(s->top->content->str));
+
 	return 0;	
 }
 
 // provede zpetnou derivaci E->(E)
 int PACodeRule3 ( PAStack *s )
 {
-	printf("Did we even get here\n");
 	PAPop(s); // popne ')'
 
-	Token *tmp = s->top->content;
+	Token *tmp = copy_token(s->top->content);
 	
 	PAPop(s); // popne 'E'
 	PAPop(s); // popne '('
 	PAPop(s); // popne '['
 
 	PAPushE(s, tmp); // vrati 'E'
+	//printf("Name at top: %s\n", get_cstring_string(s->top->content->str));
 
 	return 0;
 }
@@ -337,7 +345,6 @@ int PAApplyRule ( PAStack *s, Token *res, int *tempInt)
 		}
 
 		tempStack[3-i] = ptr;
-		printf("tempStack[%d] = %c\n", 3-i, tempStack[3-i]->c);
 		
 		if ( ptr->c == '$' || ptr->c == '[' ) break;
 		// ^ skonci pri nalezeni '[' (OK) nebo '$' (Uh oh)
@@ -352,7 +359,7 @@ int PAApplyRule ( PAStack *s, Token *res, int *tempInt)
 			// PROVEDENI E->i
 			
 			PACodeRule1(s, tempInt);
-			printf("Rule one done.\n");
+			//printf("Rule one.\n");
 			return 0;
 			
 
@@ -371,14 +378,14 @@ int PAApplyRule ( PAStack *s, Token *res, int *tempInt)
 
 				// PROVEDENI E->E+E
 				PACodeRule2(s, tempStack[1]->content, tempStack[2]->content, tempStack[3]->content, res, tempInt);
-				printf("Rule two done.\n");
+				//printf("Rule two.\n");
 				return 0;
 				
 			} else if ( tempStack[1]->c == '(' && tempStack[2]->c == 'E' && tempStack[3]->c == ')' ) {
 
 				// PROVEDENI E->(E)
 				PACodeRule3(s);
-				printf("Rule three done.\n");
+				//printf("Rule three.\n");
 				return 0;
 
 			} else {
@@ -421,35 +428,6 @@ void PAYeet ( PAStack *s )
 	}
 
 	free(s);
-}
-
-// vypise charactery na stacku
-void PAPrint ( PAStack *s )
-{
-	if (s->top == NULL ) return;
-
-	PAStack *temp;
-	PAInit(&temp);
-
-
-	PAStackElem *s_ptr = s->top;
-
-	printf("Print.\n");
-	while ( s_ptr != NULL ) {
-		printf("(%c)", s_ptr->c);
-		if ( s_ptr->c == '$' ) { PAPushFin(temp); }
-		else PAPush(temp, s_ptr->content);
-		s_ptr = s_ptr->belowPtr;
-	}
-
-	printf("STACK: >");
-	while ( temp->top != NULL ) {
-		printf(" %c", temp->top->c);
-		PAPop(temp);
-	}
-	printf("\n");
-
-	PAYeet(temp);
 }
 
 

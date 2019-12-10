@@ -142,9 +142,15 @@ int testTokenReading()
         return -1;
     }*/
     //size_t i = 0;
-    Token *tmp = NULL;
+    Token *tmp = getToken();
     //do
-    while(getTokenType((tmp = getToken())) != EOFILE){
+    while(1){
+        if(!tmp){
+            fprintf(stderr, "error happened\n");
+            break;
+        }
+        if(getTokenType(tmp) == EOFILE) break;
+
         printToken(tmp);
         //token_arr[i++] = getToken();
         //for other tests reseting error code
@@ -170,6 +176,7 @@ int testTokenReading()
             }
             sizeOfArr *= 2;
         }*/
+        tmp = getToken();
     }// while (getTokenType(tmp) != EOFILE);//token_arr[i - 1]) != EOFILE);
     printToken(tmp);
 

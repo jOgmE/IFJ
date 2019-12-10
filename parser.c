@@ -86,7 +86,7 @@ Token *fake_analysis(Token *op1, Token *op2, Token *res)
 }
 
 //SA vyrazu
-//#define fake_analysis(a, b, c) expressionAnalysis(a, b, c)
+#define fake_analysis(a, b, c) expressionAnalysis(a, b, c)
 
 //------MAKRA---------------------
 //vypíše chybové hlášení a nastaví global_error_code na error pokud už není
