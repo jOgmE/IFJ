@@ -98,8 +98,8 @@ Token *getToken()
         case S:
             if (isSpace(c))
             {
-                present_state = scanner_first_token ? F1 : S;
-                if (scanner_first_token)
+                present_state = scanner_first_token && c == 32 ? F1 : S;
+                if (scanner_first_token && c == 32)
                     ws++; //incrementing ws
                 break;
             }
@@ -463,7 +463,7 @@ Token *getToken()
                     {
                         //error
                         indentStackDestroy(stack);
-                        global_error_code = SYNTAX_ANALYSIS_ERROR;
+                        global_error_code = LEXICAL_ANALYSIS_ERROR;
                         return NULL;
                     }
                     indentStackPush(stack, ws);
@@ -488,7 +488,7 @@ Token *getToken()
                         {
                             //error
                             indentStackDestroy(stack);
-                            global_error_code = SYNTAX_ANALYSIS_ERROR;
+                            global_error_code = LEXICAL_ANALYSIS_ERROR;
                             return NULL;
                         }
                         ws = 0;
@@ -648,8 +648,8 @@ Token *getToken()
             add_simple_data(token, EQ);
             return token;
         case F13:
-            if (c == 60)
-            { //<
+            if (c == 61)
+            { //=
                 present_state = F14;
                 break;
             }
@@ -662,8 +662,8 @@ Token *getToken()
             add_simple_data(token, LEQ);
             return token;
         case F15:
-            if (c == 62)
-            { //>
+            if (c == 61)
+            { //=
                 present_state = F16;
                 break;
             }
@@ -754,7 +754,8 @@ e_type isKeyword(cstring *string)
 bool isSpace(char c)
 {
     //ws without new line
-    return c == 8 || c == 9 || c == 11 || c == 12 || c == 32; //ascii ws
+    //using only space and horizontal tab (horizontal tab can be between words)
+    return c == 9 || c == 32;//c == 8 || c == 9 || c == 11 || c == 12 || c == 32; //ascii ws
 }
 bool isIdNameStart(char c)
 {
