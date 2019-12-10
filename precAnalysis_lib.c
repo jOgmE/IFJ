@@ -10,7 +10,7 @@ extern Token *fake_token();
 
 Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 {
-	printf("--- PA CALL ---\n");
+	if (decode(input1->type)==17) return input1;	// nic neprovedeno
 
 	int tFlag = (input2 != NULL);	
 
@@ -29,7 +29,6 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 
 
 	do {
-		printf("Now watch.\n");
 		// F L U S H
 		if (kill_after_analysis == true) {
 			
@@ -48,7 +47,6 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 		// vybere z tabulky PA prislusny symbol
 			
 		char switchC = getFromTable(PATopTerm(s)->content, curToken, &isFin);
-		//PAPrint(s);
 		
 		switch (switchC) {
 
