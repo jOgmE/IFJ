@@ -68,15 +68,22 @@ Token *fake_token()
 
 Token *fake_analysis(Token *op1, Token *op2, Token *res)
 {
+  if(op1 != NULL) {
+    if(op1->type == ID) work_out_val_id(op1, false);
+    if(op2 != NULL) {
+      if(op2->type == ID) work_out_val_id(op2, false);
+    }
+  }
   while(Tis_item || Tis_op|| Tis(LPA) || Tis(RPA)) {
       //free_token(curr_token);
       curr_token = fake_token();
+      if(Tis(ID)) work_out_val_id(curr_token, false);
   }
   return curr_token;
 }
 
 //SA vyrazu
-#define fake_analysis(a, b, c) expressionAnalysis(a, b, c)
+//#define fake_analysis(a, b, c) expressionAnalysis(a, b, c)
 
 //------MAKRA---------------------
 //vypíše chybové hlášení a nastaví global_error_code na error pokud už není
@@ -1233,7 +1240,7 @@ bool not_sure2()
     Token *ret_id = NULL;
     if(!kill_after_analysis) {
       ret_id = init_token();
-      add_temp_id(ret_id, init_cstring("ret_id"));
+      add_temp_id(ret_id, init_cstring("temp_ret"));
       heavy_check(NS2_r2e1); //jen alloc_check
     }
 
@@ -1343,7 +1350,7 @@ bool not_sure3()
     Token *ret_id = NULL;
     if(!kill_after_analysis) {
       ret_id = init_token();
-      add_temp_id(ret_id, init_cstring("ret_id"));
+      add_temp_id(ret_id, init_cstring("temp_ret"));
       heavy_check(NS3_r2e1); //jen alloc_check
     }
 
