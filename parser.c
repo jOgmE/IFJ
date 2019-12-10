@@ -11,6 +11,8 @@
  *
  another work:
       errory! jak je psat atd
+      na konci def pokud nebyl return narvat return None?
+      aaaa muze byt return None ty pepega
  *
  *
  */
