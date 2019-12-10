@@ -79,6 +79,7 @@ Token *fake_analysis(Token *op1, Token *op2, Token *res)
   while(Tis_item || Tis_op|| Tis(LPA) || Tis(RPA)) {
       //free_token(curr_token);
       curr_token = fake_token();
+      if(curr_token == NULL) return NULL;
       if(Tis(ID)) work_out_val_id(curr_token, false);
   }
   return curr_token;
@@ -835,6 +836,7 @@ bool command() //---COMMAND---
     //TODO mozna dat dalsi parametr, aby nic negeneroval?
     //neresim res, to by nemelo spadnout, nepotrebuji zadny 3ac
     curr_token = fake_analysis(curr_token, NULL, NULL);
+    heavy_check(C_r5e1);
 
     C_r5rp1:
     //EOL
