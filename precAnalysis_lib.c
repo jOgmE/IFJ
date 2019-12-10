@@ -8,6 +8,14 @@ extern Token *fake_token();
 // Vetsina funkcionality se ukryva ve funkci PAApplyRule(), kterou nelze prehlednout
 // v "precAnalysis_lib.h"
 
+int megaError ( Token *curToken )
+{
+	if ( curToken == NULL ) return 1;
+	if ( global_error_code == INTERNAL_ERROR ) return 1;
+	if ( global_error_code == LEXICAL_ANALYSIS_ERROR ) return 1;
+	return 0;
+}
+
 Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 {
 	if (decode(input1->type)==17) return input1;	// nic neprovedeno
@@ -37,7 +45,12 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 				if (tFlag) { 
 					curToken = input2; tFlag = 0;
 				}
-				else curToken = getToken();
+				else { 
+					curToken = getToken();
+					if ( curToken == NULL ) {
+						break;
+					}
+				}
 			}
 		
 			break;
@@ -53,18 +66,24 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 			case '=':
 				PAPush(s, curToken);
 				if (tFlag) { curToken = input2; tFlag = 0; }
-				else curToken = getToken();
+				else {
+				      	curToken = getToken();
+					if ( megaError(curToken) ) return NULL;
+				}
 				break;
 
 			case '[':
 				PAAddBracket(s);
 				PAPush(s, curToken);
 				if (tFlag) { curToken = input2; tFlag = 0; }
-				else curToken = getToken();
+				else  {
+					curToken = getToken();
+					if ( megaError(curToken) ) return NULL;
+				}
 				break;
 
 			case ']':
-				if (PAApplyRule(s, res, &tempInt)) {
+				if (PAApplyRule(s, &tempInt)) {
 					kill_after_analysis = true;
 					global_error_code = SYNTAX_ANALYSIS_ERROR;	
 				};	// <- tady je moloch
@@ -90,3 +109,4 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 	// navrat navic prejateho tokenu (interpretovaneho jako '$')
 	return curToken;
 }
+
