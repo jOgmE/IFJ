@@ -382,11 +382,9 @@ Token *getToken()
         case Q9:
             if (c == 61)
             {
-                append_char(our_string, c);
                 present_state = F17;
                 break;
             } //=
-            free_cstring(our_string);
             indentStackDestroy(stack);
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 			kill_after_analysis = true;
