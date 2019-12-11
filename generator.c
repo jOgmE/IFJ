@@ -244,7 +244,7 @@ void definition_start()
 {
     CURRENT_BLOCK = result_functions_code;
     PREVIOUS_FRAME = CURRENT_FRAME;
-    switch_frame(LOCAL_FRAME);
+    switch_frame(TEMP_FRAME);
     function_definition = true;
 }
 
@@ -676,7 +676,7 @@ void write_convert_type(Token *token, char *frame_str, e_type destType)
 
     append_string(CURRENT_BLOCK, "DEFVAR ");
     write_symbol(token, frame_str, true);
-    append_string(CURRENT_BLOCK, "$type$s");
+    append_string(CURRENT_BLOCK, "$type$");
     append_string(CURRENT_BLOCK, tmp_var_id);
     append_string(CURRENT_BLOCK, "\n");
 
@@ -817,7 +817,7 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
         if (op1_converted)
         {
             append_string(CURRENT_BLOCK, "$tmp$");
-            append_string(CURRENT_BLOCK, tmp_var_id);
+            append_string(CURRENT_BLOCK, tmp_var_id - 1);
             append_string(CURRENT_BLOCK, " ");
         }
         else
@@ -829,7 +829,7 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
         if (op2_converted)
         {
             append_string(CURRENT_BLOCK, "$tmp$");
-            append_string(CURRENT_BLOCK, tmp_var_id);
+            append_string(CURRENT_BLOCK, tmp_var_id - 1);
             append_string(CURRENT_BLOCK, "\n");
         }
         else
@@ -902,7 +902,7 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
     if (op1_converted)
     {
         append_string(CURRENT_BLOCK, "$tmp$");
-        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, tmp_var_id - 1);
         append_string(CURRENT_BLOCK, " ");
     }
     else
@@ -915,7 +915,7 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
     if (op2_converted)
     {
         append_string(CURRENT_BLOCK, "$tmp$");
-        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, tmp_var_id - 1);
         append_string(CURRENT_BLOCK, " ");
     }
     else
@@ -1084,7 +1084,7 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
     if (op1_converted)
     {
         append_string(CURRENT_BLOCK, "$tmp$");
-        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, tmp_var_id - 1);
         append_string(CURRENT_BLOCK, " ");
     }
     else
@@ -1097,7 +1097,7 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
     if (op2_converted)
     {
         append_string(CURRENT_BLOCK, "$tmp$");
-        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, tmp_var_id - 1);
         append_string(CURRENT_BLOCK, " ");
     }
     else
