@@ -2,14 +2,12 @@
  * Tabulka symbolů řešená pomocí hash table
  *
  * @author xstrna14
- * @version 1.0
- * @date 24.11.2019
+ * @version 2.0
+ * @date 11.12.2019
+ *
+ * Upravené funkce (přepsané work out ids)
+ * Hash funkce z IJC přidána
  */
-
-//TODO když to najde error, nečistí to key string... asi i jinde
-//prostě přidat, že když to key nezpracuje, ať ho to vymaže
-//TODO
-//pridat check, kdyz to v non_define najde konfliktni typ?
 
 
 #include "symtable.h"
@@ -130,7 +128,7 @@ void append_item(STItem* item)
 
 bool search_st(STable *st, cstring *key)
 {
-  //TODO do something about it
+  //tohle by se nemělo stát
   if(st == NULL) fprintf(stderr, "[hojkas] symtable.c: search_st(): Tabulka neexistuje\n");
 
   unsigned line = hashCode(key) % st->size;
@@ -245,7 +243,7 @@ void start_symtable_with_functions()
 
 void go_in_local()
 {
-  //TODO just placeholder, this should NOT happen
+  //nemělo by se stát
   if(in_global == false) {
     fprintf(stderr, "[hojkas] symtable.c: go_in_local(): def fce uvnitr def fce, ma byt osetreno jinde\n");
     return;
@@ -268,6 +266,7 @@ void add_undef_id_from_token(Token *token, st_type type)
   //ale radsi ji presmeruji nez nutit teammata, aby znova menil jeji
   //pouziti
   work_out_val_id(token, false);
+  if(type != ST_VALUE) fprintf(stderr, "[flippz] Poslalo se do add_undef_id_from_token neco divneho.\n");
 }
 
 st_type get_id_type(Token *token)
@@ -287,19 +286,19 @@ bool work_out_fce_id(Token* token, int param_count, bool define)
     //existuje tam uz zaznam s timto id
     if(act_item->type != ST_FUNCTION) {
       //error, spatny typ polozky, redefinice
-      fprintf(stderr, "placeholder: work_out_fce_id: Snaha definovat %s, co bylo definovano jako id (SEMANTIC_DEFINITION_ERROR)\n", get_cstring_string(getTokenStrValue(token)));
+      fprintf(stderr, "[ " ERROR_COLOR "ERROR" RESET_COLOR " ] Snaha definovat %s, co bylo definovano jako id " BOLD_WHITE "(SEMANTIC_DEFINITION_ERROR)" RESET_COLOR "\n", get_cstring_string(getTokenStrValue(token)));
       if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
       return false;
     }
     if(define && act_item->defined == true) {
       //error, redefinice
-      fprintf(stderr, "placeholder: work_out_fce_id: Snaha redefinovat funknci %s (SEMANTIC_DEFINITION_ERROR)\n", get_cstring_string(getTokenStrValue(token)));
+      fprintf(stderr, "[ " ERROR_COLOR "ERROR" RESET_COLOR " ] Snaha redefinovat funknci %s " BOLD_WHITE "(SEMANTIC_DEFINITION_ERROR)" RESET_COLOR "\n", get_cstring_string(getTokenStrValue(token)));
       if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
       return false;
     }
     if(act_item->number_of_params != param_count) {
       //spatny pocet parametru
-      fprintf(stderr, "placeholder: work_out_fce_id: Nesedi pocet argumentu u %s (SEMANTIC_PARAMETER_ERROR)\n", get_cstring_string(getTokenStrValue(token)));
+      fprintf(stderr, "[ " ERROR_COLOR "ERROR" RESET_COLOR " ] Nesedi pocet argumentu u %s " BOLD_WHITE "(SEMANTIC_PARAMETER_ERROR)" RESET_COLOR "\n", get_cstring_string(getTokenStrValue(token)));
       if(global_error_code == SUCCESS) global_error_code = SEMANTIC_PARAMETER_ERROR;
       return false;
     }
@@ -341,7 +340,7 @@ bool work_out_val_id(Token *token, bool define)
     //prvek tam vubec neni
     if(define == false) {
       //chyba, pouziti nedefinovaneho id
-      fprintf(stderr, "placeholder: work_out_val_id: Pouziti nedefinovaneho id %s (SEMANTIC_DEFINITION_ERROR)\n", get_cstring_string(getTokenStrValue(token)));
+      fprintf(stderr, "[ " ERROR_COLOR "ERROR" RESET_COLOR " ] Pouziti nedefinovaneho id %s " BOLD_WHITE "(SEMANTIC_DEFINITION_ERROR)" RESET_COLOR "\n", get_cstring_string(getTokenStrValue(token)));
       if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
       return false;
     }
@@ -361,7 +360,7 @@ bool work_out_val_id(Token *token, bool define)
   //prvek tam je, v act_item je odkaz na něj
   //chyba, pokud je to typ ST_FUNCTION
   if(act_item->type != ST_VALUE) {
-    fprintf(stderr, "placeholder: work_out_val_id: Snaha pouzit %s jako id, ale bylo to uz pouzito jako funkce (SEMANTIC_DEFINITION_ERROR)\n", get_cstring_string(getTokenStrValue(token)));
+    fprintf(stderr, "[ " ERROR_COLOR "ERROR" RESET_COLOR " ] Snaha pouzit %s jako id, ale bylo to uz pouzito jako funkce " BOLD_WHITE "(SEMANTIC_DEFINITION_ERROR)" RESET_COLOR "\n", get_cstring_string(getTokenStrValue(token)));
     if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
     return false;
   }
@@ -384,7 +383,7 @@ bool work_out_val_id(Token *token, bool define)
     //to je ok, pokud u globalni (v act_item) neni nastaven bad_boy flag
     if(act_item->bad_boy == true) {
       //error
-      fprintf(stderr, "placeholder: work_out_val_id: Definovani id %s, ktere by zastinilo globalni, ale uz bylo ve funkci pouzito jako globalni (SEMANTIC_DEFINITION_ERROR)\n", get_cstring_string(getTokenStrValue(token)));
+      fprintf(stderr, "[ " ERROR_COLOR "ERROR" RESET_COLOR " ] Definovani id %s, ktere by zastinilo globalni, ale uz bylo ve funkci pouzito jako globalni " BOLD_WHITE "(SEMANTIC_DEFINITION_ERROR)" RESET_COLOR "\n", get_cstring_string(getTokenStrValue(token)));
       if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
       return false;
     }
@@ -407,7 +406,7 @@ void global_check_def()
     if(!is_act_defined()) {
       kill_after_analysis = true;
       if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
-      fprintf(stderr, "Semantic error: Funkce %s (poprve pouzita na radku %ld) nebyla definovana\n",
+      fprintf(stderr, "[ " ERROR_COLOR "ERROR" RESET_COLOR " ] Funkce %s (poprve pouzita na radku %ld) nebyla definovana " BOLD_WHITE "(SEMANTIC_DEFINITION_ERROR)" RESET_COLOR "\n",
               get_cstring_string(act_item->key), act_item->first_occur_line);
     }
     st_next(global_st);
@@ -417,7 +416,7 @@ void global_check_def()
 bool is_this_ret_okay()
 {
   if(in_global) {
-    fprintf(stderr, "Syntax error l. %4ld: Return v hlavnim tele programu.\n", line_count);
+    fprintf(stderr, "[ " ERROR_COLOR "ERROR" RESET_COLOR " ] Line %4ld: Return v hlavnim tele programu." BOLD_WHITE "(SYNTAX_ANALYSIS_ERROR)" RESET_COLOR "\n", line_count);
     kill_after_analysis = true;
     if(global_error_code == SUCCESS) global_error_code = SYNTAX_ANALYSIS_ERROR;
     return false;
