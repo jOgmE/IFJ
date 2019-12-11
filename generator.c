@@ -995,6 +995,49 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
     ++tmp_var_counter;
 }
 
+void write_div_by_0_check(ac_type div_type, Token *token)
+{
+    if (token != ID)
+    {
+        if (token->type == INT && token->i == 0)
+        {
+            append_string(CURRENT_BLOCK, "EXIT int@9");
+        }
+        else if (token->type == DEC && token->dec == 0)
+        {
+            append_string(CURRENT_BLOCK, "EXIT int@9");
+        }
+    }
+    else if (token == ID)
+    {
+
+        char *token_frame_str = check_and_write_define(token);
+
+        append_string(CURRENT_BLOCK, "JUMPIFNEQ $tmpnotzero$");
+        append_string(CURRENT_BLOCK, convert_int_to_string(tmp_if_counter));
+        append_string(CURRENT_BLOCK, " ");
+        write_symbol(token, token_frame_str, false);
+
+        if (div_type == DIVINT)
+        {
+            append_string(CURRENT_BLOCK, "int@0");
+        }
+        else
+        {
+            append_string(CURRENT_BLOCK, "float@0");
+        }
+
+        append_string(CURRENT_BLOCK, "\n");
+        append_string(CURRENT_BLOCK, "EXIT int@9");
+
+        append_string(CURRENT_BLOCK, "LABEL $tmpnotzero$");
+        append_string(CURRENT_BLOCK, convert_int_to_string(tmp_if_counter));
+        append_string(CURRENT_BLOCK, "\n");
+
+        ++tmp_if_counter;
+    }
+}
+
 void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
 {
     char *op1_frame_str = check_and_write_define(op1);
@@ -1036,6 +1079,17 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
     {
         write_convert_type(op2, op2_frame_str, arithmetic_type);
         op2_converted = true;
+    }
+
+    switch (type)
+    {
+    case DIV:
+    case DIVINT:
+        write_div_by_0_check(type, op1);
+        write_div_by_0_check(type, op2);
+        break;
+    default:
+        break;
     }
 
     switch (type)
