@@ -1,3 +1,7 @@
 def id (a) :
   pass
-if :
+if 1 + 2 :
+  x = 2
+else :
+  x = 5
+a = 5 + x
