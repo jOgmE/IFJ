@@ -120,7 +120,7 @@ int getDecValue(Token *token, double *num){
 }
 
 cstring *getTokenStrValue(Token *token){
-    if(getTokenType(token) == STR || getTokenType(token) == ID || getTokenType(TEMP_ID) || getTokenType(LABEL)){
+    if(getTokenType(token) == STR || getTokenType(token) == ID || getTokenType(token) == TEMP_ID || getTokenType(token) == LAB){
         return token->str;
     }
     print_internal_error(INTERNAL_ERROR, ERROR, "Tato funkce byla zavolana na precteni stringu z tokenu, ktery neni typu STR ani ID ani TEMP_ID ani LABEL.");
