@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+//#include <math.h>
 #include "token.h"
 #include "indent_stack.h"
 #include "dynamic_string.h"
@@ -160,5 +161,35 @@ int cstrToDec(cstring *our_string, Token *token);
  * @return True if dedent was DONE otherwise false
  */
 bool checkDedent(tIndentStack *stack, char c, Token *token);
+
+/* Checking if the char is a correct escape char
+ *
+ * @param c char to check
+ * @return 1 if correct escape char
+ * @return 2 if escape char with hexadecimal code
+ * @return 0 when c is NO an escape char
+ */
+int isEscapeChar(char c);
+
+/* Convering an escape char to a normal char
+ *
+ * @param c char to be converted
+ * @return ascii char of the escape char
+ */
+char convertEscapeChar(char c);
+
+/* Checking if the character is valid hexa value
+ *
+ * @param c char to check
+ * @return true if valid otherwise false
+ */
+bool checkHexa(char c);
+
+/* Converting hexadecimal value to a character
+ *
+ * @param s string of hexadecimal value
+ * @return Char of the hexadecimal value
+ */
+char convertHexaToChar(char *s);
 
 #endif /*_SCANNER_HEADER_FILE_*/

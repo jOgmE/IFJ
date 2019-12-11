@@ -7,7 +7,7 @@ DEPENDENCIES=$(LIB)dynamic_string.* $(LIB)errors.* $(LIB)indent_stack.* $(LIB)sc
 all: $(APP)
 
 test_scanner: $(DEPENDENCIES) scanner_test.c
-	$(CC) $(FLAGS) $^ -o test_scanner
+	$(CC) $(FLAGS) $^ -o test_scanner -lm
 
 clean:
 	rm -f *.gch $(LIB)*.gch $(LIB)*.gch *.o test_scanner
