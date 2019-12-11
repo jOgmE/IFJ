@@ -205,18 +205,18 @@ e_type compare_symbol_types_and_convert(Token *op1, Token *op2)
 {
     e_type arithmetic_type = INT;
 
-    if (op1->type != ID)
+    if (op1->type != ID && op1->type != TEMP_ID)
     {
         arithmetic_type = op1->type;
     }
 
-    if (op2->type != ID)
+    if (op2->type != ID && op2->type != TEMP_ID)
     {
         if (arithmetic_type > op2->type)
         {
             arithmetic_type = op2->type;
 
-            if (op1->type != ID && arithmetic_type != op1->type)
+            if (op1->type != ID && op1->type != TEMP_ID && arithmetic_type != op1->type)
             {
                 if (arithmetic_type == INT)
                 {
@@ -647,7 +647,7 @@ void write_call(char *label)
 
 void write_convert_type(Token *token, char *frame_str, e_type destType)
 {
-    if (token->type == destType || token->type != ID)
+    if (token->type == destType && token->type != ID && token->type != TEMP_ID)
     {
         return;
     }
