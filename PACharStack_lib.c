@@ -49,7 +49,7 @@ void PAPush ( PAStack *s, Token *content )
 
 	char c;
 	switch (content->type) {
-		case ID: case INT: case DEC: case STR:
+		case ID: case INT: case DEC: case STR: case NONE:
 			c = 'i';
 			break;
 		case L: case LEQ: case G: case GEQ: case EQ: case NEQ: case PLUS: case MINUS: case AST: case SL: case DSL:
@@ -234,6 +234,7 @@ int PACodeRule1 ( PAStack *s, int *tempInt)
 			}
 			break;
 		case INT:
+		case NONE:
 		case STR:
 		case DEC:
 			
