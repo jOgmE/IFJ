@@ -817,7 +817,7 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
         if (op1_converted)
         {
             append_string(CURRENT_BLOCK, "$tmp$");
-            append_string(CURRENT_BLOCK, tmp_var_id);
+            append_string(CURRENT_BLOCK, tmp_var_id - 1);
             append_string(CURRENT_BLOCK, " ");
         }
         else
@@ -829,7 +829,7 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
         if (op2_converted)
         {
             append_string(CURRENT_BLOCK, "$tmp$");
-            append_string(CURRENT_BLOCK, tmp_var_id);
+            append_string(CURRENT_BLOCK, tmp_var_id - 1);
             append_string(CURRENT_BLOCK, "\n");
         }
         else
@@ -902,7 +902,7 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
     if (op1_converted)
     {
         append_string(CURRENT_BLOCK, "$tmp$");
-        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, tmp_var_id - 1);
         append_string(CURRENT_BLOCK, " ");
     }
     else
@@ -915,7 +915,7 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
     if (op2_converted)
     {
         append_string(CURRENT_BLOCK, "$tmp$");
-        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, tmp_var_id - 1);
         append_string(CURRENT_BLOCK, " ");
     }
     else
@@ -1084,7 +1084,7 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
     if (op1_converted)
     {
         append_string(CURRENT_BLOCK, "$tmp$");
-        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, tmp_var_id - 1);
         append_string(CURRENT_BLOCK, " ");
     }
     else
@@ -1097,7 +1097,7 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
     if (op2_converted)
     {
         append_string(CURRENT_BLOCK, "$tmp$");
-        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, tmp_var_id - 1);
         append_string(CURRENT_BLOCK, " ");
     }
     else
