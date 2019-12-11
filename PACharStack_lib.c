@@ -411,7 +411,6 @@ void PAPop ( PAStack *s )
 {
 	if ( s->top == NULL ) return;
 
-	if ( s->top->content != NULL ) free_token(s->top->content);
 	PAStackElem *tmp = s->top;
 	s->top = s->top->belowPtr;
 	free(tmp);
