@@ -617,87 +617,63 @@ void check_and_define_while()
 
 void write_call(char *label)
 {
-    bool label_exists = item_exists_table(label, GLOBAL_FRAME);
-
-    if (label_exists)
+    if (strcmp(label, "inputi") == 0 && !inputi_appended)
     {
-        if (!createframe_written)
-        {
-            write_createframe();
-            createframe_written = false;
-        }
-
-        append_string(CURRENT_BLOCK, "CALL ");
-        append_string(CURRENT_BLOCK, label);
-        append_string(CURRENT_BLOCK, "\n");
-
-        //switch_frame(LOCAL_FRAME);
-        //CURRENT_BLOCK = result_main_function_code;
-
-        switch_frame(GLOBAL_FRAME);
-
-        param_counter = 0;
+        append_string(result_functions_code, INPUTI_FUNC);
+        inputi_appended = true;
     }
-    else
+    else if (strcmp(label, "inputs") == 0 && !inputs_appended)
     {
-        if (strcmp(label, "inputi") == 0 && !inputi_appended)
-        {
-            append_string(result_functions_code, INPUTI_FUNC);
-            inputi_appended = true;
-        }
-        else if (strcmp(label, "inputs") == 0 && !inputs_appended)
-        {
-            append_string(result_functions_code, INPUTS_FUNC);
-            inputs_appended = true;
-        }
-        else if (strcmp(label, "inputf") == 0 && !inputf_appended)
-        {
-            append_string(result_functions_code, INPUTF_FUNC);
-            inputf_appended = true;
-        }
-        else if (strcmp(label, "len") == 0 && !len_appended)
-        {
-            append_string(result_functions_code, LEN_FUNC);
-            len_appended = true;
-        }
-        else if (strcmp(label, "print") == 0 && !print_appended)
-        {
-            append_string(result_functions_code, PRINT_FUNC);
-            print_appended = true;
-        }
-        else if (strcmp(label, "substr") == 0 && !substr_appended)
-        {
-            append_string(result_functions_code, SUBSTR_FUNC);
-            substr_appended = true;
-        }
-        else if (strcmp(label, "ord") == 0 && !ord_appended)
-        {
-            append_string(result_functions_code, ORD_FUNC);
-            ord_appended = true;
-        }
-        else if (strcmp(label, "chr") == 0 && !chr_appended)
-        {
-            append_string(result_functions_code, CHR_FUNC);
-            chr_appended = true;
-        }
-        else
-        {
-            append_string(CURRENT_BLOCK, "EXIT int@3");
-
-            cstring *error_string = init_cstring("Funkce ");
-
-            append_string(error_string, label);
-            append_string(error_string, " nebyla definovana.");
-
-            global_error_code = 4;
-            print_compile_error(4, ERROR, 0, error_string->str);
-
-            free_cstring(error_string);
-            return;
-        }
-        insert_table_item(label, GLOBAL_FRAME);
-        write_call(label);
+        append_string(result_functions_code, INPUTS_FUNC);
+        inputs_appended = true;
     }
+    else if (strcmp(label, "inputf") == 0 && !inputf_appended)
+    {
+        append_string(result_functions_code, INPUTF_FUNC);
+        inputf_appended = true;
+    }
+    else if (strcmp(label, "len") == 0 && !len_appended)
+    {
+        append_string(result_functions_code, LEN_FUNC);
+        len_appended = true;
+    }
+    else if (strcmp(label, "print") == 0 && !print_appended)
+    {
+        append_string(result_functions_code, PRINT_FUNC);
+        print_appended = true;
+    }
+    else if (strcmp(label, "substr") == 0 && !substr_appended)
+    {
+        append_string(result_functions_code, SUBSTR_FUNC);
+        substr_appended = true;
+    }
+    else if (strcmp(label, "ord") == 0 && !ord_appended)
+    {
+        append_string(result_functions_code, ORD_FUNC);
+        ord_appended = true;
+    }
+    else if (strcmp(label, "chr") == 0 && !chr_appended)
+    {
+        append_string(result_functions_code, CHR_FUNC);
+        chr_appended = true;
+    }
+
+    if (!createframe_written)
+    {
+        write_createframe();
+        createframe_written = false;
+    }
+
+    append_string(CURRENT_BLOCK, "CALL ");
+    append_string(CURRENT_BLOCK, label);
+    append_string(CURRENT_BLOCK, "\n");
+
+    //switch_frame(LOCAL_FRAME);
+    //CURRENT_BLOCK = result_main_function_code;
+
+    switch_frame(GLOBAL_FRAME);
+
+    param_counter = 0;
 }
 
 //******************************************************************************************//
