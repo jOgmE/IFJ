@@ -27,43 +27,11 @@ Token *id_to_assign = NULL;
 int while_count = 0;
 int if_count = 0;
 
-//-------SIMULACNI FUNKCE, VYMAZAT-----------
-//TODO delete
-
-e_type faking[100] = {
-  /*DEF, ID, LPA, INT, COM, ID, COM, ID, RPA, COL, EOL, INDENT,
-  PASS, EOL, DEDENT,*/
-  /*ID, ID, LPA, INT, COM, ID, RPA, EOL,
-  ID, EQ, ID, PLUS, ID, EOL,
-  ID, LPA, INT, RPA, EOL,
-  IF, INT, COL, EOL, INDENT,
-  ID, EQ, ID, MINUS, INT, EOL,
-  RETURN, ID, EOL,
-  DEDENT, ELSE, COL, EOL, INDENT, PASS, EOL, DEDENT,*/
-  EOL,
-  EOFILE
-};
-
-Token *fake_token()
-{
-  static int time = 0;
-  Token *new = init_token();
-  /*fprintf(stderr, "Loading state %d\n", time);*/
-  add_simple_data(new, faking[time]);
-  new->str = init_cstring("temp_name");
-  if(faking[time] != EOFILE) time++;
-  line_count++;
-  return new;
-}
 
 #define Tis(type) getTokenType(curr_token) == type
 //vlozi soustavu podminek, ktera vraci true, je-li curr_token typu item
 #define Tis_item (Tis(ID) || Tis(NONE) || Tis(INT) || Tis(DEC) || Tis(STR))
 #define Tis_op (Tis(L) || Tis(LEQ) || Tis(G) || Tis(GEQ) || Tis(EQ) || Tis(NEQ) || Tis(PLUS) || Tis(MINUS) || Tis(AST) || Tis(SL) || Tis(DSL))
-
-
-//scanner
-#define fake_token() getToken()
 
 
 Token *fake_analysis(Token *op1, Token *op2, Token *res)
@@ -76,7 +44,7 @@ Token *fake_analysis(Token *op1, Token *op2, Token *res)
   }
   while(Tis_item || Tis_op|| Tis(LPA) || Tis(RPA)) {
       //free_token(curr_token);
-      curr_token = fake_token();
+      curr_token = getToken();
       if(curr_token == NULL) return NULL;
       if(Tis(ID)) work_out_val_id(curr_token, false);
   }
@@ -112,7 +80,7 @@ bool flush_until(e_type token_type)
   if(curr_token == NULL) return false;
   if(Tis(token_type)) return true;
   while(getTokenType(curr_token) != EOFILE) {
-    curr_token = fake_token();
+    curr_token = getToken();
     if(curr_token == NULL) return false;
     if(Tis(token_type)) return true;
     if(Tis(EOFILE)) return false;
@@ -242,7 +210,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
       appendAC(DEF_START, NULL, NULL, NULL);
     }
     free_token(curr_token); //nepouzila jsem ho
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(PBWD_r2e1); //co kdyby selhala alokace...
 
     //id
@@ -255,14 +223,14 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
       //generate label of fce
       appendAC(LABEL, NULL, NULL, curr_token);
     }
-    curr_token = fake_token(); //nepotrebuji free, token recyklovan do AC
+    curr_token = getToken(); //nepotrebuji free, token recyklovan do AC
     heavy_check(PBWD_r2e1);
 
     //(
     can_continue = terminal(LPA);
     heavy_check(PBWD_r2e1);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(PBWD_r2e1);
 
     //param_list
@@ -278,14 +246,14 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     can_continue = terminal(RPA);
     heavy_check(PBWD_r2e1);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(PBWD_r2e1);
 
     //:
     can_continue = terminal(COL);
     heavy_check(PBWD_r2e1);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(PBWD_r2e1);
 
     PBWD_r2rp2: //restore point 2
@@ -293,14 +261,14 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
     can_continue = terminal(EOL);
     heavy_check(PBWD_r2e1);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(PBWD_r2e1);
 
     //indent
     can_continue = terminal(INDENT);
     heavy_check(PBWD_r2e2);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(PBWD_r2e2);
 
     //NEPB
@@ -315,7 +283,7 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
       appendAC(DEF_END, NULL, NULL, NULL);
     }
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(PBWD_r2e2);
 
     go_in_global(); //vráti se zpět do globalní tabulky, lokalni checkne a zrusi
@@ -454,7 +422,7 @@ bool command() //---COMMAND---
     //c -> pass EOL more_EOL
     //nemusím kontrolovat pass, jinak by to sem nedoslo
     free(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r1e1);
 
     C_r1rp1:
@@ -462,7 +430,7 @@ bool command() //---COMMAND---
     can_continue = terminal(EOL);
     heavy_check(C_r1e1);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r1e1); //jen pro kontrolu inner erroru, takze navesti je jedno
 
     //more_EOL
@@ -481,7 +449,7 @@ bool command() //---COMMAND---
     //c -> return sure_expresion EOL more_EOL
     //nemusím kontrolovat return, jinak by to sem nedoslo
     free(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
 
     can_continue = is_this_ret_okay();
     heavy_check(C_r2e1);
@@ -502,7 +470,7 @@ bool command() //---COMMAND---
         else {
           free_token(curr_token);
         }
-        curr_token = fake_token();
+        curr_token = getToken();
         heavy_check(C_r2e1);
     }
     else {
@@ -528,7 +496,7 @@ bool command() //---COMMAND---
     can_continue = terminal(EOL);
     heavy_check(C_r2e1);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r2e1); //jen pro kontrolu inner erroru, takze navesti je jedno
 
     //more_EOL
@@ -552,7 +520,7 @@ bool command() //---COMMAND---
     can_continue = terminal(WHILE);
     heavy_check(C_r3e1);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r3e1);
 
     //L_WHILE_LABEL label
@@ -612,7 +580,7 @@ bool command() //---COMMAND---
     can_continue = terminal(COL);
     heavy_check(C_r3e1);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r3e1);
 
     C_r3rp1:
@@ -620,14 +588,14 @@ bool command() //---COMMAND---
     can_continue = terminal(EOL);
     heavy_check(C_r3e1);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r3e1);
 
     //indent
     can_continue = terminal(INDENT);
     heavy_check(C_r3e2);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r3e2);
 
     //non_empty_prog_body
@@ -639,7 +607,7 @@ bool command() //---COMMAND---
     can_continue = terminal(DEDENT);
     heavy_check(C_r3e2);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r3e2);
 
     if(!kill_after_analysis) {
@@ -675,7 +643,7 @@ bool command() //---COMMAND---
     //TODO uplne chybi 3ac veci
     //if don't need to check
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r4e1);
 
     //shrnuti:
@@ -713,7 +681,7 @@ bool command() //---COMMAND---
     can_continue = terminal(COL);
     heavy_check(C_r4e1);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r4e1);
 
     C_r4rp1:
@@ -721,14 +689,14 @@ bool command() //---COMMAND---
     can_continue = terminal(EOL);
     heavy_check(C_r4e1);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r4e1);
 
     //indent
     can_continue = terminal(INDENT);
     heavy_check(C_r4e2);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r4e2);
 
     if(!kill_after_analysis) {
@@ -756,21 +724,21 @@ bool command() //---COMMAND---
     can_continue = terminal(DEDENT);
     heavy_check(C_r4e2);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r4e2);
 
     //else
     can_continue = terminal(ELSE);
     heavy_check(C_r4e3);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r4e3);
 
     //:
     can_continue = terminal(COL);
     heavy_check(C_r4e3);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r4e3);
 
     C_r4rp3:
@@ -778,14 +746,14 @@ bool command() //---COMMAND---
     can_continue = terminal(EOL);
     heavy_check(C_r4e3);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r4e3);
 
     //indent
     can_continue = terminal(INDENT);
     heavy_check(C_r4e4);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r4e4);
 
     //JUMP na L_IF_END
@@ -818,7 +786,7 @@ bool command() //---COMMAND---
     can_continue = terminal(DEDENT);
     heavy_check(C_r4e4);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r4e4);
 
     //more_EOL
@@ -856,7 +824,7 @@ bool command() //---COMMAND---
     can_continue = terminal(EOL);
     heavy_check(C_r5e1);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r5e1); //jen pro kontrolu inner erroru, takze navesti je jedno
 
     //more_EOL
@@ -875,7 +843,7 @@ bool command() //---COMMAND---
     //id not_sure1 eol meol
     //ulozim token s id, protoze nevim, jestli je to id funkce nebo normalni
     last_token = curr_token;
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r6e1);
 
     can_continue = not_sure1();
@@ -889,7 +857,7 @@ bool command() //---COMMAND---
     can_continue = terminal(EOL);
     heavy_check(C_r6e1);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(C_r6e1); //jen pro kontrolu inner erroru, takze navesti je jedno
 
     //more_EOL
@@ -964,7 +932,7 @@ bool more_params(int* param_count, bool in_def) //---MORE_PARAMS---
     //,
     //neni treba overovat COM, jinak bychom sem nedosli
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(MP_r1e1);
 
     //item
@@ -1051,7 +1019,7 @@ bool print_more_params() //---PRINT_MORE_PARAMS---
     //,
     //neni treba overovat COM, jinak bychom sem nedosli
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(PMP_r1e1);
 
     //item
@@ -1102,7 +1070,7 @@ bool more_EOL() //---MORE_EOL---
     //EOL
     //neni treba overovat, ze mame EOL, jinak bychom sem nedosli
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(MEOL_r1e1);
 
     //more_EOL
@@ -1138,7 +1106,7 @@ bool not_sure1()
     //(
     //nemusím checkovat LPA, jinak bych se sem nedostala
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(NS1_r1e1);
 
     int param_count = 0;
@@ -1161,7 +1129,7 @@ bool not_sure1()
     can_continue = terminal(RPA);
     heavy_check(NS1_r1e1);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(NS1_r1e1);
 
     if(is_print) {
@@ -1187,7 +1155,7 @@ bool not_sure1()
     //= not_sure2
     //nemusim checkovat ass
     free(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(NS1_r2e1);
 
     //ulozim last token do id to assing
@@ -1241,7 +1209,7 @@ bool not_sure2()
   if(Tis(ID)) {
     //id not_sure3
     last_token = curr_token;
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(NS2_r1e1);
 
     can_continue = not_sure3();
@@ -1294,7 +1262,7 @@ bool not_sure3()
     //(
     //nemusím checkovat LPA, jinak bych se sem nedostala
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(NS3_r1e1);
 
     int param_count = 0;
@@ -1316,7 +1284,7 @@ bool not_sure3()
     can_continue = terminal(RPA);
     heavy_check(NS3_r1e1);
     free_token(curr_token);
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(NS3_r1e1);
 
     if(is_print) {
@@ -1431,7 +1399,7 @@ bool param_item(bool in_def)
     else {
       free_token(curr_token);
     }
-    curr_token = fake_token();
+    curr_token = getToken();
     heavy_check(PI_r1e1);
     return true;
     PI_r1e1:
@@ -1489,7 +1457,7 @@ void parser_do_magic()
    start_symtable_with_functions();
 
    //nacte prvni token
-   curr_token = fake_token();
+   curr_token = getToken();
    if(global_error_code != SUCCESS) return;
 
    //TODO delete this (but keep prog() calling)
