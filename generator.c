@@ -27,6 +27,8 @@ frame_t PREVIOUS_FRAME;
 frame_t CURRENT_FRAME = GLOBAL_FRAME;
 char *CURRENT_FRAME_STRING;
 
+bool gen_initialized = false;
+
 bool function_call_assign = false;
 bool function_definition = false;
 
@@ -89,6 +91,8 @@ void init_gen()
     init_table(32, GLOBAL_FRAME);
     init_table(16, LOCAL_FRAME);
     init_table(16, TEMP_FRAME);
+
+    gen_initialized = true;
 }
 
 void print_gen_all()
@@ -116,7 +120,7 @@ void print_gen_all()
 
 void free_gen()
 {
-    if (out_stream == NULL)
+    if (!gen_initialized)
     {
         return;
     }
@@ -316,6 +320,9 @@ void write_symbol_type(Token *symb, bool skip_space)
         append_string(CURRENT_BLOCK, "string@");
         append_string(CURRENT_BLOCK, convert_string(symb->str->str));
         break;
+    case NONE:
+        append_string(CURRENT_BLOCK, "nil@nil");
+        break;
     default:
         break;
     }
@@ -332,7 +339,7 @@ void write_symbol(Token *symb, char *symb_frame, bool skip_space)
     {
         write_symbol_id(symb, symb_frame, skip_space);
     }
-    else if (symb->type >= DEC && symb->type <= STR)
+    else if ((symb->type >= DEC && symb->type <= STR) || symb->type == NONE)
     {
         write_symbol_type(symb, skip_space);
     }
@@ -385,7 +392,7 @@ void write_label(char *label)
     }
     else
     {
-        append_string(CURRENT_BLOCK, "EXIT 3");
+        append_string(CURRENT_BLOCK, "EXIT int@3");
         return;
     }
 
@@ -558,9 +565,16 @@ void write_return(Token *res)
 {
     append_string(CURRENT_BLOCK, "MOVE LF@%temp_ret ");
 
-    char *res_frame_str = check_and_write_define(res);
+    if (res != NULL)
+    {
+        char *res_frame_str = check_and_write_define(res);
 
-    write_symbol(res, res_frame_str, false);
+        write_symbol(res, res_frame_str, false);
+    }
+    else
+    {
+        append_string(CURRENT_BLOCK, "nil@nil");
+    }
 
     append_string(CURRENT_BLOCK, "\n");
 }
@@ -603,87 +617,63 @@ void check_and_define_while()
 
 void write_call(char *label)
 {
-    bool label_exists = item_exists_table(label, GLOBAL_FRAME);
-
-    if (label_exists)
+    if (strcmp(label, "inputi") == 0 && !inputi_appended)
     {
-        if (!createframe_written)
-        {
-            write_createframe();
-            createframe_written = false;
-        }
-
-        append_string(CURRENT_BLOCK, "CALL ");
-        append_string(CURRENT_BLOCK, label);
-        append_string(CURRENT_BLOCK, "\n");
-
-        //switch_frame(LOCAL_FRAME);
-        //CURRENT_BLOCK = result_main_function_code;
-
-        switch_frame(GLOBAL_FRAME);
-
-        param_counter = 0;
+        append_string(result_functions_code, INPUTI_FUNC);
+        inputi_appended = true;
     }
-    else
+    else if (strcmp(label, "inputs") == 0 && !inputs_appended)
     {
-        if (strcmp(label, "inputi") == 0 && !inputi_appended)
-        {
-            append_string(result_functions_code, INPUTI_FUNC);
-            inputi_appended = true;
-        }
-        else if (strcmp(label, "inputs") == 0 && !inputs_appended)
-        {
-            append_string(result_functions_code, INPUTS_FUNC);
-            inputs_appended = true;
-        }
-        else if (strcmp(label, "inputf") == 0 && !inputf_appended)
-        {
-            append_string(result_functions_code, INPUTF_FUNC);
-            inputf_appended = true;
-        }
-        else if (strcmp(label, "len") == 0 && !len_appended)
-        {
-            append_string(result_functions_code, LEN_FUNC);
-            len_appended = true;
-        }
-        else if (strcmp(label, "print") == 0 && !print_appended)
-        {
-            append_string(result_functions_code, PRINT_FUNC);
-            print_appended = true;
-        }
-        else if (strcmp(label, "substr") == 0 && !substr_appended)
-        {
-            append_string(result_functions_code, SUBSTR_FUNC);
-            substr_appended = true;
-        }
-        else if (strcmp(label, "ord") == 0 && !ord_appended)
-        {
-            append_string(result_functions_code, ORD_FUNC);
-            ord_appended = true;
-        }
-        else if (strcmp(label, "chr") == 0 && !chr_appended)
-        {
-            append_string(result_functions_code, CHR_FUNC);
-            chr_appended = true;
-        }
-        else
-        {
-            append_string(CURRENT_BLOCK, "EXIT 3");
-
-            cstring *error_string = init_cstring("Funkce ");
-
-            append_string(error_string, label);
-            append_string(error_string, " nebyla definovana.");
-
-            global_error_code = 4;
-            print_compile_error(4, ERROR, 0, error_string->str);
-
-            free_cstring(error_string);
-            return;
-        }
-        insert_table_item(label, GLOBAL_FRAME);
-        write_call(label);
+        append_string(result_functions_code, INPUTS_FUNC);
+        inputs_appended = true;
     }
+    else if (strcmp(label, "inputf") == 0 && !inputf_appended)
+    {
+        append_string(result_functions_code, INPUTF_FUNC);
+        inputf_appended = true;
+    }
+    else if (strcmp(label, "len") == 0 && !len_appended)
+    {
+        append_string(result_functions_code, LEN_FUNC);
+        len_appended = true;
+    }
+    else if (strcmp(label, "print") == 0 && !print_appended)
+    {
+        append_string(result_functions_code, PRINT_FUNC);
+        print_appended = true;
+    }
+    else if (strcmp(label, "substr") == 0 && !substr_appended)
+    {
+        append_string(result_functions_code, SUBSTR_FUNC);
+        substr_appended = true;
+    }
+    else if (strcmp(label, "ord") == 0 && !ord_appended)
+    {
+        append_string(result_functions_code, ORD_FUNC);
+        ord_appended = true;
+    }
+    else if (strcmp(label, "chr") == 0 && !chr_appended)
+    {
+        append_string(result_functions_code, CHR_FUNC);
+        chr_appended = true;
+    }
+
+    if (!createframe_written)
+    {
+        write_createframe();
+        createframe_written = false;
+    }
+
+    append_string(CURRENT_BLOCK, "CALL ");
+    append_string(CURRENT_BLOCK, label);
+    append_string(CURRENT_BLOCK, "\n");
+
+    //switch_frame(LOCAL_FRAME);
+    //CURRENT_BLOCK = result_main_function_code;
+
+    switch_frame(GLOBAL_FRAME);
+
+    param_counter = 0;
 }
 
 //******************************************************************************************//
@@ -774,13 +764,14 @@ void write_convert_type(Token *token, char *frame_str, e_type destType)
     else if (destType == INT)
     {
         write_label(iflabel_float->str);
-        append_string(CURRENT_BLOCK, "FLOAT2INT ");
-        write_symbol(token, frame_str, true);
-        append_string(CURRENT_BLOCK, "$tmp$");
-        append_string(CURRENT_BLOCK, tmp_var_id);
-        append_string(CURRENT_BLOCK, " ");
-        write_symbol(token, frame_str, true);
-        append_string(CURRENT_BLOCK, "\n");
+        append_string(CURRENT_BLOCK, "EXIT int@4\n");
+        // append_string(CURRENT_BLOCK, "FLOAT2INT ");
+        // write_symbol(token, frame_str, true);
+        // append_string(CURRENT_BLOCK, "$tmp$");
+        // append_string(CURRENT_BLOCK, tmp_var_id);
+        // append_string(CURRENT_BLOCK, " ");
+        // write_symbol(token, frame_str, true);
+        // append_string(CURRENT_BLOCK, "\n");
         write_label(iflabel_int->str);
     }
 

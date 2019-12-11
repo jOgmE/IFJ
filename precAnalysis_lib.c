@@ -18,7 +18,7 @@ int megaError ( Token *curToken )
 
 Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 {
-	if (decode(input1->type)==17) return input1;	// nic neprovedeno
+	if (decode(input1->type)==18) return input1;	// nic neprovedeno
 
 	int tFlag = (input2 != NULL);	
 
@@ -29,8 +29,7 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 
 	
 	
-	Token *curToken = init_token();	
-	curToken = input1;
+	Token *curToken = input1;	
 
 	int isFin = 0;
 	int tempInt = 0;
@@ -40,7 +39,7 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 		// F L U S H
 		if (kill_after_analysis == true) {
 			
-			while (decode(curToken->type)!=17)
+			while (decode(curToken->type)!=18)
 			{
 				if (tFlag) { 
 					curToken = input2; tFlag = 0;
@@ -87,6 +86,12 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 					kill_after_analysis = true;
 					global_error_code = SYNTAX_ANALYSIS_ERROR;	
 				};	// <- tady je moloch
+				break;
+
+			case '4':
+				kill_after_analysis = true;
+				global_error_code = SEMANTIC_RUNTIME_ERROR;
+				print_compile_error(SEMANTIC_RUNTIME_ERROR, ERROR, line_count, "Neplatny vyraz.");
 				break;
 
 			// kdyby scanner narazil na token mimo rozsah PA, je interpretovan jako '$', ktery ma sve ']'

@@ -5,7 +5,7 @@ SRC=$(wildcard *.c)
 PROJ=ifj19
 
 all: $(SRC)
-	$(CC) $(CFLAGS) $^ -o $(PROJ)
+	$(CC) $(CFLAGS) $^ -o $(PROJ) -lm
 
 clean:
 	rm $(PROJ)
