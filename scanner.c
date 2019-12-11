@@ -77,6 +77,7 @@ Token *getToken()
             //it's an error
             if(our_string){
                 free_cstring(our_string);
+                print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "String was incorrectly ended before EOF"); //!hojkas translate pls here :wowMan
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
                 kill_after_analysis = true;
                 return NULL;
@@ -238,6 +239,7 @@ Token *getToken()
                 //the program cannot get here
             }
             //error
+            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Unexpected character"); //!hojkas translate pls here :wowMan
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 			kill_after_analysis = true;
             return NULL;
@@ -258,6 +260,7 @@ Token *getToken()
             //error
             free_cstring(our_string);
             indentStackDestroy(stack);
+            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Unexpected character"); //!hojkas translate pls here :wowMan
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 			kill_after_analysis = true;
             return NULL;
@@ -282,6 +285,7 @@ Token *getToken()
             //error
             free_cstring(our_string);
             indentStackDestroy(stack);
+            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Unexpected character"); //!hojkas translate pls here :wowMan
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 			kill_after_analysis = true;
             return NULL;
@@ -293,6 +297,7 @@ Token *getToken()
             } //"
             //error
             indentStackDestroy(stack);
+            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Unexpected character"); //!hojkas translate pls here :wowMan
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 			kill_after_analysis = true;
             return NULL;
@@ -311,6 +316,7 @@ Token *getToken()
             } //"
             //error
             indentStackDestroy(stack);
+            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Unexpected character"); //!hojkas translate pls here :wowMan
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 	        kill_after_analysis = true;
             return NULL;
@@ -318,6 +324,7 @@ Token *getToken()
             if (c == EOF){
                 indentStackDestroy(stack);
                 free_cstring(our_string);
+                print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "String was incorrectly ended before EOF"); //!hojkas translate pls here :wowMan
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
 		        kill_after_analysis = true;
                 return NULL;
@@ -338,6 +345,7 @@ Token *getToken()
             if (c == EOF){
                 indentStackDestroy(stack);
                 free_cstring(our_string);
+                print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "String was incorrectly ended before EOF"); //!hojkas translate pls here :wowMan
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
 				kill_after_analysis = true;
                 return NULL;
@@ -355,6 +363,7 @@ Token *getToken()
             {
                 indentStackDestroy(stack);
                 free_cstring(our_string);
+                print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "String was incorrectly ended before EOF"); //!hojkas translate pls here :wowMan
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
 				kill_after_analysis = true;
                 return NULL;
@@ -386,6 +395,7 @@ Token *getToken()
                 break;
             } //=
             indentStackDestroy(stack);
+            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Unexpected character"); //!hojkas translate pls here :wowMan
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 			kill_after_analysis = true;
             return NULL;
@@ -398,6 +408,7 @@ Token *getToken()
             }
             free_cstring(our_string);
             indentStackDestroy(stack);
+            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Unexpected character"); //!hojkas translate pls here :wowMan
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 			kill_after_analysis = true;
             return NULL;
@@ -410,6 +421,7 @@ Token *getToken()
             }
             free_cstring(our_string);
             indentStackDestroy(stack);
+            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Unexpected character"); //!hojkas translate pls here :wowMan
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 			kill_after_analysis = true;
             return NULL;
@@ -435,6 +447,7 @@ Token *getToken()
                     //error - wrong hexa value
                     free_cstring(our_string);
                     indentStackDestroy(stack);
+                    print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "The given hexadecimal value of the escape character is incorrect."); //!hojkas translate pls here :wowMan
                     global_error_code = LEXICAL_ANALYSIS_ERROR;
 			        kill_after_analysis = true;
                     return NULL;
@@ -505,6 +518,7 @@ Token *getToken()
                     {
                         //error
                         indentStackDestroy(stack);
+                        print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Wrong dedent"); o/!hojkas translate pls here :wowMan
                         global_error_code = LEXICAL_ANALYSIS_ERROR;
                         return NULL;
                     }
