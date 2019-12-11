@@ -1,21 +1,3 @@
 def id (a) :
   pass
-id(None)
-a = 5
-print(a)
-print(None)
-
-def fce () :
-  a = 5
-  b = 3
-  return a + b
-  return None
-
-def fce2 () :
-  a = 5
-  b = 3
-
-def fce3 () :
-  a = 5
-  b = 3
-  return None
+if :
