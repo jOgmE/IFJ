@@ -18,7 +18,7 @@
 #include "parser.h"
 
 //TODO delete, just for debug
-#include "tests/hojkas/st_debug.c"
+//#include "tests/hojkas/st_debug.c"
 
 Token *curr_token = NULL;
 Token *last_token = NULL;
@@ -1493,24 +1493,9 @@ void parser_do_magic()
    if(global_error_code != SUCCESS) return;
 
    //TODO delete this (but keep prog() calling)
-   bool overall = prog();
+   if(!prog()) kill_after_analysis = true;
+
    global_check_def();
-   printf("______________________________________\n");
-   print_all_ac_by_f(true);
-   printf("_______________________________________\n");
-   printf("Analysis complete?      ");
-   if(overall) printf("YES\n");
-   else printf("NO\n");
-   printf("Kill after analysis?    ");
-   if(kill_after_analysis) printf("YES\n");
-   else printf("NO\n");
-   printf("Analysis without error?");
-   if(global_error_code == 0) printf(" YES\n");
-   else printf(" ERROR n. %d\n", global_error_code);
-
-
-   //TODO
-   //prohledat tabulku, jestli v ni nezbylo neco nedef -> fce v symtable
 
    //ukonci tabulky
    clean_all_symtables();
