@@ -36,9 +36,15 @@ extern size_t line_count;
 unsigned hashCode(cstring *key)
 {
   //TODO lepší funkci!!! a případně jak to vyřešit, když se to yoinkne?
-  const char *str = get_cstring_string(key);
+  /*const char *str = get_cstring_string(key);
   unsigned res = 523*strlen(str) + 409*str[0];
-  return res;
+  return res;*/
+  char* key = get_cstring_string(str);
+  int retval = 1;
+	int keylen = strlen(key);
+	for ( int i=0; i<keylen; i++ )
+		retval += key[i];
+	return retval;
 
   /*
   //Licence: žádná (Public Domain)
