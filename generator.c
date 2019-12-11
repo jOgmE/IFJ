@@ -392,7 +392,7 @@ void write_label(char *label)
     }
     else
     {
-        append_string(CURRENT_BLOCK, "EXIT 3");
+        append_string(CURRENT_BLOCK, "EXIT int@3");
         return;
     }
 
@@ -682,7 +682,7 @@ void write_call(char *label)
         }
         else
         {
-            append_string(CURRENT_BLOCK, "EXIT 3");
+            append_string(CURRENT_BLOCK, "EXIT int@3");
 
             cstring *error_string = init_cstring("Funkce ");
 
@@ -788,13 +788,14 @@ void write_convert_type(Token *token, char *frame_str, e_type destType)
     else if (destType == INT)
     {
         write_label(iflabel_float->str);
-        append_string(CURRENT_BLOCK, "FLOAT2INT ");
-        write_symbol(token, frame_str, true);
-        append_string(CURRENT_BLOCK, "$tmp$");
-        append_string(CURRENT_BLOCK, tmp_var_id);
-        append_string(CURRENT_BLOCK, " ");
-        write_symbol(token, frame_str, true);
-        append_string(CURRENT_BLOCK, "\n");
+        append_string(CURRENT_BLOCK, "EXIT int@4\n");
+        // append_string(CURRENT_BLOCK, "FLOAT2INT ");
+        // write_symbol(token, frame_str, true);
+        // append_string(CURRENT_BLOCK, "$tmp$");
+        // append_string(CURRENT_BLOCK, tmp_var_id);
+        // append_string(CURRENT_BLOCK, " ");
+        // write_symbol(token, frame_str, true);
+        // append_string(CURRENT_BLOCK, "\n");
         write_label(iflabel_int->str);
     }
 
