@@ -61,6 +61,8 @@
 //#define F21 32
 #define F22 33
 #define F23 34
+//I am using F24 in the diagram for one-char operators
+//but in the implementation it is ended from the state S
 //#define F24 35
 //#define F25 38
 //the last number is 39 - Q13

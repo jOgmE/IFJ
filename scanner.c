@@ -554,9 +554,7 @@ Token *getToken()
             return token;
         case F4:
             //pre -> our_string != NULL
-            if (isIdNameStart(c) || is09num(c))
-            {
-                present_state = F4;
+            if (isIdNameStart(c) || is09num(c)){
                 append_char(our_string, c); //adding char to string
                 break;
             }
