@@ -38,6 +38,7 @@ int main(int argc, char const *argv[])
     }
 
     free_gen();
+    destroyACList();
 
     return global_error_code;
 }
