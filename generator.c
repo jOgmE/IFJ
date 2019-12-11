@@ -787,13 +787,13 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
 
     char *tmp_var_id = convert_int_to_string((int)tmp_var_counter);
 
-    if (op1->type == ID)
+    if (op1->type == ID || op1->type == TEMP_ID)
     {
         write_convert_type(op1, op1_frame_str, arithmetic_type);
         op1_converted = true;
     }
 
-    if (op2->type == ID)
+    if (op2->type == ID || op2->type == TEMP_ID)
     {
         write_convert_type(op2, op2_frame_str, arithmetic_type);
         op2_converted = true;
@@ -1032,13 +1032,13 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
         change_token_types(op2, arithmetic_type);
     }
 
-    if (op1->type == ID)
+    if (op1->type == ID || op1->type == TEMP_ID)
     {
         write_convert_type(op1, op1_frame_str, arithmetic_type);
         op1_converted = true;
     }
 
-    if (op2->type == ID)
+    if (op2->type == ID || op2->type == TEMP_ID)
     {
         write_convert_type(op2, op2_frame_str, arithmetic_type);
         op2_converted = true;
