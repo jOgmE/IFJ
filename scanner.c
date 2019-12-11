@@ -77,7 +77,7 @@ Token *getToken()
             //it's an error
             if(our_string){
                 free_cstring(our_string);
-                print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Retezec nebyl korektne ukoncen pred EOF (nenalezen znak konce stringu)"); //!hojkas translate pls here :wowMan
+                print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Retezec nebyl korektne ukoncen pred EOF (nenalezen znak konce stringu)");
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
                 kill_after_analysis = true;
                 return NULL;
@@ -133,7 +133,7 @@ Token *getToken()
             {
                 if ((our_string = init_cstring_size(256)) == NULL)
                 {
-                    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Chyba alokace pameti"); //!hojkas translate pls here :wowMan
+                    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Chyba alokace pameti");
                     global_error_code = INTERNAL_ERROR;
 		    		kill_after_analysis = true;
                     return NULL;
@@ -153,7 +153,7 @@ Token *getToken()
             {
                 if ((our_string = init_cstring_size(32)) == NULL)
                 {
-                    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Chyba alokace pameti."); //!hojkas translate pls here :wowMan
+                    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Chyba alokace pameti.");
                     global_error_code = INTERNAL_ERROR;
 					kill_after_analysis = true;
                     return NULL;
@@ -167,7 +167,7 @@ Token *getToken()
             {
                 if ((our_string = init_cstring_size(256)) == NULL)
                 {
-                    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Chyba alokace pameti."); //!hojkas translate pls here :wowMan
+                    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Chyba alokace pameti.");
                     global_error_code = INTERNAL_ERROR;
 					kill_after_analysis = true;
                     return NULL;
@@ -225,7 +225,7 @@ Token *getToken()
                 scanner_first_token = false;
                 if ((our_string = init_cstring_size(2)) == NULL)
                 {
-                    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Chyba alokace pameti."); //!hojkas translate pls here :wowMan
+                    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Chyba alokace pameti.");
                     global_error_code = INTERNAL_ERROR;
 					kill_after_analysis = true;
                     return NULL; //wihtout \0
@@ -243,7 +243,7 @@ Token *getToken()
                 //the program cannot get here
             }
             //error
-            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Neocekavany znak"); //!hojkas translate pls here :wowMan
+            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Neocekavany znak");
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 			kill_after_analysis = true;
             return NULL;
@@ -264,7 +264,7 @@ Token *getToken()
             //error
             free_cstring(our_string);
             indentStackDestroy(stack);
-            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Neocekavany znak"); //!hojkas translate pls here :wowMan
+            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Neocekavany znak");
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 			kill_after_analysis = true;
             return NULL;
@@ -289,7 +289,7 @@ Token *getToken()
             //error
             free_cstring(our_string);
             indentStackDestroy(stack);
-            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Neocekavany znak"); //!hojkas translate pls here :wowMan
+            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Neocekavany znak");
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 			kill_after_analysis = true;
             return NULL;
@@ -301,7 +301,7 @@ Token *getToken()
             } //"
             //error
             indentStackDestroy(stack);
-            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Neocekavany znak"); //!hojkas translate pls here :wowMan
+            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Neocekavany znak");
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 			kill_after_analysis = true;
             return NULL;
@@ -311,7 +311,7 @@ Token *getToken()
                 //initializing ourstring for the docstring
                 if ((our_string = init_cstring_size(256)) == NULL)
                 {
-                    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Chyba alokace pameti"); //!hojkas translate pls here :wowMan
+                    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Chyba alokace pameti");
                     global_error_code = INTERNAL_ERROR;
 					kill_after_analysis = true;
                     return NULL;
@@ -321,7 +321,7 @@ Token *getToken()
             } //"
             //error
             indentStackDestroy(stack);
-            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Neocekavany znak"); //!hojkas translate pls here :wowMan
+            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Neocekavany znak");
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 	        kill_after_analysis = true;
             return NULL;
@@ -329,7 +329,7 @@ Token *getToken()
             if (c == EOF){
                 indentStackDestroy(stack);
                 free_cstring(our_string);
-                print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Retezec nebyl před EOL radne ukoncen."); //!hojkas translate pls here :wowMan
+                print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Retezec nebyl před EOL radne ukoncen.");
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
 		        kill_after_analysis = true;
                 return NULL;
@@ -350,7 +350,7 @@ Token *getToken()
             if (c == EOF){
                 indentStackDestroy(stack);
                 free_cstring(our_string);
-                print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Retezec nebyl před EOL radne ukoncen"); //!hojkas translate pls here :wowMan
+                print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Retezec nebyl před EOL radne ukoncen");
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
 				kill_after_analysis = true;
                 return NULL;
@@ -368,7 +368,7 @@ Token *getToken()
             {
                 indentStackDestroy(stack);
                 free_cstring(our_string);
-                print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Retezec nebyl před EOL radne ukoncen"); //!hojkas translate pls here :wowMan
+                print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Retezec nebyl před EOL radne ukoncen");
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
 				kill_after_analysis = true;
                 return NULL;
@@ -400,7 +400,7 @@ Token *getToken()
                 break;
             } //=
             indentStackDestroy(stack);
-            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Neocekavany znak"); //!hojkas translate pls here :wowMan
+            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Neocekavany znak");
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 			kill_after_analysis = true;
             return NULL;
@@ -413,7 +413,7 @@ Token *getToken()
             }
             free_cstring(our_string);
             indentStackDestroy(stack);
-            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Neocekavany znak"); //!hojkas translate pls here :wowMan
+            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Neocekavany znak");
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 			kill_after_analysis = true;
             return NULL;
@@ -426,7 +426,7 @@ Token *getToken()
             }
             free_cstring(our_string);
             indentStackDestroy(stack);
-            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Neocekavany znak"); //!hojkas translate pls here :wowMan
+            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Neocekavany znak");
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 			kill_after_analysis = true;
             return NULL;
@@ -452,7 +452,7 @@ Token *getToken()
                     //error - wrong hexa value
                     free_cstring(our_string);
                     indentStackDestroy(stack);
-                    print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Po escape sekvenci znacici hexadecimalni zapis nebylo korektni hexadecimalni cislo."); //!hojkas translate pls here :wowMan
+                    print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Po escape sekvenci znacici hexadecimalni zapis nebylo korektni hexadecimalni cislo.");
                     global_error_code = LEXICAL_ANALYSIS_ERROR;
 			        kill_after_analysis = true;
                     return NULL;
@@ -523,7 +523,7 @@ Token *getToken()
                     {
                         //error
                         indentStackDestroy(stack);
-                        print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Spatny dedent"); //!hojkas translate pls here :wowMan
+                        print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Spatny dedent");
                         global_error_code = LEXICAL_ANALYSIS_ERROR;
                         return NULL;
                     }
@@ -549,7 +549,7 @@ Token *getToken()
                         {
                             //error
                             indentStackDestroy(stack);
-                            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Chyba kvuli indentaci"); //!hojkas translate pls here :wowMan
+                            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Chyba kvuli indentaci");
                             global_error_code = LEXICAL_ANALYSIS_ERROR;
                             return NULL;
                         }
@@ -666,7 +666,7 @@ Token *getToken()
             if(c == 46){ //.
                 if ((our_string = init_cstring_size(256)) == NULL)
                 {
-                    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Chyba alokace pameti."); //!hojkas translate pls here :wowMan
+                    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Chyba alokace pameti.");
                     global_error_code = INTERNAL_ERROR;
 					kill_after_analysis = true;
                     return NULL;
@@ -681,7 +681,7 @@ Token *getToken()
             {
                 //error
                 indentStackDestroy(stack);
-                print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Desetinne cislo nesmi zacinat 0 (nejde-li primo o 0) a nesmi obsahovat jine znaky krom cislic (a krom . a E na oznaceni desetinne casti/exponentu)."); //!hojkas translate pls here :wowMan
+                print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Desetinne cislo nesmi zacinat 0 (nejde-li primo o 0) a nesmi obsahovat jine znaky krom cislic (a krom . a E na oznaceni desetinne casti/exponentu).");
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
 				kill_after_analysis = true;
                 return NULL;
@@ -764,7 +764,7 @@ Token *getToken()
             //cases F24-25 moved to S
         }
     }
-    print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Neocekavany znak"); //!hojkas translate pls here :wowMan
+    print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Neocekavany znak");   
     global_error_code = LEXICAL_ANALYSIS_ERROR;
 	kill_after_analysis = true;
     return NULL; //only for compiling NOT SURE for this line tbh
@@ -775,7 +775,7 @@ int cstrToInt(cstring *our_string, Token *token)
     int tmp;
     if (sscanf(get_cstring_string(our_string), "%i", &tmp) == EOF)
     {
-        print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Neco se pokazilo pri prevodu cisla."); //!hojkas translate pls here :wowMan
+        print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Neco se pokazilo pri prevodu cisla.");
         global_error_code = INTERNAL_ERROR;
 		kill_after_analysis = true;
         return INTERNAL_ERROR;
@@ -791,7 +791,7 @@ int cstrToDec(cstring *our_string, Token *token)
     double tmp;
     if (sscanf(get_cstring_string(our_string), "%lf", &tmp) == EOF)
     {
-        print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Neco se pokazilo pri prevodu cisla."); //!hojkas translate pls here :wowMan
+        print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Neco se pokazilo pri prevodu cisla.");
         global_error_code = INTERNAL_ERROR;
 		kill_after_analysis = true;
         return INTERNAL_ERROR;
