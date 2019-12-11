@@ -19,7 +19,7 @@
 **/*.py
 tests/hojkas/input
 input
-printTable.c
+printTable
 print
 table_chars
 table_chars.csv
