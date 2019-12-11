@@ -676,7 +676,7 @@ void write_convert_type(Token *token, char *frame_str, e_type destType)
 
     append_string(CURRENT_BLOCK, "DEFVAR ");
     write_symbol(token, frame_str, true);
-    append_string(CURRENT_BLOCK, "$type$s");
+    append_string(CURRENT_BLOCK, "$type$");
     append_string(CURRENT_BLOCK, tmp_var_id);
     append_string(CURRENT_BLOCK, "\n");
 
