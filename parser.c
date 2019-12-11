@@ -95,7 +95,8 @@ cstring* create_label(label_enum type, int number)
       str = init_cstring(num);
       break;
     default:
-      fprintf(stderr, "[hojkas] vytvareni labelu pro neexistujici hodnotu, bad hojkas\n");
+      fprintf(stderr, "[hojkas] Vytvareni labelu pro neexistujici hodnotu, interní chyba konstrukce programu.\n");
+      if(global_error_code == SUCCESS) global_error_code = INTERNAL_ERROR;
       break;
   }
   return str;
@@ -274,11 +275,9 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
       if(flush_until(RPA) == false) return false;
       goto PBWD_r2rp1;
     PBWD_r2e1:
-      //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"def id ( parametrs ) : EOL\".\n");
       if(flush_until(EOL) == false) return false;
       goto PBWD_r2rp2;
     PBWD_r2e2:
-      //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"indent program_body_with_definition dedent\".\n");
       go_in_global();
       can_continue = flush_until(DEDENT);
       return can_continue;
@@ -297,13 +296,10 @@ bool prog_body_with_def() //---PROG_BODY_WITH_DEF---
 
     //ERROR
     PBWD_r3e1:
-      //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"EOL more_EOL program_body_with_definitions\".\n");
       return false;
   }
   else {
-    //sem by se to nemělo při dobré implementaci dostat možná jo, jen jsem stupid
-    /*fprintf(stderr, "[hojkas] parser.c: prog_body_with_def(): skoncilo v zakazanem stavu\n");*/
-    syntax_err("Placeholder: Token ", " nebyl okay.");
+    syntax_err("Do pravidla program_body_with_def prisel nevhodny token ( ", " ).");
     return false;
   }
 }
@@ -333,14 +329,10 @@ bool non_empty_prog_body() //---NON EMPTY PROGRAM BODY---
 
     //ERROR
     NEPB_r1e1:
-      //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"more_EOL command EOL more_EOL program_body\".\n");
       return false;
   }
   else {
-    //sem by se to nemělo při dobré implementaci dostat
-    /*fprintf(stderr, "[hojkas] parser.c: non_empty_prog_body(): skoncilo v zakazanem stavu\n");
-    */
-    syntax_err("Placeholder: Token ", " nebyl okay.");
+    syntax_err("Do pravidla non_empty_prog_body prisel nevhodny token ( ", " ).");
     return false;
   }
 }
@@ -367,7 +359,6 @@ bool prog_body() //---PROG_BODY---
 
     //ERROR
     PB_r1e1:
-      //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"command EOL more_EOL program_body\".\n");
       return false;
   }
   else if(Tis(DEDENT)) {
@@ -376,9 +367,7 @@ bool prog_body() //---PROG_BODY---
     return true;
   }
   else {
-    //sem by se to nemělo při dobré implementaci dostat
-    /*fprintf(stderr, "[hojkas] parser.c: prog_body(): skoncilo v zakazanem stavu\n");*/
-    syntax_err("Placeholder: prog_body: Token ", " nebyl okay.");
+    syntax_err("Do pravidla prog_body prisel nevhodny token ( ", " ).");
     return false;
   }
 }
@@ -475,7 +464,6 @@ bool command() //---COMMAND---
 
     return true;
     C_r2e1:
-      //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"return expr\".\n");
       if(flush_until(EOL) == false) return false;
       goto C_r2rp1;
     C_r2e2:
@@ -610,7 +598,6 @@ bool command() //---COMMAND---
   }
   else if(Tis(IF)) {
     //c -> if se : eol indent nepb dedent else : EOL indent nepb dedent
-    //TODO uplne chybi 3ac veci
     //if don't need to check
     free_token(curr_token);
     curr_token = getToken();
@@ -784,9 +771,17 @@ bool command() //---COMMAND---
     //poslat analzye EOL mEOL
 
     //jista analyza, just send it
-    //TODO mozna dat dalsi parametr, aby nic negeneroval?
+    //dat dalsi parametr, aby nic negeneroval
+    //vytvori cond token pro vysledek SA
+    Token *ret_id = NULL;
+    if(!kill_after_analysis) {
+      ret_id = init_token();
+      add_temp_id(ret_id, init_cstring("ret_id"));
+      heavy_check(C_r5e1); //jen alloc_check
+    }
+
     //neresim res, to by nemelo spadnout, nepotrebuji zadny 3ac
-    curr_token = expressionAnalysis(curr_token, NULL, NULL);
+    curr_token = expressionAnalysis(curr_token, NULL, ret_id);
     heavy_check(C_r5e1);
 
     C_r5rp1:
@@ -809,7 +804,6 @@ bool command() //---COMMAND---
       return false;
   }
   else if(Tis(ID)) {
-    //TODO, 3AC
     //id not_sure1 eol meol
     //ulozim token s id, protoze nevim, jestli je to id funkce nebo normalni
     last_token = curr_token;
@@ -842,9 +836,7 @@ bool command() //---COMMAND---
       return false;
   }
   else {
-    //sem by se to nemělo při dobré implementaci dostat
-    /*fprintf(stderr, "[hojkas] parser.c: command(): skoncilo v zakazanem stavu\n");*/
-    syntax_err("Placeholder: command: Token ", " nebyl okay.");
+    syntax_err("Do pravidla command prisel nevhodny token ( ", " ).");
     return false;
   }
 
@@ -873,7 +865,6 @@ bool param_list(int* param_count, bool in_def) //---PARAM_LIST----
 
     //ERROR
     PL_r1e1:
-      //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \"item more_params\".\n");
       return false;
   }
   else if(Tis(RPA)) {
@@ -882,9 +873,7 @@ bool param_list(int* param_count, bool in_def) //---PARAM_LIST----
     return true;
   }
   else {
-    //sem by se to nemělo při dobré implementaci dostat
-    /*fprintf(stderr, "[hojkas] parser.c: param_list(): skoncilo v zakazanem stavu\n");*/
-    syntax_err("Placeholder: param_list: Token ", " nebyl okay.");
+    syntax_err("Do pravidla param_list prisel nevhodny token ( ", " ).");
     return false;
   }
 }
@@ -918,7 +907,6 @@ bool more_params(int* param_count, bool in_def) //---MORE_PARAMS---
 
     //ERROR
     MP_r1e1:
-      //syntax_err("Nevhodny token (", ") v danem kontextu. Ocekavana skladba \", item more_params\".\n");
       return false;
   }
   else if(Tis(RPA)) {
@@ -927,8 +915,7 @@ bool more_params(int* param_count, bool in_def) //---MORE_PARAMS---
     return true;
   }
   else {
-    /*fprintf(stderr, "[hojkas] parser.c: more_params(): skoncilo v zakazanem stavu\n");*/
-    syntax_err("Placeholder: more_params: Token ", " nebyl okay.");
+    syntax_err("Do pravidla more_params prisel nevhodny token ( ", " ).");
     return false;
   }
 }
@@ -971,7 +958,7 @@ bool print_param_list() //---PRINT_PARAM_LIST----
     return true;
   }
   else {
-    syntax_err("Placeholder: print_param_list: Token ", " nebyl okay.");
+    syntax_err("Do pravidla print_param_list prisel nevhodny token ( ", " ).");
     return false;
   }
 }
@@ -1020,7 +1007,7 @@ bool print_more_params() //---PRINT_MORE_PARAMS---
     return true;
   }
   else {
-    syntax_err("Placeholder: print_smore_params: Token ", " nebyl okay.");
+    syntax_err("Do pravidla print_more_params prisel nevhodny token ( ", " ).");;
     return false;
   }
 }
@@ -1059,9 +1046,7 @@ bool more_EOL() //---MORE_EOL---
     return true;
   }
   else {
-    //sem by se to nemělo při dobré implementaci dostat
-    /*fprintf(stderr, "[hojkas] parser.c: more_EOL(): skoncilo v zakazanem stavu\n");*/
-    syntax_err("Placeholder: more_eol: Token ", " nebyl okay.");
+    syntax_err("Do pravidla more_EOL prisel nevhodny token ( ", " ).");
     return false;
   }
 }
@@ -1166,7 +1151,7 @@ bool not_sure1()
   }
   else {
     //token, co nenalezi zadnemu moznemu pravidlu
-    syntax_err("Placeholder: not_sure1: Token ", " nebyl ok.");
+    syntax_err("Do pravidla not_sure1 prisel nevhodny token ( ", " ).");
     return false;
   }
 }
@@ -1216,7 +1201,7 @@ bool not_sure2()
   }
   else {
     //token, co nenalezi zadnemu moznemu pravidlu
-    syntax_err("Placeholder: not_sure2: Token ", " nebyl ok.");
+    syntax_err("Do pravidla not_sure2 prisel nevhodny token ( ", " ).");
     return false;
   }
 }
@@ -1258,7 +1243,6 @@ bool not_sure3()
     heavy_check(NS3_r1e1);
 
     if(is_print) {
-      //TODO ma se nejak resit ret value?
       //tu jsme v "a = print()"
       free_token(last_token);
     }
@@ -1346,7 +1330,7 @@ bool not_sure3()
   }
   else {
     //token, co nenalezi zadnemu moznemu pravidlu
-    syntax_err("Placeholder: not_sure3: Token ", " nebyl ok.");
+    syntax_err("Do pravidla not_sure3 prisel nevhodny token ( ", " ).");
     return false;
   }
 }
@@ -1358,7 +1342,7 @@ bool param_item(bool in_def)
   bool can_continue = true;
   if(Tis(INT) || Tis(DEC) || Tis(STR) || Tis(ID) || Tis(NONE)) {
     if(Tis(NONE) && in_def == true) {
-      syntax_err("Placeholder: param_item: None (",") nemuze byt v definici funkce");
+      syntax_err("None (",") nemuze byt v definici funkce");
     }
     if(Tis(ID)) {
       work_out_val_id(curr_token, in_def);
@@ -1377,7 +1361,7 @@ bool param_item(bool in_def)
   }
   else {
     /*fprintf(stderr, "[hojkas] parser.c: param_item(): skoncilo v zakazanem stavu\n");*/
-    syntax_err("Placeholder: param_item: Token ", " nebyl okay.");
+    syntax_err("Do pravidla param_item prisel nevhodny token ( ", " ).");
     return false;
   }
 }
@@ -1430,7 +1414,6 @@ void parser_do_magic()
    curr_token = getToken();
    if(global_error_code != SUCCESS) return;
 
-   //TODO delete this (but keep prog() calling)
    if(!prog()) kill_after_analysis = true;
 
    global_check_def();
@@ -1543,7 +1526,7 @@ void parser_do_magic()
          fprintf(stderr, "WHILE");
          break;
        default:
-         fprintf(stderr, "other (DOCS or TEMP_ID or some shit)");
+         fprintf(stderr, "other (DOCS or TEMP_ID or something else)");
          break;
      }
  }
