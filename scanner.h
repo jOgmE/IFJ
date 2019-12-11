@@ -13,7 +13,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-//#include <math.h>
+#include <math.h>
 #include "token.h"
 #include "indent_stack.h"
 #include "dynamic_string.h"

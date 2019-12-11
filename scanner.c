@@ -9,7 +9,7 @@
  */
 
 #include "scanner.h"
-#include <math.h>
+
 size_t line_count = 1;
 
 static bool scanner_first_token = true; //first token being readed

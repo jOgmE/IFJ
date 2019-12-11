@@ -235,9 +235,9 @@ Token *copy_token(Token *token);
  * @param size The size of the array
  * @return on success returns a pointer to the array, otherwise NULL
  */
-Token **initTokenArr(size_t size);
+//Token **initTokenArr(size_t size);
 
-int reallocTokenArr(Token **token_arr, size_t oldSize, size_t newSize);
+//int reallocTokenArr(Token **token_arr, size_t oldSize, size_t newSize);
 
 /* Destructing/Deleting the token array.
  *
@@ -246,8 +246,8 @@ int reallocTokenArr(Token **token_arr, size_t oldSize, size_t newSize);
  * @param token_arr The token array to be deleted
  * @return 0 on success, otherwise -1
  */
-void destrTokenArr(Token **token_arr);
+//void destrTokenArr(Token **token_arr);
 
-void freeTokenArr(Token **token_arr, size_t size);
+//void freeTokenArr(Token **token_arr, size_t size);
 
 #endif /*_TOKEN_*/
