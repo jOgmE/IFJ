@@ -42,7 +42,7 @@ convert op_conv[] = {
 Token *init_token(){
     Token *tmp = (Token*)calloc(1, sizeof(Token)); //if error, this will be NULL
     if(!tmp){
-        print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Cannot allocate memory"); //!hojkas translate pls here :wowMan
+        print_internal_error(INTERNAL_ERROR, ERROR, "Cannot allocate memory"); //!hojkas translate pls here :wowMan
         global_error_code = INTERNAL_ERROR;
         return NULL;
     }
@@ -104,7 +104,7 @@ int getIntValue(Token *token, int *num){
         *num = token->i;
         return 0;
     }
-    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "This function caller want to read different Token than Int"); //!hojkas translate pls here :wowMan
+    print_internal_error(INTERNAL_ERROR, ERROR, "This function caller wans to read different Token than Int"); //!hojkas translate pls here :wowMan
     global_error_code = INTERNAL_ERROR;
     return -1;
 }
@@ -114,7 +114,7 @@ int getDecValue(Token *token, double *num){
         *num = token->dec;
         return 0;
     }
-    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "This function caller want to read different Token than floating point number"); //!hojkas translate pls here :wowMan
+    print_internal_error(INTERNAL_ERROR, ERROR, "This function caller wans to read different Token than floating point number"); //!hojkas translate pls here :wowMan
     global_error_code = INTERNAL_ERROR;
     return -1;
 }
@@ -123,7 +123,7 @@ cstring *getTokenStrValue(Token *token){
     if(getTokenType(token) == STR || getTokenType(token) == ID){
         return token->str;
     }
-    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "This function caller want to read different Token than string"); //!hojkas translate pls here :wowMan
+    print_internal_error(INTERNAL_ERROR, ERROR, "This function caller wans to read different Token than string"); //!hojkas translate pls here :wowMan
     global_error_code = INTERNAL_ERROR;
     return NULL;
 }
