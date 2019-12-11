@@ -320,6 +320,9 @@ void write_symbol_type(Token *symb, bool skip_space)
         append_string(CURRENT_BLOCK, "string@");
         append_string(CURRENT_BLOCK, convert_string(symb->str->str));
         break;
+    case NONE:
+        append_string(CURRENT_BLOCK, "nil@nil");
+        break;
     default:
         break;
     }
@@ -336,7 +339,7 @@ void write_symbol(Token *symb, char *symb_frame, bool skip_space)
     {
         write_symbol_id(symb, symb_frame, skip_space);
     }
-    else if (symb->type >= DEC && symb->type <= STR)
+    else if ((symb->type >= DEC && symb->type <= STR) || symb->type == NONE)
     {
         write_symbol_type(symb, skip_space);
     }
