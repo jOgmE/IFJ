@@ -89,6 +89,12 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 				};	// <- tady je moloch
 				break;
 
+			case '4':
+				kill_after_analysis = true;
+				global_error_code = SEMANTIC_RUNTIME_ERROR;
+				print_compile_error(SEMANTIC_RUNTIME_ERROR, ERROR, line_count, "Neplatny vyraz.");
+				break;
+
 			// kdyby scanner narazil na token mimo rozsah PA, je interpretovan jako '$', ktery ma sve ']'
 			// a tim padem nemusi vylozene prechazet na chybu
 			default:
