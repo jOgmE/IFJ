@@ -736,6 +736,13 @@ void write_convert_type(Token *token, char *frame_str, e_type destType)
         // write_symbol(token, frame_str, true);
         // append_string(CURRENT_BLOCK, "\n");
         write_label(iflabel_int->str);
+        append_string(CURRENT_BLOCK, "MOVE ");
+        write_symbol(token, frame_str, true);
+        append_string(CURRENT_BLOCK, "$tmp$");
+        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, " ");
+        write_symbol(token, frame_str, true);
+        append_string(CURRENT_BLOCK, "\n");
     }
 
     free_cstring(iflabel_float);
