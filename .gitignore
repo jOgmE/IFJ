@@ -19,6 +19,10 @@
 **/*.py
 tests/hojkas/input
 input
+printTable.c
+print
+table_chars
+table_chars.csv
 
 **/*.synctex.gz
 
