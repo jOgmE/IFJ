@@ -244,7 +244,7 @@ void definition_start()
 {
     CURRENT_BLOCK = result_functions_code;
     PREVIOUS_FRAME = CURRENT_FRAME;
-    switch_frame(LOCAL_FRAME);
+    switch_frame(TEMP_FRAME);
     function_definition = true;
 }
 
