@@ -280,7 +280,7 @@ ac_type getACOP ( e_type op )
 }
 
 // provede zpetnou derivaci E->E+E
-int PACodeRule2 ( PAStack *s, Token *E1, Token *op, Token *E2, Token *res, int *tempInt )
+int PACodeRule2 ( PAStack *s, Token *E1, Token *op, Token *E2, int *tempInt )
 {
 	Token *result = init_token();
 	//printf("PRE: E1: %s .. E2: %s\n", get_cstring_string(E1->str), get_cstring_string(E2->str));
@@ -329,7 +329,7 @@ int PACodeRule3 ( PAStack *s )
 
 
 // upravi vrchol zasobniku podle pravidel E->i, E->(E), E->E<OP>E
-int PAApplyRule ( PAStack *s, Token *res, int *tempInt)
+int PAApplyRule ( PAStack *s, int *tempInt)
 {
 	PAStackElem* tempStack[4];
 	int i = 0;
@@ -377,7 +377,7 @@ int PAApplyRule ( PAStack *s, Token *res, int *tempInt)
 			if ( tempStack[1]->c == 'E' && tempStack[2]->c == '+' && tempStack[3]->c == 'E' ) {
 
 				// PROVEDENI E->E+E
-				PACodeRule2(s, tempStack[1]->content, tempStack[2]->content, tempStack[3]->content, res, tempInt);
+				PACodeRule2(s, tempStack[1]->content, tempStack[2]->content, tempStack[3]->content, tempInt);
 				//printf("Rule two.\n");
 				return 0;
 				
@@ -411,7 +411,6 @@ void PAPop ( PAStack *s )
 {
 	if ( s->top == NULL ) return;
 
-	if ( s->top->content != NULL ) free_token(s->top->content);
 	PAStackElem *tmp = s->top;
 	s->top = s->top->belowPtr;
 	free(tmp);
