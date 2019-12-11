@@ -1024,7 +1024,7 @@ void write_div_by_0_check(ac_type div_type, Token *token)
         }
         else
         {
-            append_string(CURRENT_BLOCK, "float@0");
+            append_string(CURRENT_BLOCK, "float@0x0.07ffc00000001p-1022");
         }
 
         append_string(CURRENT_BLOCK, "\n");
