@@ -7,7 +7,7 @@
 
 #include "ifj19.h"
 
-#define DEBUG
+//#define DEBUG
 
 FILE *source_file = NULL;
 
