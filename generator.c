@@ -244,7 +244,7 @@ void definition_start()
 {
     CURRENT_BLOCK = result_functions_code;
     PREVIOUS_FRAME = CURRENT_FRAME;
-    switch_frame(TEMP_FRAME);
+    switch_frame(LOCAL_FRAME);
     function_definition = true;
 }
 
@@ -736,6 +736,13 @@ void write_convert_type(Token *token, char *frame_str, e_type destType)
         // write_symbol(token, frame_str, true);
         // append_string(CURRENT_BLOCK, "\n");
         write_label(iflabel_int->str);
+        append_string(CURRENT_BLOCK, "MOVE ");
+        write_symbol(token, frame_str, true);
+        append_string(CURRENT_BLOCK, "$tmp$");
+        append_string(CURRENT_BLOCK, tmp_var_id);
+        append_string(CURRENT_BLOCK, " ");
+        write_symbol(token, frame_str, true);
+        append_string(CURRENT_BLOCK, "\n");
     }
 
     free_cstring(iflabel_float);
@@ -786,17 +793,21 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
     bool op2_converted = false;
 
     char *tmp_var_id = convert_int_to_string((int)tmp_var_counter);
+    char *tmp_var_id_op1 = tmp_var_id;
+    char *tmp_var_id_op2 = tmp_var_id;
 
     if (op1->type == ID || op1->type == TEMP_ID)
     {
         write_convert_type(op1, op1_frame_str, arithmetic_type);
         op1_converted = true;
+        tmp_var_id_op1 = convert_int_to_string((int)tmp_var_counter - 1);
     }
 
     if (op2->type == ID || op2->type == TEMP_ID)
     {
         write_convert_type(op2, op2_frame_str, arithmetic_type);
         op2_converted = true;
+        tmp_var_id_op2 = convert_int_to_string((int)tmp_var_counter - 1);
     }
 
     if (type == LE || type == GE)
@@ -817,7 +828,7 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
         if (op1_converted)
         {
             append_string(CURRENT_BLOCK, "$tmp$");
-            append_string(CURRENT_BLOCK, tmp_var_id - 1);
+            append_string(CURRENT_BLOCK, tmp_var_id_op1);
             append_string(CURRENT_BLOCK, " ");
         }
         else
@@ -829,7 +840,7 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
         if (op2_converted)
         {
             append_string(CURRENT_BLOCK, "$tmp$");
-            append_string(CURRENT_BLOCK, tmp_var_id - 1);
+            append_string(CURRENT_BLOCK, tmp_var_id_op2);
             append_string(CURRENT_BLOCK, "\n");
         }
         else
@@ -902,7 +913,7 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
     if (op1_converted)
     {
         append_string(CURRENT_BLOCK, "$tmp$");
-        append_string(CURRENT_BLOCK, tmp_var_id - 1);
+        append_string(CURRENT_BLOCK, tmp_var_id_op1);
         append_string(CURRENT_BLOCK, " ");
     }
     else
@@ -915,7 +926,7 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
     if (op2_converted)
     {
         append_string(CURRENT_BLOCK, "$tmp$");
-        append_string(CURRENT_BLOCK, tmp_var_id - 1);
+        append_string(CURRENT_BLOCK, tmp_var_id_op2);
         append_string(CURRENT_BLOCK, " ");
     }
     else
@@ -1010,6 +1021,8 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
     e_type arithmetic_type = INT;
 
     char *tmp_var_id = convert_int_to_string((int)tmp_var_counter);
+    char *tmp_var_id_op1 = tmp_var_id;
+    char *tmp_var_id_op2 = tmp_var_id;
 
     bool op1_converted = false;
     bool op2_converted = false;
@@ -1036,12 +1049,14 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
     {
         write_convert_type(op1, op1_frame_str, arithmetic_type);
         op1_converted = true;
+        tmp_var_id_op1 = convert_int_to_string((int)tmp_var_counter - 1);
     }
 
     if (op2->type == ID || op2->type == TEMP_ID)
     {
         write_convert_type(op2, op2_frame_str, arithmetic_type);
         op2_converted = true;
+        tmp_var_id_op2 = convert_int_to_string((int)tmp_var_counter - 1);
     }
 
     switch (type)
@@ -1084,7 +1099,7 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
     if (op1_converted)
     {
         append_string(CURRENT_BLOCK, "$tmp$");
-        append_string(CURRENT_BLOCK, tmp_var_id - 1);
+        append_string(CURRENT_BLOCK, tmp_var_id_op1);
         append_string(CURRENT_BLOCK, " ");
     }
     else
@@ -1097,7 +1112,7 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
     if (op2_converted)
     {
         append_string(CURRENT_BLOCK, "$tmp$");
-        append_string(CURRENT_BLOCK, tmp_var_id - 1);
+        append_string(CURRENT_BLOCK, tmp_var_id_op2);
         append_string(CURRENT_BLOCK, " ");
     }
     else
