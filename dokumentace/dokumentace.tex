@@ -7,7 +7,17 @@
 \usepackage[utf8]{inputenc}
 \usepackage[IL2]{fontenc}
 \usepackage[left=2cm,top=3cm,text={17cm, 24cm}]{geometry}
+\usepackage{listings}
+\usepackage{pdfpages}
+
+\lstset{
+   basicstyle=\fontsize{9}{10}\selectfont\ttfamily
+}
+
 \begin{document}
+
+\setlength{\tabcolsep}{0.6em}
+\renewcommand{\arraystretch}{1.5}
 
 \begin{titlepage}
     \begin{center}
@@ -31,6 +41,78 @@
     \end{center}
 \end{titlepage}
 
+\setlength{\tabcolsep}{0.8em}
+\renewcommand{\arraystretch}{1.7}
+
+
+%edit verze 11.12. 10:02
+
+\section{Scanner}
+
+Scanner obsahuje jedinou funkci \texttt{getToken}, která nepotřebuje parametry a vrací načtený token (typ \texttt{Token}, více \ref{token}) při úspěchu, \texttt{NULL} při neúspěchu.
+
+Funguje na principu konečného automatu (viz obr. \ref{ka}). Ze vstupního souboru (určeného v rozhraní, viz \ref{rozhrani}) načítá znak po znaku. Pokaždé načtený znak uloží do vytvářeného dynamického stringu (více \ref{dyn_str}) a podle toho, jaký znak to byl, přejde do dalšího stavu. Pokud není z daného stavu přechod a stav byl jeden z koncových, vygeneruje token, který vrátí. Nebyl-li stav koncový, nastala lexikální chyba, kterou scanner správně zahlásí a skončí.
+
+Scanner je volán v průběhu programu mnohokrát. Většinou prochází konečný automat opět od počátečního stavu, nicméně sám si uchovává flagy (static proměnné), které mohou jeho chování mírně pozměnit (např. generování dedentu nastaví flag, který při příštím spuštění provede opětovnou kontrolu odsazení).
+
+\subsection{Typy tokenů}
+
+Pokud scanner skončil ve stavu pro identifikátory, zkontroluje prvně, jestli se nejedná o jedno z klíčových slov. V takovém případě by vrátil token typu daného klíčového slovo. Není-li to klíčové slovo, vrátí token typu \texttt{ID}, kterému předá i načtený dynamický string. Jednalo-li se o číslo (celé či desetinné), scanner nastaví tokenu správný typ, převede znaky načtené v dynamickém řetězci na skutečnou hodnotu a tu vrátí v položce tokenu (\texttt{DEC} pro desetinné, \texttt{INT} pro celé). Hodnotu řetězce vrací stejně jako id v dynamickém řetězci v tokenu typu \texttt{STR}. Byla-li v řetězci použita escape sekvence, byl nejprve výraz za ní převeden na správnou hodnotu a teprve poté vrácen token s již upraveným řetězcem. Ostatní záležitosti jako \texttt{indent}, \texttt{EOL} a další předavá v tokenu odpovídajícího typu.
+
+\subsection{Indent/dedent}
+
+Pro určení, zda nastal \texttt{indent} nebo \texttt{dedent} používá parser \texttt{indent\_stack.h}, což je stack s hodnotou 0 na začátku, která se nikdy nevyjímá. Pokaždé, když scanner načítá ze začátku řádku\footnote{Na toto má statickou proměnnou, podle které to pozná.} a narazí na mezeru nebo tabulátor, začne počítat tyto načtené znaky. Výsledný počet před prvním jiným znakem poté porovná s vrcholem zásobníku. Je-li na zásobníku menší číslo, pushne aktuální počet mezer/tabulátorů na zásobník a vygeneruje \texttt{indent}. Je-li počet stejný, nic nedělá a pokračuje v načítání. Je-li však na vrcholu zásobníku menší číslo, vrchní hodnota se popne, zapamatuje se tento počet mezer/tabulátorů a vygeneruje \texttt{dedent}. Při příštím volání scaneru se díky zapamatované hodnotě přejde opět ke kontrole. Znovu se porovná zapamatovaný počet s vrcholem zásobníku. Je-li na zásobníku menší číslo, nastala chyba odsazení. Stejné je v pořádku, pokračuje se načítáním dalších znaků, u většího čísla se tento postup opakuje (pop vrcholu, generace dedentu, příště znova kontrola).
+
+
+\section{Parser}
+
+Parser se skládá z rekurzivní syntaktické analýzy (RSA) a precedenční analýzy (PA), kterou volá na zpracování výrazů. 
+
+\subsection{Rekurzivní syntaktická analýza}
+
+RSA komunikuje se scannerem - volá \texttt{getToken} na zisk tokenu, a PA - volá ji pomocí\\
+\texttt{expressionAnalysis} s parametry jedním až dvěma tokeny, které načetla, avšak patří PA, a tokenem \texttt{res}, který nese jméno, které má PA použít pro výsledek.
+
+RSA vytváří tříadresný kód (3AC), který se přes funkci \texttt{appendAC} ukládá do seznamu, aby ho později mohl použít generátor. Pro kontrolu správné syntaxe používá rekurzivní sestup podle pravidel LL(1) gramatiky, kterou jsme pro tento účel vytvořili.
+
+Při nalezení syntaktické (popř. při všech chybách kromě vnitřní nebo lexikální) kontrola nekončí, v pravidlech se nachází typy tokenů, na kterých se pokusí zotavit (např. \texttt{EOL} nebo \texttt{(}, pokud RSA najde chybu, pokusí se načítat tokeny tak dlouho, dokud na tento token nenarazí, a poté pokračuje).
+
+\subsection{LL(1) gramatika}
+
+Vytvořili jsme pravidla pro LL(1) gramatiku a tabulku k ní\footnote{S pomocí \url{<https://www.fit.vutbr.cz/~ikocman/llkptg/>}.} (tabulka viz obr. \ref{lltable} str. \pageref{lltable}, pravidla viz listing \ref{rules} str. \pageref{rules}). Kostra RSA je implementována pomocí těchto pravidel. Každý neterminál je ve většině případů\footnote{Existují výjimky, kdy by pro syntaktickou analýzu toto stačilo, ale kvůli správné sémantické analýze nebo generování 3AC bylo potřeba za určitých podmínek provádět jinak (např. funkce print, ověření terminálu funkcí), nebo naopak v pravidlech to vyžadovalo další neterminál, ale při implementaci šlo jen o jednu kontrolu, bylo zbytečné vytvářet další funkci (např. return\_item).} jedna funkce, ve které derivace pravidla znamená volání dalších funkcí v případě rozkladu na neterminál a ověření typu tokenu v případě terminálu. Syntaktická chyba je rozpoznána, když v rámci rozkladu pravidla narazí na token, pro který není pravidlo (neodpovídá tokenu, který může v daný moment přijí).
+
+\subsection{Precedenční analýza}
+
+Precedenční analýza je v překladu využita pro zpracování výrazů. Je volána jako funkce\\
+\texttt{expressionAnalysis()} v knihově \texttt{precAnalysis\_lib.c}. Tokeny získané buď přímo při volání nebo funkcí \texttt{getToken()} ukládá na stack a zpracovává je na základě precedenční tabulky (viz obr. \ref{patable}) uložené v souboru \texttt{PATable.c}. PA pracuje se speciálním ADT: \uv{PA \texttt{char}} zásobníkem. Funkce pro práci s tímto zásobníkem jsou uložené v knihovně \texttt{PACharStack\_lib.c}. V rámci této knihovny se také generuje tříadresný kód v případě, že je na zásobníku aplikováno nějaké z pravidel pro zpracování výrazu ve funkci \texttt{PAApplyRule()} z knihovny \texttt{PACharStack\_lib.c}.
+
+\subsection{Sémantická kontrola}
+
+V souboru \texttt{parser.c} se kromě RSA řeší i sémantické kontroly a generace tříadresného kódu. V kostře podle gramatiky se nejen kontroluje syntaktická stránka věci, ale jsou v ní i volání funkcí tabulky symbolů (více popsáno v sekci \ref{symtable}) a všechny akce potřebné ke generování 3AC. Umístili jsme to zároveň se syntaktickou analýzou, neboť se při rozkladu pravidel dalo dobře sledovat, v jaké části kódu jsme a jaké akce pro sémantiku/3AC je potřeba provést.
+
+Sémantická kontrola z pohledu parseru spočívá čistě ve volání funkcí souboru \texttt{symtable}. Na začátku se zavolá funkce, která vytvoří potřebnou globální tabulku. Kdykoliv se narazí na ID (ať už v RSA nebo PA), volá se funkce \texttt{work\_out\_val\_id} s parametry \texttt{Token} zpracovávaného id a \texttt{bool}, zda-li chceme id definovat nebo jsme na něj pouze narazili. U funkcí se jedná o \texttt{work\_out\_fce\_id}, kde je opět token, bool a ještě počet parametrů ve volání/definici této funkce. Aby symtable správně určila lokální id (při definici funkci) od globálních, je třeba při začátku definice funkce zavolat \texttt{go\_in\_local} a na konci \texttt{go\_in\_global}. O to, zda je id lokální/globální, správně použité, atd. se stará symtable. Z pohledu parseru pouze voláme tyto funkce.
+
+\subsection{Generování tříadresného kódu v parseru}
+
+Kód, který jsme si stanovili (více v \ref{3AC}), nám umožnil předávat generátoru všechny potřebné informace. V některých případech ovšem konstrukce byla problematická. Museli jsme udělat speciální generací pro funkci \texttt{print}, aby generátor nemusel pracovat s potenciálně nekonečným množstvím parametrů. Naše řešení bylo posílat každý parametr a za ním hned volání funkce print, namísto poslání vše a až následného volání.
+
+Další problém, který stojí za zmínku, byla konstrukce \texttt{if-else} a \texttt{while}. Obojí je potřeba řešit vhodnou kombinací návěští a podmíněných/nepodmíněných skoků na ně. Ukázka 3AC pro \texttt{if-else} konstrukci:\footnote{Názorná reprezentace našeho 3AC, první položka je typ kódu, další tři cstringy předaných tokenů, po řadě op1, op2 a res. Není-li vypsán, je předán jako NULL. Jména návěští a tokenů se od skutečného kódu mírně liší, zde jsou pozměněna kvůli názornosti.}
+
+\begin{lstlisting}
+    //volani PA, ta vygeneruje takovy 3AC, kde je
+    //v poslednim vysledek podminky v "cond"
+    (COND_JUMP, cond, , label_if)
+    (JUMP, , , label_else)
+    (LABEL, , , label_if)
+    //vlastni telo if casti
+    (JUMP, , , label_if_end)
+    (LABEL, , , label_else)
+    //vlastni telo else casti
+    (LABEL, , , label_end)
+\end{lstlisting}
+
+Obdobně bylo řešeno \texttt{while}, kde se ovšem podmínka vyhodnocovala uvnitř a v případě nepravdy se vyskočilo. Ještě však bylo třeba vyřešit zanořené cykly. Protože může být teoreticky nekonečno cyklů \texttt{while} nebo podmínek \texttt{if-else} zanořených v sobě, musely být návěští pro každou \uv{vrstvu} unikátní. Toto jsme vyřešili funkcí na generování žádaných návěští a proměnnou na počítání použitých konstrukcí, kde si každé pravidlo vzalo hodnotu, pro sebe uložilo, a k sdílené přičetlo jedničku.
+
 \section{Generátor výsledného kódu}
 
 Po úspěsňé analýze je inicializován generátor výsledného kódu. Součástí inicializace 
@@ -38,7 +120,7 @@ je vyvtoření tabulek s rozptýlenými položkami pro ukládání názvu vytvo�
 proměnných a labelů pro funkce. Vlastní spuštění generátoru spočívá ve volání
 funkce \texttt{generate\_code}.
 
-\subsection{Tří adresný kód}
+\subsection{Tříadresný kód}
 
 Tří adresný kód je generován na úrovni parseru a precedenční analýzy. Jeho struktura
 obsahuje v typ kódu, \texttt{ac\_type}, a tři operandy typu \texttt{Token}, \texttt{op1}, \texttt{op2}, \texttt{res}.
@@ -85,6 +167,11 @@ a \texttt{WHILE\_END} pro konec cyklu. Když generátor narazí na začátek cyk
 uvnitř cyklu, provede kontrolu definice identifikátorů a případně identifikátory nadefinuje předem,
 než cyklus začne.
 
+\section{Rozhraní}
+\label{rozhrani}
+
+Rozhraní (\texttt{ifj19.c}) přesměruje standartní vstup na \texttt{source\_file} pro scanner, poté předá slovo parseru. Až parser skončí (udělá mezitím celou analýzu), zkontroluje hodnotu \texttt{global\_error\_code} - pokud žádná chyba nenastala, zavolá generátor, aby dokončil práci. Vyčistí případné použité zdroje a skončí s návratovou hodnotou rovnou \texttt{global\_error\_code}.
+
 \section{Pomocné knihovny}
 
 \subsection{Knihovna chyb \texttt{errors}}
@@ -97,9 +184,55 @@ pro kompilační chyby, která tiskne navíc název souboru a číslo řádku zd
 na které se chyba vyskytuje.
 
 \subsection{Dynamický řetězec}
+\label{dyn_str}
 
 Pro jednodušší práci s řetězci v programovacím jazyce C jsme vytvořili knihovnu \texttt{dynamic\_string}.
 Knihovna nám umožnuje vytvořit nový řetězec, rozšířit ho připsáním nového řetězce na konec stávajícího,
 nebo ho skrátit na požadovanou délku.
+
+\subsection{Zásobník \texttt{PAStack}}
+
+Tento zásobník, někdy také popisován jako \texttt{PACharStack} slouží k ukládání tokenů v rámci precedenční analýzy. Jednotlivé položky jsou reprezentovány strukturou \texttt{PAStackElem}. Položka záznamu \texttt{content} ukazuje na token, který je v ní uložen. Položka záznamu \texttt{belowPtr} ukazuje na položku stacku přímo pod touto, zásobník je implementován jako lineárně vázaný seznam, kterým je nutno procházet při hledání nejvyššího terminálu. Mimo vrchol zásobníku pak lze považovat zásobník za rekurzivní, nicméně funkce, které nad tímto ADT pracují, nepracují s rekurzí. Nakonec se ve struktuře položky nachází znak \texttt{c}, který položku na základě obsahu reprezentuje jako \texttt{'i'}, \texttt{'E'}, \texttt{'+'}, \texttt{'('}, \texttt{'['} a \texttt{'\$'}. Lze se na něj tím pádem dívat tak, jak je reprezentován v prezentacích v předmětu IFJ\footnote{Znak\texttt{'['} nevyplývá přímo z prezentace, ale z komentáře a preferencí prof. Alexandra Meduny. Záměna \texttt{'<'} za \texttt{'['} navíc zabraňuje použití operátoru jako pomocného znaku.}.
+
+\subsection{Tříadresný kód}
+\label{3AC}
+
+Tříadresný kód je stuktura, kterou rekurzivní a precedenční analýza předávají všechny potřebné informace generátoru. Skláda se z typu operace \texttt{ac\_type} a tří operandů typu \texttt{Token}, které označují první a druhý operand operace (\texttt{op1} a \texttt{op2}) a výsledek (\texttt{res}). Není-li u daného typu operace jeden či více operand využit, je místo něj předána hodnota \texttt{NULL}.
+
+Knihovna \texttt{adress\_code} implementuje funkce pro práci s tímto kódem. Parser využívá funkci \texttt{appendAC}, která s předanými tokeny vytvoří jeden tříadresný kód a uloží ho do seznamu. S touto frontou  pak generátor pracuje skrz funkce \texttt{setACAct} (nastaví aktivitu seznamu na první položku), \texttt{actAc} (posune aktivitu na další tříadresný kód, existuje-li takový), \texttt{isACActive} (zjištění, zda je seznam ještě aktivní) a skrz funkce na čtení aktuálního tříadresného kódu (\texttt{ReadAc}, \texttt{readACtype}, \texttt{readACop1}, \texttt{readACop2}, \texttt{readACres}).
+
+Kvůli problému definice proměnných při generování \texttt{while} jsou v knihovně také funkce\\
+\texttt{set\_ac\_breakpoint} a \texttt{goto\_ac\_breakpoint}, které umožňují nastavení jednoho breakpointu a skok na něj.
+
+\subsection{Knihovna \texttt{token.h}}
+\label{token}
+
+Knihovna pro práci se strukturou \texttt{Token}. Ta se skládá z \texttt{double} (uložení desetinné hodnoty pro desetinné číslo, jinak 0), \texttt{int} (uložení hodnoty pro celé číslo, jinak 0), \texttt{e\_type} (typ tokenu) a dynamického řetězce (uložení jména pro id nebo řetězec, př. \texttt{NULL} pokud není využit).
+
+Pro práci zvenčí jsou tu funkce \texttt{init\_token} na inicializaci, množství funkcí na doplnění dat pro různé typy (např. \texttt{add\_string}, \texttt{add\_id}, \dots), funkce pro zisk informace z tokenu (\texttt{getIntValue} a další) a \texttt{copy\_token}, která slouží pro vytvoření identického tokenu.\footnote{Toto je důležité pro vytváření tříadresného kódu, kde jsou dočasné proměnné použity vždy dvakrát, jako výsledek předchozí operace a jako operand následující.}
+
+\subsection{Tabulka symbolů}
+\label{symtable}
+
+Tabulka symbolů implementovaná jako \texttt{hashtable} slouží pro sémantickou analýzu a jeden specifický případ syntaktické.
+
+Funkce \texttt{start\_symtable\_with\_functions} a \texttt{clean\_all\_symtables} slouží k inicializaci (s vestavěnými funkcemi) na začátku analýzy a zničení na jejím konci. Pro pohyb mezi lokální a globální tabulkou používá parser funkce \texttt{go\_in\_global} a \texttt{go\_in\_local}, které lokální tabulku vytvoří/zničí a upravují, kde se budou hledat a zapisovat nová id. Parser volá funkce pro zpracování id (\texttt{work\_out\_fce\_id} a další), které podle situace vyhodnotí správnost použití id a zanesou potřebné informace do tabulky. Použití \texttt{global\_check\_def} na konci parseru zkontroluje, zda byly všechny funkce definovány.\footnote{Analýzu provádíme jednoprůchodově. U funkcí se zaznamenává flag, zda už byly definovány, na konci je zkontrolováno, zda někde není flag hodnoty \texttt{false}.}
+
+Speciální případ je funkce \texttt{is\_this\_ret\_okay}, kterou volá parser, když najde klíčové slovo \texttt{return}. Protože symtable si uchovává, zda je ve funkci (lokálně) nebo těle programu (globálně), pomáhá určit, zda je return korektní nebo ne (v takovém případě vrací syntaktickou chybu).
+
+%dopln ka fotku/whateer
+\label{ka}
+
+\begin{figure}[htp] \centering{
+\includegraphics[scale=0.75]{lltable.pdf}}
+\caption{LL-tabulka}
+\label{lltable}
+\end{figure}
+
+\newpage
+\lstinputlisting[caption=Pravidla LL(1) gramatiky, label=rules]{rules.txt}
+
+%dopln tabulku PA
+\label{patable}
 
 \end{document}

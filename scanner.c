@@ -56,6 +56,9 @@ Token *getToken()
     //F13
     //F15
     //Q9
+    
+    //for reading in hexadecimal escape char
+    char hexaEscChar = 0;
 
     //initializing the token
     Token *token = init_token();
@@ -69,18 +72,20 @@ Token *getToken()
     //ends while when resolved == 0
     while (resolved)
     {
-        if ((c = fgetc(source_file)) == EOF)
-        {
-            if(eol_before_eof){
-                eol_before_eof = false;
-                add_simple_data(token, EOL);
-                return token;
-            }
+        if ((c = fgetc(source_file)) == EOF){
+            //if a string was not correctly ended before eof
+            //it's an error
             if(our_string){
                 free_cstring(our_string);
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
                 kill_after_analysis = true;
                 return NULL;
+            }
+            //generating eol before eof
+            if(eol_before_eof){
+                eol_before_eof = false;
+                add_simple_data(token, EOL);
+                return token;
             }
             if (checkDedent(stack, c, token))
                 return token;
@@ -257,9 +262,10 @@ Token *getToken()
 			kill_after_analysis = true;
             return NULL;
         case Q2: //raw string processsing - KEEPING ESC CHAR
-            if (c == 92)
-            {
-                append_char(our_string, c);
+            if (c == 92){
+                //when escape char, then decide if there is a need
+                //o convert it or insert the raw data
+                //append_char(our_string, c);
                 present_state = Q12;
                 break;
             } // '\'
@@ -376,11 +382,9 @@ Token *getToken()
         case Q9:
             if (c == 61)
             {
-                append_char(our_string, c);
                 present_state = F17;
                 break;
             } //=
-            free_cstring(our_string);
             indentStackDestroy(stack);
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 			kill_after_analysis = true;
@@ -410,17 +414,55 @@ Token *getToken()
 			kill_after_analysis = true;
             return NULL;
         case Q12:
-            if (isPrintChar(c))
-            {
-                append_char(our_string, c);
+            if(hexaEscChar){
+                if(checkHexa(c)){
+                    //good, read the next number
+                    //saving it to the big string
+                    //after converting clearing it
+                    append_char(our_string, c);
+
+                    if(hexaEscChar == 2){
+                        int i = convertHexaToChar(&(our_string->str[our_string->length-2]));
+                        //clearing the hexa value from the end of the string
+                        our_string->str[our_string->length-2] = '\0';
+                        our_string->length -= 2;
+                        append_char(our_string, i);
+                        present_state = Q2;
+                    }
+                    hexaEscChar = 2;
+                    break;
+                }else{
+                    //error - wrong hexa value
+                    free_cstring(our_string);
+                    indentStackDestroy(stack);
+                    global_error_code = LEXICAL_ANALYSIS_ERROR;
+			        kill_after_analysis = true;
+                    return NULL;
+                }
+            }
+            int value = isEscapeChar(c);
+            if(value == 1){ //==1
+                //normal escape char, saving the real char value
+                append_char(our_string, convertEscapeChar(c));
                 present_state = Q2;
                 break;
+            }else if(value == 2){
+                //hexadecimal escape char
+                hexaEscChar = 1;
+                //going to read the hexa values
+                break;
+            }else{
+                //wrong escape char
+                append_char(our_string, '\\');
+                append_char(our_string, c);
+                present_state = Q2;
             }
-            free_cstring(our_string);
+            break;
+            /*free_cstring(our_string);
             indentStackDestroy(stack);
             global_error_code = LEXICAL_ANALYSIS_ERROR;
 			kill_after_analysis = true;
-            return NULL;
+            return NULL;*/
         case Q13:
             append_char(our_string, c);
             present_state = Q5;
@@ -510,9 +552,7 @@ Token *getToken()
             return token;
         case F4:
             //pre -> our_string != NULL
-            if (isIdNameStart(c) || is09num(c))
-            {
-                present_state = F4;
+            if (isIdNameStart(c) || is09num(c)){
                 append_char(our_string, c); //adding char to string
                 break;
             }
@@ -783,6 +823,23 @@ bool isPrintChar(char c)
 {
     return (c >= 32 && c <= 126);
 }
+int isEscapeChar(char c){
+    if(c == 34 || c == 39 || c == 'n' || c == 't' || c == '\\') return 1;
+    else if(c == 'x') return 2;
+    return 0;
+}
+char convertEscapeChar(char c){
+    if(c == 34 || c == 39 || c == 92){
+        return c;
+    }
+    else if(c == 'n') return '\n';
+    else if(c == 't') return '\t';
+    //shouldn't reach this return
+    return 0;
+}
+bool checkHexa(char c){
+    return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
+}
 bool checkDedent(tIndentStack *stack, char c, Token *token)
 {
     if (!indentStackEmpty(stack))
@@ -793,4 +850,25 @@ bool checkDedent(tIndentStack *stack, char c, Token *token)
         return true;
     }
     return false;
+}
+char convertHexaToChar(char *s){
+    int decimal = 0;
+    int val = 0;
+    int len = 1;
+
+    for(int i=0; i<2; i++){
+        if(s[i]>='0' && s[i]<='9'){
+            val = s[i] - 48;
+        }
+        else if(s[i]>='a' && s[i]<='f'){
+            val = s[i] - 97 + 10;
+        }
+        else if(s[i]>='A' && s[i]<='F'){
+            val = s[i] - 65 + 10;
+        }
+        decimal += val * pow(16, len);
+        --len;
+    }
+
+    return decimal;
 }

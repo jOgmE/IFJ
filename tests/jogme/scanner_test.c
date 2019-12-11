@@ -178,7 +178,7 @@ int testTokenReading()
         }*/
         tmp = getToken();
     }// while (getTokenType(tmp) != EOFILE);//token_arr[i - 1]) != EOFILE);
-    printToken(tmp);
+    if(global_error_code == SUCCESS) printToken(tmp);
 
     //printTokenArr(token_arr, i);
     //freeTokenArr(token_arr, sizeOfArr);
