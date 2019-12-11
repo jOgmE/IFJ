@@ -17,42 +17,12 @@
 
 #include "parser.h"
 
-//TODO delete, just for debug
-//#include "tests/hojkas/st_debug.c"
-
 Token *curr_token = NULL;
 Token *last_token = NULL;
 Token *id_to_assign = NULL;
 
 int while_count = 0;
 int if_count = 0;
-
-
-#define Tis(type) getTokenType(curr_token) == type
-//vlozi soustavu podminek, ktera vraci true, je-li curr_token typu item
-#define Tis_item (Tis(ID) || Tis(NONE) || Tis(INT) || Tis(DEC) || Tis(STR))
-#define Tis_op (Tis(L) || Tis(LEQ) || Tis(G) || Tis(GEQ) || Tis(EQ) || Tis(NEQ) || Tis(PLUS) || Tis(MINUS) || Tis(AST) || Tis(SL) || Tis(DSL))
-
-
-Token *fake_analysis(Token *op1, Token *op2, Token *res)
-{
-  if(op1 != NULL) {
-    if(op1->type == ID) work_out_val_id(op1, false);
-    if(op2 != NULL) {
-      if(op2->type == ID) work_out_val_id(op2, false);
-    }
-  }
-  while(Tis_item || Tis_op|| Tis(LPA) || Tis(RPA)) {
-      //free_token(curr_token);
-      curr_token = getToken();
-      if(curr_token == NULL) return NULL;
-      if(Tis(ID)) work_out_val_id(curr_token, false);
-  }
-  return curr_token;
-}
-
-//SA vyrazu
-#define fake_analysis(a, b, c) expressionAnalysis(a, b, c)
 
 //------MAKRA---------------------
 //vypíše chybové hlášení a nastaví global_error_code na error pokud už není
@@ -63,11 +33,11 @@ kill_after_analysis = true;\
 if(global_error_code == SUCCESS) global_error_code = SYNTAX_ANALYSIS_ERROR
 
 /*overi, jestli curr_token je typu type*/
-//#define Tis(type) getTokenType(curr_token) == type
-
+#define Tis(type) getTokenType(curr_token) == type
 //vlozi soustavu podminek, ktera vraci true, je-li curr_token typu item
-//#define Tis_item (Tis(ID) || Tis(NONE) || Tis(INT) || Tis(DEC) || Tis(STR))
-//#define Tis_op (Tis(L) || Tis(LEQ) || Tis(G) || Tis(GEQ) || Tis(EQ) || Tis(NEQ) || Tis(PLUS) || Tis(MINUS) || Tis(AST) || Tis(SL) || Tis(DSL))
+#define Tis_item (Tis(ID) || Tis(NONE) || Tis(INT) || Tis(DEC) || Tis(STR))
+#define Tis_op (Tis(L) || Tis(LEQ) || Tis(G) || Tis(GEQ) || Tis(EQ) || Tis(NEQ) || Tis(PLUS) || Tis(MINUS) || Tis(AST) || Tis(SL) || Tis(DSL))
+
 
 //zkontroluje pritomnost fatalni chyby a pokud predchozi stav failnul,
 //skoci na zotaveni
@@ -476,7 +446,7 @@ bool command() //---COMMAND---
     else {
       //zavola analyzu vyrazu
       Token *check = curr_token;
-      curr_token = fake_analysis(curr_token, NULL, ret_id);
+      curr_token = expressionAnalysis(curr_token, NULL, ret_id);
       heavy_check(C_r2e1);
       if(check == curr_token) {
         if(!kill_after_analysis) free_token(ret_id);
@@ -551,7 +521,7 @@ bool command() //---COMMAND---
     }
 
     Token *check = curr_token;
-    curr_token = fake_analysis(curr_token, NULL, cond);
+    curr_token = expressionAnalysis(curr_token, NULL, cond);
     heavy_check(C_r3e1);
     if(curr_token == check) {
       syntax_err("Pred tokenem ", " nebyl expression ale byt mel.");
@@ -670,7 +640,7 @@ bool command() //---COMMAND---
     }
 
     Token *check = curr_token;
-    curr_token = fake_analysis(curr_token, NULL, cond);
+    curr_token = expressionAnalysis(curr_token, NULL, cond);
     heavy_check(C_r4e1);
     if(curr_token == check) {
       syntax_err("Pred tokenem ", " nebyl expression ale byt mel.");
@@ -816,7 +786,7 @@ bool command() //---COMMAND---
     //jista analyza, just send it
     //TODO mozna dat dalsi parametr, aby nic negeneroval?
     //neresim res, to by nemelo spadnout, nepotrebuji zadny 3ac
-    curr_token = fake_analysis(curr_token, NULL, NULL);
+    curr_token = expressionAnalysis(curr_token, NULL, NULL);
     heavy_check(C_r5e1);
 
     C_r5rp1:
@@ -1180,7 +1150,7 @@ bool not_sure1()
       add_temp_id(ret_id, init_cstring("ret_id"));
       heavy_check(NS1_r3e1);
     }
-    curr_token = fake_analysis(last_token, curr_token, ret_id);
+    curr_token = expressionAnalysis(last_token, curr_token, ret_id);
     heavy_check(NS1_r3e1);
     if(!kill_after_analysis) free_token(ret_id); //nikam vysledek neukladam
 
@@ -1230,7 +1200,7 @@ bool not_sure2()
       heavy_check(NS2_r2e1); //jen alloc_check
     }
 
-    curr_token = fake_analysis(curr_token, NULL, ret_id);
+    curr_token = expressionAnalysis(curr_token, NULL, ret_id);
     heavy_check(NS2_r2e1);
 
     if(!kill_after_analysis) {
@@ -1340,7 +1310,7 @@ bool not_sure3()
       heavy_check(NS3_r2e1); //jen alloc_check
     }
 
-    curr_token = fake_analysis(last_token, curr_token, ret_id);
+    curr_token = expressionAnalysis(last_token, curr_token, ret_id);
     heavy_check(NS3_r2e1);
 
     if(!kill_after_analysis) {
