@@ -133,6 +133,7 @@ Token *getToken()
             {
                 if ((our_string = init_cstring_size(256)) == NULL)
                 {
+                    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Cannot allocate memory"); //!hojkas translate pls here :wowMan
                     global_error_code = INTERNAL_ERROR;
 		    		kill_after_analysis = true;
                     return NULL;
@@ -152,6 +153,7 @@ Token *getToken()
             {
                 if ((our_string = init_cstring_size(32)) == NULL)
                 {
+                    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Cannot allocate memory"); //!hojkas translate pls here :wowMan
                     global_error_code = INTERNAL_ERROR;
 					kill_after_analysis = true;
                     return NULL;
@@ -165,6 +167,7 @@ Token *getToken()
             {
                 if ((our_string = init_cstring_size(256)) == NULL)
                 {
+                    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Cannot allocate memory"); //!hojkas translate pls here :wowMan
                     global_error_code = INTERNAL_ERROR;
 					kill_after_analysis = true;
                     return NULL;
@@ -222,6 +225,7 @@ Token *getToken()
                 scanner_first_token = false;
                 if ((our_string = init_cstring_size(2)) == NULL)
                 {
+                    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Cannot allocate memory"); //!hojkas translate pls here :wowMan
                     global_error_code = INTERNAL_ERROR;
 					kill_after_analysis = true;
                     return NULL; //wihtout \0
@@ -307,6 +311,7 @@ Token *getToken()
                 //initializing ourstring for the docstring
                 if ((our_string = init_cstring_size(256)) == NULL)
                 {
+                    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Cannot allocate memory"); //!hojkas translate pls here :wowMan
                     global_error_code = INTERNAL_ERROR;
 					kill_after_analysis = true;
                     return NULL;
@@ -518,7 +523,7 @@ Token *getToken()
                     {
                         //error
                         indentStackDestroy(stack);
-                        print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Wrong dedent"); o/!hojkas translate pls here :wowMan
+                        print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Wrong dedent"); //!hojkas translate pls here :wowMan
                         global_error_code = LEXICAL_ANALYSIS_ERROR;
                         return NULL;
                     }
@@ -544,6 +549,7 @@ Token *getToken()
                         {
                             //error
                             indentStackDestroy(stack);
+                            print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Error because of indentation"); //!hojkas translate pls here :wowMan
                             global_error_code = LEXICAL_ANALYSIS_ERROR;
                             return NULL;
                         }
@@ -609,7 +615,7 @@ Token *getToken()
             ungetc(c, source_file);
             if (cstrToInt(our_string, token))
             { //checking return value
-				global_error_code = INTERNAL_ERROR;
+                //error code was set in the function ^
 				kill_after_analysis = true;
                 return NULL;
             }
@@ -631,7 +637,7 @@ Token *getToken()
             ungetc(c, source_file);
             if (cstrToDec(our_string, token))
             {
-				global_error_code = INTERNAL_ERROR;
+                //error code was set in the function ^
 				kill_after_analysis = true;
                 return NULL;
             }
@@ -647,7 +653,7 @@ Token *getToken()
             ungetc(c, source_file);
             if (cstrToDec(our_string, token))
             {
-				global_error_code = INTERNAL_ERROR;
+                //error code was set in the function ^
 				kill_after_analysis = true;
                 return NULL;
             }
@@ -660,6 +666,7 @@ Token *getToken()
             if(c == 46){ //.
                 if ((our_string = init_cstring_size(256)) == NULL)
                 {
+                    print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Cannot allocate memory"); //!hojkas translate pls here :wowMan
                     global_error_code = INTERNAL_ERROR;
 					kill_after_analysis = true;
                     return NULL;
@@ -674,6 +681,7 @@ Token *getToken()
             {
                 //error
                 indentStackDestroy(stack);
+                print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Decimal cannot start with 0 (except number 0) and cannot contain letters"); //!hojkas translate pls here :wowMan
                 global_error_code = LEXICAL_ANALYSIS_ERROR;
 				kill_after_analysis = true;
                 return NULL;
@@ -756,6 +764,7 @@ Token *getToken()
             //cases F24-25 moved to S
         }
     }
+    print_compile_error(LEXICAL_ANALYSIS_ERROR, ERROR, line_count, "Unexpected character"); //!hojkas translate pls here :wowMan
     global_error_code = LEXICAL_ANALYSIS_ERROR;
 	kill_after_analysis = true;
     return NULL; //only for compiling NOT SURE for this line tbh
@@ -766,6 +775,7 @@ int cstrToInt(cstring *our_string, Token *token)
     int tmp;
     if (sscanf(get_cstring_string(our_string), "%i", &tmp) == EOF)
     {
+        print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Something went wrong with number converting"); //!hojkas translate pls here :wowMan
         global_error_code = INTERNAL_ERROR;
 		kill_after_analysis = true;
         return INTERNAL_ERROR;
@@ -781,6 +791,7 @@ int cstrToDec(cstring *our_string, Token *token)
     double tmp;
     if (sscanf(get_cstring_string(our_string), "%lf", &tmp) == EOF)
     {
+        print_compile_error(INTERNAL_ERROR, ERROR, line_count, "Something went wrong with number converting"); //!hojkas translate pls here :wowMan
         global_error_code = INTERNAL_ERROR;
 		kill_after_analysis = true;
         return INTERNAL_ERROR;
