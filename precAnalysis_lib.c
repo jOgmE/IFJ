@@ -1,24 +1,26 @@
 #include "precAnalysis_lib.h"
 
 extern Token *fake_token();
-#define getToken() fake_token()
+//#define getToken() fake_token()
 
 // struktura prec analyzy je v podstate totozna s jejim popisem v prezentaci
 // (dokonce i zasobnik pouziva znakove reprezentace 'E', 'i', '+' za operatory, '$' atd)
 // Vetsina funkcionality se ukryva ve funkci PAApplyRule(), kterou nelze prehlednout
 // v "precAnalysis_lib.h"
 
+int megaError ( Token *curToken )
+{
+	if ( curToken == NULL ) return 1;
+	if ( global_error_code == INTERNAL_ERROR ) return 1;
+	if ( global_error_code == LEXICAL_ANALYSIS_ERROR ) return 1;
+	return 0;
+}
+
 Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 {
-	// socket stack pro akomodaci vice prichazejicich vstupu
-	PAStack *socket;
-	PAInit(&socket);
+	if (decode(input1->type)==17) return input1;	// nic neprovedeno
 
-	if (input2 != NULL) {
-		PAPush(socket, input2);
-		}
-
-	
+	int tFlag = (input2 != NULL);	
 
 	// inicializace hlavniho stacku PA
 	PAStack *s;
@@ -28,24 +30,26 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 	
 	
 	Token *curToken = init_token();	
-	curToken = (input2 == NULL) ? input1 : input2;
+	curToken = input1;
 
 	int isFin = 0;
 	int tempInt = 0;
 
 
 	do {
-		printf("Now watch.\n");
 		// F L U S H
 		if (kill_after_analysis == true) {
 			
 			while (decode(curToken->type)!=17)
 			{
-				if (PATop(socket) != NULL) {
-					curToken = PATop(socket);
-					PAPop(socket);	
-				} else {
+				if (tFlag) { 
+					curToken = input2; tFlag = 0;
+				}
+				else { 
 					curToken = getToken();
+					if ( curToken == NULL ) {
+						break;
+					}
 				}
 			}
 		
@@ -56,33 +60,33 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 		// vybere z tabulky PA prislusny symbol
 			
 		char switchC = getFromTable(PATopTerm(s)->content, curToken, &isFin);
-		//PAPrint(s);
 		
 		switch (switchC) {
 
 			case '=':
 				PAPush(s, curToken);
-				if (PATop(socket) != NULL) {
-					curToken = PATop(socket);
-					PAPop(socket);	
-				} else {
-					curToken = getToken();
+				if (tFlag) { curToken = input2; tFlag = 0; }
+				else {
+				      	curToken = getToken();
+					if ( megaError(curToken) ) return NULL;
 				}
 				break;
 
 			case '[':
 				PAAddBracket(s);
 				PAPush(s, curToken);
-				if (PATop(socket) != NULL) {
-					curToken = PATop(socket);
-					PAPop(socket);	
-				} else {
+				if (tFlag) { curToken = input2; tFlag = 0; }
+				else  {
 					curToken = getToken();
+					if ( megaError(curToken) ) return NULL;
 				}
 				break;
 
 			case ']':
-				PAApplyRule(s, res, &tempInt);	// <- tady je moloch
+				if (PAApplyRule(s, &tempInt)) {
+					kill_after_analysis = true;
+					global_error_code = SYNTAX_ANALYSIS_ERROR;	
+				};	// <- tady je moloch
 				break;
 
 			// kdyby scanner narazil na token mimo rozsah PA, je interpretovan jako '$', ktery ma sve ']'
@@ -98,9 +102,11 @@ Token *expressionAnalysis(Token *input1, Token *input2, Token *res)
 	} while ( !(PAEndAtTop(s) && isFin) );
 
 
-	PAYeet(socket);
 	PAYeet(s);
+
+	if (!kill_after_analysis) changeLastRes(res);
 
 	// navrat navic prejateho tokenu (interpretovaneho jako '$')
 	return curToken;
 }
+

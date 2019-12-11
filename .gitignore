@@ -18,6 +18,7 @@
 **/*.ic19
 **/*.py
 tests/hojkas/input
+input
 
 **/*.synctex.gz
 

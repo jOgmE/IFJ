@@ -85,9 +85,17 @@ void printToken(Token *token)
     {
         printf("]");
     }
+
+    
+    if (getTokenType(token) != EOFILE)
+        printf(", ");
+    else
+        printf("\n");
+    if (getTokenType(token) == EOL)
+        printf("\n"); //10 on one line
 }
 
-void printTokenArr(Token **token_arr, size_t size)
+/*void printTokenArr(Token **token_arr, size_t size)
 {
     if (token_arr)
     {
@@ -105,7 +113,7 @@ void printTokenArr(Token **token_arr, size_t size)
         }
         printf("----------------------------------------------\n\n");
     }
-}
+}*/
 
 void printSeparator(const char *sep)
 {
@@ -127,16 +135,24 @@ void printFile(FILE *f)
 
 int testTokenReading()
 {
-    size_t sizeOfArr = 124;
-    Token **token_arr = initTokenArr(sizeOfArr);
-    if (token_arr == NULL)
+    //size_t sizeOfArr = 124;
+    //Token **token_arr = initTokenArr(sizeOfArr);
+    /*if (token_arr == NULL)
     {
         return -1;
-    }
-    size_t i = 0;
-    do
-    {
-        token_arr[i++] = getToken();
+    }*/
+    //size_t i = 0;
+    Token *tmp = getToken();
+    //do
+    while(1){
+        if(!tmp){
+            fprintf(stderr, "error happened\n");
+            break;
+        }
+        if(getTokenType(tmp) == EOFILE) break;
+
+        printToken(tmp);
+        //token_arr[i++] = getToken();
         //for other tests reseting error code
         if (global_error_code != SUCCESS)
         {
@@ -144,13 +160,13 @@ int testTokenReading()
             //fprintf(stderr, "error happened\n");
             print_internal_error(global_error_code, ERROR, "error happened\n");
             //printing tokens
-            printTokenArr(token_arr, i);
-            freeTokenArr(token_arr, sizeOfArr);
+            //printTokenArr(token_arr, i);
+            //freeTokenArr(token_arr, sizeOfArr);
             //for other tests reseting error code
-            global_error_code = SUCCESS;
+            //global_error_code = SUCCESS;
             return -1; //error
         }
-        if (i == sizeOfArr)
+        /*if (i == sizeOfArr)
         {
             //realloc token_arr
             if ((reallocTokenArr(token_arr, sizeOfArr, sizeOfArr * 2)))
@@ -159,11 +175,13 @@ int testTokenReading()
                 return -1;
             }
             sizeOfArr *= 2;
-        }
-    } while (getTokenType(token_arr[i - 1]) != EOFILE);
+        }*/
+        tmp = getToken();
+    }// while (getTokenType(tmp) != EOFILE);//token_arr[i - 1]) != EOFILE);
+    printToken(tmp);
 
-    printTokenArr(token_arr, i);
-    freeTokenArr(token_arr, sizeOfArr);
+    //printTokenArr(token_arr, i);
+    //freeTokenArr(token_arr, sizeOfArr);
     return 0;
 }
 

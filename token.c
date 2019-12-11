@@ -125,6 +125,7 @@ cstring *getTokenStrValue(Token *token){
 }
 
 //used for testing
+//if this is not commented, everything return 1!!!!!!!!!!!!!!!
 /*
 Token **initTokenArr(size_t size){
     Token **token_arr;
@@ -192,7 +193,10 @@ Token *copy_token(Token *token){
   new->dec = token->dec;
   new->i = token->i;
   new->type = token->type;
-  cstring *str = init_cstring(get_cstring_string(token->str));
-  add_string(new, str);
+  if(token->str == NULL) new->str = NULL;
+  else {
+    cstring *str = init_cstring(get_cstring_string(token->str));
+    new->str = str;
+  }
   return new;
 }

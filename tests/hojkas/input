@@ -1,5 +1,3 @@
-
-
-def id(a, z) :
-  b = a + z
-pass
+def id (a) :
+  pass
+id(None)

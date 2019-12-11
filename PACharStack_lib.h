@@ -38,7 +38,7 @@ Token *PATop(PAStack *s);
 
 void PAAddBracket(PAStack *s);
 
-int PAApplyRule(PAStack *s, Token *res, int *tempInt);
+int PAApplyRule(PAStack *s, int *tempInt);
 
 void PAPop(PAStack *s);
 
