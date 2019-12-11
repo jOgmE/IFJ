@@ -143,7 +143,7 @@ ftItem_t *search_table(char *key, frame_t frame)
         item = tf_table[i];
     }
 
-    if (item != NULL)
+    while (item != NULL)
     {
         if (strcmp(item->key, key) == 0)
         {
