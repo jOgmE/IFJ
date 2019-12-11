@@ -495,22 +495,34 @@ bool command() //---COMMAND---
       heavy_check(C_r2e1);
     }
 
-    //zavola analyzu vyrazu
-    Token *check = curr_token;
-    curr_token = fake_analysis(curr_token, NULL, ret_id);
-    heavy_check(C_r2e1);
-    if(check == curr_token) {
-      if(!kill_after_analysis) free_token(ret_id);
-      ret_id = NULL; //nebyl tam expr, nic se nevraci
+    if(Tis(NONE)) {
+        if(!kill_after_analysis) {
+          appendAC(RET, NULL, NULL, curr_token);
+          heavy_check(C_r2e1);
+        }
+        else {
+          free_token(curr_token);
+        }
+        curr_token = fake_token();
+        heavy_check(C_r2e1);
+    }
+    else {
+      //zavola analyzu vyrazu
+      Token *check = curr_token;
+      curr_token = fake_analysis(curr_token, NULL, ret_id);
+      heavy_check(C_r2e1);
+      if(check == curr_token) {
+        if(!kill_after_analysis) free_token(ret_id);
+        ret_id = NULL; //nebyl tam expr, nic se nevraci
+      }
+
+      //vygenerovat ret_id navratovou hodnotu
+      if(!kill_after_analysis) {
+        appendAC(RET, NULL, NULL, ret_id);
+        heavy_check(C_r2e1); //alok check, asi to nespadne na error label
+      }
     }
 
-    //vygenerovat ret_id navratovou hodnotu
-    if(!kill_after_analysis) {
-      appendAC(RET, NULL, NULL, ret_id);
-      heavy_check(C_r2e1); //alok check, asi to nespadne na error label
-    }
-
-    //TODO funkce do symtable, jestli je return v dobre casti
 
     C_r2rp1:
     //EOL
