@@ -1177,7 +1177,7 @@ bool not_sure1()
     if(!kill_after_analysis) {
       ret_id = init_token();
       heavy_check(NS1_r3e1);
-      add_temp_id(ret_id, init_cstring("temp_ret"));
+      add_temp_id(ret_id, init_cstring("ret_id"));
       heavy_check(NS1_r3e1);
     }
     curr_token = fake_analysis(last_token, curr_token, ret_id);
@@ -1226,7 +1226,7 @@ bool not_sure2()
     Token *ret_id = NULL;
     if(!kill_after_analysis) {
       ret_id = init_token();
-      add_temp_id(ret_id, init_cstring("temp_ret"));
+      add_temp_id(ret_id, init_cstring("ret_id"));
       heavy_check(NS2_r2e1); //jen alloc_check
     }
 
@@ -1336,7 +1336,7 @@ bool not_sure3()
     Token *ret_id = NULL;
     if(!kill_after_analysis) {
       ret_id = init_token();
-      add_temp_id(ret_id, init_cstring("temp_ret"));
+      add_temp_id(ret_id, init_cstring("ret_id"));
       heavy_check(NS3_r2e1); //jen alloc_check
     }
 
