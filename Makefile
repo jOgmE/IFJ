@@ -8,4 +8,4 @@ all: $(SRC)
 	$(CC) $(CFLAGS) $^ -o $(PROJ) -lm
 
 clean:
-	rm $(PROJ)
+	rm -f $(PROJ)
