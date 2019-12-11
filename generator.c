@@ -7,8 +7,6 @@
 
 #include "generator.h"
 
-#define DEBUG
-
 //******************************************************************************************//
 //******************************************************************************************//
 //********************                 Globalni promenne                      **************//
@@ -53,30 +51,6 @@ size_t param_counter = 0;
 //********************                   Inicializace                         **************//
 //******************************************************************************************//
 //******************************************************************************************//
-
-#ifdef DEBUG
-
-void init_gen_test(char *filename)
-{
-    cstring *file_name = init_cstring(filename);
-
-    append_string(file_name, ".ic19");
-
-    result_code_filename = file_name->str;
-
-    out_stream = fopen(result_code_filename, "w");
-
-    if (out_stream == NULL)
-    {
-        global_error_code = INTERNAL_ERROR;
-        print_internal_error(INTERNAL_ERROR, ERROR, "Chyba vytvoreni vystupniho souboru");
-        return;
-    }
-
-    init_gen();
-}
-
-#endif
 
 void init_gen()
 {
@@ -430,13 +404,6 @@ char *check_and_write_define(Token *token)
 
     char *token_key = token->str->str;
 
-#ifdef DEBUG
-    if (CURRENT_FRAME == LOCAL_FRAME && strcmp(token_key, "a") == 0)
-    {
-        int _a = 0;
-    }
-#endif
-
     bool token_exists_global = item_exists_table(token_key, GLOBAL_FRAME);
 
     char *token_frame_str;
@@ -586,10 +553,6 @@ void check_and_define_while()
     ac_type type = readACtype();
 
     Token *op1 = NULL, *op2 = NULL, *res = NULL;
-
-#ifdef DEBUG
-    append_string(CURRENT_BLOCK, "\n#while start\n");
-#endif
 
     while (isACActive() && type != WHILE_END)
     {
@@ -1024,7 +987,7 @@ void write_div_by_0_check(ac_type div_type, Token *token)
         }
         else
         {
-            append_string(CURRENT_BLOCK, "float@0");
+            append_string(CURRENT_BLOCK, "float@0x0.07ffc00000001p-1022");
         }
 
         append_string(CURRENT_BLOCK, "\n");
@@ -1226,74 +1189,3 @@ void generate_code()
 
     print_gen_all();
 }
-
-#ifdef DEBUG
-
-//******************************************************************************************//
-//******************************************************************************************//
-//********************              !!!!TESTOVANI, SMAZAT!!!                  **************//
-//******************************************************************************************//
-//******************************************************************************************//
-
-/*
-int main(int argc, char const *argv[])
-{
-    init_gen_test("testout");
-
-    Token *op1 = malloc(sizeof(Token));
-    Token *op2 = malloc(sizeof(Token));
-    Token *res = malloc(sizeof(Token));
-
-    //cstring *op1_str = init_cstring("operatorOne");
-    cstring *op2_str = init_cstring("operatorTwo");
-    cstring *res_str = init_cstring("result");
-
-    // op1->str = NULL;
-    // op1->dec = 50.5050;
-    // op1->type = DEC;
-
-    op1->str = NULL;
-    op1->i = 5;
-    op1->type = INT;
-
-    op2->str = op2_str;
-    op2->type = ID;
-
-    write_assign(op1, op2);
-
-    op1->str = NULL;
-    op1->dec = 5.6;
-    op1->type = DEC;
-
-    // op1->str = NULL;
-    // op1->i = 1234;
-    // op1->type = INT;
-
-    // op2->str = NULL;
-    // op2->i = 5678;
-    // op2->type = INT;
-
-    // op2->str = NULL;
-    // op2->dec = 5.6;
-    // op2->type = DEC;
-
-    // res->str = res_str;
-    // res->type = ID;
-
-    res->str = res_str;
-    res->i = 9;
-    res->type = ID;
-
-    write_arithmetic(ADD, op1, op2, op2);
-
-    print_gen_all();
-
-    free_gen();
-
-    fclose(out_stream);
-
-    return 0;
-}
-*/
-
-#endif
