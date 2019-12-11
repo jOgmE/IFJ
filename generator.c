@@ -997,18 +997,18 @@ void write_comparison(ac_type type, Token *op1, Token *op2, Token *res)
 
 void write_div_by_0_check(ac_type div_type, Token *token)
 {
-    if (token != ID)
+    if (token->type != ID && token->type != TEMP_ID)
     {
         if (token->type == INT && token->i == 0)
         {
-            append_string(CURRENT_BLOCK, "EXIT int@9");
+            append_string(CURRENT_BLOCK, "EXIT int@9\n");
         }
         else if (token->type == DEC && token->dec == 0)
         {
-            append_string(CURRENT_BLOCK, "EXIT int@9");
+            append_string(CURRENT_BLOCK, "EXIT int@9\n");
         }
     }
-    else if (token == ID)
+    else if (token->type == ID || token->type == TEMP_ID)
     {
 
         char *token_frame_str = check_and_write_define(token);
@@ -1028,7 +1028,7 @@ void write_div_by_0_check(ac_type div_type, Token *token)
         }
 
         append_string(CURRENT_BLOCK, "\n");
-        append_string(CURRENT_BLOCK, "EXIT int@9");
+        append_string(CURRENT_BLOCK, "EXIT int@9\n");
 
         append_string(CURRENT_BLOCK, "LABEL $tmpnotzero$");
         append_string(CURRENT_BLOCK, convert_int_to_string(tmp_if_counter));
@@ -1141,6 +1141,7 @@ void write_arithmetic(ac_type type, Token *op1, Token *op2, Token *res)
     {
         append_string(CURRENT_BLOCK, " ");
     }
+    append_string(CURRENT_BLOCK, "\n");
 
     ++tmp_var_counter;
 }
@@ -1175,6 +1176,7 @@ void generate_code()
         case SUB:
         case MUL:
         case DIVINT:
+        case DIV:
             write_arithmetic(type, op1, op2, res);
             break;
         case EQUAL:
