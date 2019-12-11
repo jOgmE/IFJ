@@ -42,7 +42,7 @@ convert op_conv[] = {
 Token *init_token(){
     Token *tmp = (Token*)calloc(1, sizeof(Token)); //if error, this will be NULL
     if(!tmp){
-        print_internal_error(INTERNAL_ERROR, ERROR, "Cannot allocate memory"); //!hojkas translate pls here :wowMan
+        print_internal_error(INTERNAL_ERROR, ERROR, "Chyba alokace paměti.");
         global_error_code = INTERNAL_ERROR;
         return NULL;
     }
@@ -104,7 +104,7 @@ int getIntValue(Token *token, int *num){
         *num = token->i;
         return 0;
     }
-    print_internal_error(INTERNAL_ERROR, ERROR, "This function caller wans to read different Token than Int"); //!hojkas translate pls here :wowMan
+    print_internal_error(INTERNAL_ERROR, ERROR, "Tato funkce byla zavolana na precteni int hodnoty z tokenu, ktery neni typu INT.");
     global_error_code = INTERNAL_ERROR;
     return -1;
 }
@@ -114,16 +114,16 @@ int getDecValue(Token *token, double *num){
         *num = token->dec;
         return 0;
     }
-    print_internal_error(INTERNAL_ERROR, ERROR, "This function caller wans to read different Token than floating point number"); //!hojkas translate pls here :wowMan
+    print_internal_error(INTERNAL_ERROR, ERROR, "Tato funkce byla zavolana na precteni dec (desetinne) hodnoty z tokenu, ktery neni typu DEC.");
     global_error_code = INTERNAL_ERROR;
     return -1;
 }
 
 cstring *getTokenStrValue(Token *token){
-    if(getTokenType(token) == STR || getTokenType(token) == ID){
+    if(getTokenType(token) == STR || getTokenType(token) == ID || getTokenType(TEMP_ID) || getTokenType(LABEL)){
         return token->str;
     }
-    print_internal_error(INTERNAL_ERROR, ERROR, "This function caller wans to read different Token than string"); //!hojkas translate pls here :wowMan
+    print_internal_error(INTERNAL_ERROR, ERROR, "Tato funkce byla zavolana na precteni stringu z tokenu, ktery neni typu STR ani ID ani TEMP_ID ani LABEL.");
     global_error_code = INTERNAL_ERROR;
     return NULL;
 }
@@ -189,7 +189,7 @@ void free_token(Token *token){
 Token *copy_token(Token *token){
   Token *new = init_token();
   if(new == NULL){
-    print_internal_error(INTERNAL_ERROR, ERROR, "Interní chyba alokace paměti pro token.");
+    print_internal_error(INTERNAL_ERROR, ERROR, "Interni chyba alokace pameti pro token.");
     global_error_code = INTERNAL_ERROR;
     return NULL;
   }
