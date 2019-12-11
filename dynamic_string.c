@@ -40,6 +40,10 @@ cstring *init_cstring(const char *str)
     size_t size = strlen(str);
 
     cstring *cstr = init_cstring_size(size);
+    if(!cstr){ //alloc failed
+        global_error_code = INTERNAL_ERROR;
+        return NULL;
+    }
 
     strcpy(cstr->str, str);
     //memcpy(cstr->str, str, size);
