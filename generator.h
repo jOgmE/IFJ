@@ -17,7 +17,7 @@
     "PUSHFRAME\n"                         \
     "DEFVAR LF@%temp_ret\n"               \
     "MOVE LF@%temp_ret nil@nil\n"         \
-    "DEFVAR LF@%input\n"                  \
+    "DEFVAR LF@%inputstring\n"            \
     "READ LF@%inputstring string\n"       \
     "MOVE LF@%temp_ret LF@%inputstring\n" \
     "POPFRAME\n"                          \
@@ -28,7 +28,7 @@
     "PUSHFRAME\n"                      \
     "DEFVAR LF@%temp_ret\n"            \
     "MOVE LF@%temp_ret nil@nil\n"      \
-    "DEFVAR LF@%input\n"               \
+    "DEFVAR LF@%inputint\n"            \
     "READ LF@%inputint int\n"          \
     "MOVE LF@%temp_ret LF@%inputint\n" \
     "POPFRAME\n"                       \
@@ -39,7 +39,7 @@
     "PUSHFRAME\n"                        \
     "DEFVAR LF@%temp_ret\n"              \
     "MOVE LF@%temp_ret nil@nil\n"        \
-    "DEFVAR LF@%input\n"                 \
+    "DEFVAR LF@%inputfloat\n"            \
     "READ LF@%inputfloat float\n"        \
     "MOVE LF@%temp_ret LF@%inputfloat\n" \
     "POPFRAME\n"                         \

@@ -40,6 +40,7 @@ bool chr_appended = false;
 bool ord_appended = false;
 
 bool createframe_written = false;
+bool pushframe_written = false;
 
 size_t tmp_if_counter = 0;
 size_t tmp_var_counter = 0;
@@ -246,6 +247,7 @@ void definition_start()
     PREVIOUS_FRAME = CURRENT_FRAME;
     switch_frame(LOCAL_FRAME);
     function_definition = true;
+    pushframe_written = false;
 }
 
 void definition_end()
@@ -374,11 +376,12 @@ void write_label(char *label)
     append_string(CURRENT_BLOCK, label);
     append_string(CURRENT_BLOCK, "\n");
 
-    if (function_definition)
+    if (function_definition && !pushframe_written)
     {
         append_string(CURRENT_BLOCK, "PUSHFRAME\n");
         append_string(CURRENT_BLOCK, "DEFVAR LF@%temp_ret\n");
         append_string(CURRENT_BLOCK, "MOVE LF@%temp_ret nil@nil\n");
+        pushframe_written = true;
     }
 }
 
@@ -399,7 +402,15 @@ char *check_and_write_define(Token *token)
     {
         free_cstring(token->str);
         token->str = init_cstring("%temp_ret");
-        return "TF";
+
+        if (function_definition)
+        {
+            return "LF";
+        }
+        else
+        {
+            return "TF";
+        }
     }
 
     char *token_key = token->str->str;
@@ -505,9 +516,9 @@ void write_param(Token *res)
         //     switch_frame(TEMP_FRAME);
         // }
 
-        // append_string(CURRENT_BLOCK, "DEFVAR TF@%");
-        // append_string(CURRENT_BLOCK, param_counter_str);
-        // append_string(CURRENT_BLOCK, "\n");
+        append_string(CURRENT_BLOCK, "DEFVAR TF@%");
+        append_string(CURRENT_BLOCK, param_counter_str);
+        append_string(CURRENT_BLOCK, "\n");
 
         append_string(CURRENT_BLOCK, "MOVE TF@%");
         append_string(CURRENT_BLOCK, param_counter_str);
@@ -633,6 +644,8 @@ void write_call(char *label)
 
     //switch_frame(LOCAL_FRAME);
     //CURRENT_BLOCK = result_main_function_code;
+
+    createframe_written = false;
 
     switch_frame(GLOBAL_FRAME);
 
@@ -1193,7 +1206,7 @@ void generate_code()
             write_param(res);
             break;
         case RET:
-            write_return(res);
+            //write_return(res);
             break;
         default:
             break;
