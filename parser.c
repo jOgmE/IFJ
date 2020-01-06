@@ -1066,7 +1066,7 @@ bool not_sure1()
 
     int param_count = 0;
     //ulozi se, jestli jde o funkci print nebo ne
-    bool is_print = compare_string(getTokenStrValue(last_token), "print");
+    bool is_print = false;
 
     if(is_print) {
       //pokud je id funkce print, resim jinak
@@ -1221,7 +1221,7 @@ bool not_sure3()
     heavy_check(NS3_r1e1);
 
     int param_count = 0;
-    bool is_print = compare_string(getTokenStrValue(last_token), "print");
+    bool is_print = false;
 
     if(is_print) {
       //funkce je print vip zachazeni

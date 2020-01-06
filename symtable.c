@@ -296,7 +296,7 @@ bool work_out_fce_id(Token* token, int param_count, bool define)
       if(global_error_code == SUCCESS) global_error_code = SEMANTIC_DEFINITION_ERROR;
       return false;
     }
-    if(act_item->number_of_params != param_count) {
+    if(act_item->number_of_params > -1 && act_item->number_of_params != param_count) {
       //spatny pocet parametru
       fprintf(stderr, "[ " ERROR_COLOR "ERROR" RESET_COLOR " ] Nesedi pocet argumentu u %s " BOLD_WHITE "(SEMANTIC_PARAMETER_ERROR)" RESET_COLOR "\n", get_cstring_string(getTokenStrValue(token)));
       if(global_error_code == SUCCESS) global_error_code = SEMANTIC_PARAMETER_ERROR;
