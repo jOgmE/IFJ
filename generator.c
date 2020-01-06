@@ -452,36 +452,48 @@ void write_createframe()
     switch_frame(TEMP_FRAME);
 }
 
-bool check_and_write_print(Token *res)
+void check_and_write_print()
 {
-    if (res->type == PARAM)
+    cstring *print_name = init_cstring("print$");
+    char *print_id = convert_int_to_string(param_counter);
+    append_string(print_name, print_id);
+
+    bool exists = item_exists_table(print_name->str, GLOBAL_FRAME);
+
+    if (exists)
     {
-        set_ac_breakpoint();
-        actAC();
+        append_string(CURRENT_BLOCK, "CALL ");
+        append_cstring(CURRENT_BLOCK, print_name);
+        append_string(CURRENT_BLOCK, "\n\n");
 
-        ac_type next_type = readACtype();
-
-        if (next_type == CALL)
-        {
-            Token *next_res = readACres();
-
-            if (!compare_string(next_res->str, "print"))
-            {
-                goto_ac_breakpoint();
-                return false;
-            }
-
-            res = next_res;
-        }
+        return;
     }
 
-    char *res_frame_str = check_and_write_define(res);
+    insert_table_item(print_name->str, GLOBAL_FRAME);
 
-    append_string(CURRENT_BLOCK, "WRITE ");
-    write_symbol(res, res_frame_str, true);
+    append_string(result_functions_code, "LABEL print$");
+    append_string(result_functions_code, print_id);
+    append_string(result_functions_code, "\n");
+    append_string(result_functions_code, "PUSHFRAME\nDEFVAR LF@%temp_ret\nMOVE LF@%temp_ret nil@nil\n");
+
+    char *current_id;
+    for (size_t i = 1; i <= param_counter; i++)
+    {
+        if (i > 1)
+        {
+            append_string(result_functions_code, "WRITE string@\\032\n");
+        }
+        current_id = convert_int_to_string(i);
+        append_string(result_functions_code, "WRITE LF@%");
+        append_string(result_functions_code, current_id);
+        append_string(result_functions_code, "\n");
+    }
+    append_string(result_functions_code, "WRITE string@\\010\n");
+    append_string(result_functions_code, "POPFRAME\nRETURN\n\n");
+
+    append_string(CURRENT_BLOCK, "CALL ");
+    append_cstring(CURRENT_BLOCK, print_name);
     append_string(CURRENT_BLOCK, "\n");
-
-    return true;
 }
 
 void write_param(Token *res)
@@ -611,10 +623,14 @@ void write_call(char *label)
         append_string(result_functions_code, LEN_FUNC);
         len_appended = true;
     }
-    else if (strcmp(label, "print") == 0 && !print_appended)
+    else if (strcmp(label, "print") == 0)
     {
-        append_string(result_functions_code, PRINT_FUNC);
-        print_appended = true;
+        check_and_write_print();
+
+        switch_frame(GLOBAL_FRAME);
+
+        param_counter = 0;
+        return;
     }
     else if (strcmp(label, "substr") == 0 && !substr_appended)
     {
