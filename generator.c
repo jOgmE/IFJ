@@ -462,6 +462,11 @@ void check_and_write_print()
 
     if (exists)
     {
+        if (param_counter == 0)
+        {
+            write_createframe();
+        }
+
         append_string(CURRENT_BLOCK, "CALL ");
         append_cstring(CURRENT_BLOCK, print_name);
         append_string(CURRENT_BLOCK, "\n\n");
@@ -490,6 +495,11 @@ void check_and_write_print()
     }
     append_string(result_functions_code, "WRITE string@\\010\n");
     append_string(result_functions_code, "POPFRAME\nRETURN\n\n");
+
+    if (param_counter == 0)
+    {
+        write_createframe();
+    }
 
     append_string(CURRENT_BLOCK, "CALL ");
     append_cstring(CURRENT_BLOCK, print_name);
@@ -630,6 +640,7 @@ void write_call(char *label)
         switch_frame(GLOBAL_FRAME);
 
         param_counter = 0;
+        createframe_written = false;
         return;
     }
     else if (strcmp(label, "substr") == 0 && !substr_appended)
