@@ -462,7 +462,7 @@ void check_and_write_print()
 
     if (exists)
     {
-        if (param_counter == 0)
+        if (param_counter == 0 && !createframe_written)
         {
             write_createframe();
         }
@@ -496,7 +496,7 @@ void check_and_write_print()
     append_string(result_functions_code, "WRITE string@\\010\n");
     append_string(result_functions_code, "POPFRAME\nRETURN\n\n");
 
-    if (param_counter == 0)
+    if (param_counter == 0 && !createframe_written)
     {
         write_createframe();
     }
