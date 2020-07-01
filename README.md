@@ -16,4 +16,10 @@ We had to presentate our project, which can be found in folder **prezentace/** f
 
 For more detailed description see **dokumentace/**. (cz)
 
+Test files can be found in **tests/**.
+
+### Compiling
+
+If you are in the main directory of the project, run `make`.
+
 ## The project is NOT fully working! The team was lacking time to finish the project.
