@@ -1,0 +1,82 @@
+Hodnocené části:
+ 1) Automatické testy a manuální hodnocení implementace:
+      zahrnuje automatické testy včetně testů registrovaných rozšíření
+               hodnocení implementace předepsané metody syntaktické analýzy,
+               dodržení varianty zadání v implementaci (symtable.c),
+               přehlednost a kvalita kódu.
+    Následuje orientační ceník za nejčastější chyby a prohřešky včetně několika zkratek, které se mohou vyskytovat v komentářích hodnocení implementace:
+      NOHEAD = chybí záhlaví ve zdroj. souborech: -0,50 b
+      NOAUTHORS = chybí jména autorů v záhlaví: -0,20 b
+      PMGP = nadměrné množství globálních proměnných: -0,20 b (tolerována globální proměnná pro chybu, tabulku symbolů a seznam instrukcí)
+      HEADCODE = kód v hlavičkových souborech místo v .c souborech: -0,15 b
+      LCOM++ = téměř žádné komentáře: -0,30 b
+      LCOM = málo komentářů: -0,10 b
+      GCOM = příliš mnoho komentářů: -0,10 b
+      NOCOMH = chybí komentáře u deklarací důležitých funkcí v .h: -0,10 b
+      FUNCDECLH = chybí deklarace funkcí v .h: -0,10 b
+      MIXENCZ = kombinování anglického a českého jazyka v komentářích: -0,10 b
+      INDENTATION = špatné/nevhodné odsazení bloků: bez postihu
+      TOOLONGFUNCS = příliš dlouhé funkce (lépe provést dekompozici): bez postihu
+      CLEAN = celková úprava kódu (více prohřešků): -0,50 b (odsazení, zakomentované zbytky kódu, ...)
+      COPYPASTE = kopírování kódu místo vytvoření vhodné funkce: -0,10 b
+      VUL = vulgarismy: -0,30 b
+      NORS/PA = SA analýza chybí: -0,60 b
+      NOPSA = SA analýza výrazů chybí: -0,60 b
+      IAL+ = TS v jiném souboru než symtable.(c|h): -0,10 b
+      NOTS/IAL++ = chybí TS dle zadání: -0,60 b
+ 2) Prémiové body, korekce, malus: aktivita na fóru, (rychlostní soutěž bude ještě doplněna)
+                                   pozdní odevzdání, formální nedostatky.
+ 3) Dokumentace (viz zadání a seznam zkratek níže).
+    Následuje seznam zkratek, které se mohou vyskytnout v komentářích k hodnocení dokumentace:
+      KA = chyby v KA, především větší míra nedeterminismu, chybějící důležité lexémy (např. ošetření komentářů atp.)
+      strukt. = nedostatky ve struktuře dokumentu (nejčastěji chybějící závěr)
+      PSA = chybějící nebo nedostatečný popis precedenční syntaktické analýzy
+      RP = chybějící popis rozdělení práce
+      GK = chybějící/nedostatečný popis generování kódu
+      1. strana - chybějící informace na 1. straně dokumentace
+      LL = chyby a nedostatky v LL tabulce
+      LLT = chybějící nebo chybná LL tabulka
+      typ. = typografické nedostatky (nejčastěji text nebyl zarovnán do bloku)
+      ref. = připomínky ke způsobu uvedení zdrojů/literatury (nečíslovaný seznam literatury, neodkazované zdroje)
+      SA = nedostatečný/chybějící popis syntaktické analýzy
+      SaV = nedostatečný popis syntaktické analýzy výrazů
+      SéA = chybějící/nedostatečný popis sémantické analýzy (typicky není dobře popsáno, co všechno se kontroluje)
+      PT = chybějící, chybná nebo nečitelná precedenční tabulka
+      TS = chybějící/nedostatečný popis tabulky symbolů či její implementace
+      styl. = špatně srozumitelné věty/souvětí
+      gram. = gramatické chyby
+      BLOK = text není zarovnán do bloku
+      KAPTXT = dokumentace obsahuje více nadpisů hned za sebou
+    Za většinu prohřešků bylo podle závažnosti strhnuto 0,1 až 0,7 bodu.
+    Poznámky k hodnocení dokumentací jsou vesměs řazeny dle klesající závažnosti.
+
+
+V případě, že nebyl Váš projekt přeložen úspěšně, je přiložen
+log dekomprimace odevzdáného archivu a kompilace projektu.
+
+Termíny reklamací budou vypsány ve WIS. V případě snahy o elektronické řešení před řádným termínem (IFJ/IAL) pište co nejdříve! Bez získaného zápočtu není možné přijít na zkoušku.
+
+
+Vaše hodnocení části 1): 5,84 bodů
+  Komentář hodnocení části 1): VUL, MIXCZEN, zakomentovaný kód, todo komentáre, niektoré súbory bez hlavičky - tudiž nie je známy autor, niektoré hlavičky neobsahujú info o projekte, súbore
+Vaše hodnocení části 2): 0 bodů
+  Komentář hodnocení části 2): Bez komentáře.
+Vaše hodnocení části 3): 3 bodů
+  Komentář hodnocení části 3): KA, LLT, TS, KAPTXT, strukt.
+
+Pokud jste obdrželi výsledek částí 1) + 2) mimo interval <0,15+5> bodů, tak
+bude oříznut, tak že získáte za implementaci alespoň 0 a ne více jak 15+5 bodů.
+
+Procentuální hodnocení modulů překladače:
+Lexikální analýza (detekce chyb): 96 % (192/200)
+Syntaktická analýza (detekce chyb): 96 % (155/161)
+Sémantická analýza (detekce chyb): 91 % (148/162)
+Běhové chyby (detekce): 19 % (16/83)
+Interpretace přeloženého kódu: 3 % (35/996)
+BOOLOP 0 % (0/100)
+BASE 0 % (0/50)
+CYCLES 0 % (0/100)
+FUNEXP 0 % (0/150)
+IFTHEN 0 % (0/100)
+TABUNARY 7 % (7/100)
+Celkem bez rozšíření: 34 % (546/1602)
