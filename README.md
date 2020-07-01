@@ -8,8 +8,12 @@ The goal was to write a compiler with input of a fictional language IFJ19 and ou
 
 ### Files
 
-The assignment can be found in **ifj2019.pdf**
+The assignment can be found in **ifj2019.pdf** (cz)
 
-The gained score can be foud in **hodnotenie.txt**
+The gained score can be foud in **hodnotenie.txt** (cz)
+
+We had to presentate our project, which can be found in folder **prezentace/** for quick review. (cz)
+
+For more detailed description see **dokumentace/**. (cz)
 
 ## The project is NOT fully working! The team was lacking time to finish the project.
