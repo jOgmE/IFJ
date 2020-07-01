@@ -9,6 +9,7 @@ The goal was to write a compiler with input of a fictional language IFJ19 and ou
 ### Files
 
 The assignment can be found in **ifj2019.pdf**
+
 The gained score can be foud in **hodnotenie.txt**
 
-## The project is NOT fully working! We had not enough time to finish the project and after handing over there was no motivation to finish it.
+## The project is NOT fully working! The team was lacking time to finish the project.
